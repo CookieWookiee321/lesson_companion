@@ -26,7 +26,7 @@ class CompanionMethods {
   static String getDateString(DateTime dateTime) {
     String dayStr;
 
-    switch (dateTime.day) {
+    switch (dateTime.month) {
       case 1:
         dayStr = "January";
         break;

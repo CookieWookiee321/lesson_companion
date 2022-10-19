@@ -38,15 +38,25 @@ int _pdfTableEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 +
-      PdfTextSchema.estimateSize(
-          object.heading, allOffsets[PdfText]!, allOffsets);
-  bytesCount += 3 + object.rows.length * 3;
   {
-    final offsets = allOffsets[PdfTableRow]!;
-    for (var i = 0; i < object.rows.length; i++) {
-      final value = object.rows[i];
-      bytesCount += PdfTableRowSchema.estimateSize(value, offsets, allOffsets);
+    final value = object.heading;
+    if (value != null) {
+      bytesCount += 3 +
+          PdfTextSchema.estimateSize(value, allOffsets[PdfText]!, allOffsets);
+    }
+  }
+  {
+    final list = object.rows;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        final offsets = allOffsets[PdfTableRow]!;
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount +=
+              PdfTableRowSchema.estimateSize(value, offsets, allOffsets);
+        }
+      }
     }
   }
   return bytesCount;
@@ -80,18 +90,16 @@ PdfTable _pdfTableDeserialize(
 ) {
   final object = PdfTable();
   object.heading = reader.readObjectOrNull<PdfText>(
-        offsets[0],
-        PdfTextSchema.deserialize,
-        allOffsets,
-      ) ??
-      PdfText();
+    offsets[0],
+    PdfTextSchema.deserialize,
+    allOffsets,
+  );
   object.rows = reader.readObjectList<PdfTableRow>(
-        offsets[1],
-        PdfTableRowSchema.deserialize,
-        allOffsets,
-        PdfTableRow(),
-      ) ??
-      [];
+    offsets[1],
+    PdfTableRowSchema.deserialize,
+    allOffsets,
+    PdfTableRow(),
+  );
   return object;
 }
 
@@ -104,19 +112,17 @@ P _pdfTableDeserializeProp<P>(
   switch (propertyId) {
     case 0:
       return (reader.readObjectOrNull<PdfText>(
-            offset,
-            PdfTextSchema.deserialize,
-            allOffsets,
-          ) ??
-          PdfText()) as P;
+        offset,
+        PdfTextSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 1:
       return (reader.readObjectList<PdfTableRow>(
-            offset,
-            PdfTableRowSchema.deserialize,
-            allOffsets,
-            PdfTableRow(),
-          ) ??
-          []) as P;
+        offset,
+        PdfTableRowSchema.deserialize,
+        allOffsets,
+        PdfTableRow(),
+      )) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -124,6 +130,38 @@ P _pdfTableDeserializeProp<P>(
 
 extension PdfTableQueryFilter
     on QueryBuilder<PdfTable, PdfTable, QFilterCondition> {
+  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> headingIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'heading',
+      ));
+    });
+  }
+
+  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> headingIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'heading',
+      ));
+    });
+  }
+
+  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'rows',
+      ));
+    });
+  }
+
+  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'rows',
+      ));
+    });
+  }
+
   QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsLengthEqualTo(
       int length) {
     return QueryBuilder.apply(this, (query) {

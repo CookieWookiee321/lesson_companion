@@ -6,18 +6,18 @@ part 'pdf_table.g.dart';
 
 @embedded
 class PdfTable {
-  late PdfText _heading;
-  late List<PdfTableRow> _rows;
+  PdfText? _heading;
+  List<PdfTableRow>? _rows;
 
-  PdfText get heading => _heading;
+  PdfText? get heading => _heading;
 
-  set heading(PdfText value) {
+  set heading(PdfText? value) {
     _heading = value;
   }
 
-  List<PdfTableRow> get rows => _rows;
+  List<PdfTableRow>? get rows => _rows;
 
-  set rows(List<PdfTableRow> value) {
+  set rows(List<PdfTableRow>? value) {
     _rows = value;
   }
 }

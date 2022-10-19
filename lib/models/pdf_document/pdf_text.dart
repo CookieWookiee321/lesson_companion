@@ -116,4 +116,54 @@ class PdfText {
 
     return sb.toString();
   }
+
+  DateTime parseToDateTime() {
+    var parts = this.toString().split(" ");
+    String monthNum;
+    switch (parts[1]) {
+      case "January":
+        monthNum = "01";
+        break;
+      case "February":
+        monthNum = "02";
+        break;
+      case "March":
+        monthNum = "03";
+        break;
+      case "April":
+        monthNum = "04";
+        break;
+      case "May":
+        monthNum = "05";
+        break;
+      case "June":
+        monthNum = "06";
+        break;
+      case "July":
+        monthNum = "07";
+        break;
+      case "August":
+        monthNum = "08";
+        break;
+      case "September":
+        monthNum = "09";
+        break;
+      case "October":
+        monthNum = "10";
+        break;
+      case "November":
+        monthNum = "11";
+        break;
+      default:
+        monthNum = "12";
+        break;
+    }
+
+    String dayNum = parts[0];
+    if (dayNum.length == 1) {
+      dayNum = "0$dayNum";
+    }
+
+    return DateTime.parse("${parts[2]}-$monthNum-$dayNum 00:00:00");
+  }
 }

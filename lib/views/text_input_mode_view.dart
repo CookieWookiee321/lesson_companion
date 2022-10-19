@@ -2,10 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/report.dart';
 
 import '../controllers/companion_methods.dart';
 import '../controllers/text_mode_input_controller.dart';
+import '../models/student.dart';
 import 'companion_widgets.dart';
 
 //   final template = """* Name
@@ -29,20 +31,29 @@ import 'companion_widgets.dart';
 // e\\example\\ i\\info\\ This q\\question\\ <subtext>
 // ===""";
 
+//TODO: Fix the auto-completion (in edit)
+
 final _template = """* Name
 -
+
 * Date
 - ${CompanionMethods.getShortDate(DateTime.now())}
+
 * Topic
 -
+
 * Homework
 -
+
 * New Language
 -
+
 * Pronunciation
 -
+
 * Corrections
 -
+
 ===""";
 
 class TextInputModeView extends StatefulWidget {
@@ -69,8 +80,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     const stoppingPoint = "===";
 
     for (var line in _textController.text.split("\n")) {
-      if (line.isNotEmpty & (line != stoppingPoint)) {
-        if (line[0] != "*") {
+      if (line.isNotEmpty) {
+        if (line[0] != "*" && line != stoppingPoint) {
           if (line[0] != "-") {
             line = "- $line";
           }
@@ -164,6 +175,9 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                         _autoFormat();
                         final report = Report();
                         await report.buildFromText(_textController.text);
+
+                        // if (!await DataStorage.checkStudentExistsById(
+                        //     report.id)) final student = Student.known(report.id, );
                         report.create();
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(

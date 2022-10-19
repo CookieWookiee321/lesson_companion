@@ -38,8 +38,13 @@ int _pdfTableRowEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 +
-      PdfTextSchema.estimateSize(object.lhs, allOffsets[PdfText]!, allOffsets);
+  {
+    final value = object.lhs;
+    if (value != null) {
+      bytesCount += 3 +
+          PdfTextSchema.estimateSize(value, allOffsets[PdfText]!, allOffsets);
+    }
+  }
   {
     final value = object.rhs;
     if (value != null) {
@@ -78,11 +83,10 @@ PdfTableRow _pdfTableRowDeserialize(
 ) {
   final object = PdfTableRow();
   object.lhs = reader.readObjectOrNull<PdfText>(
-        offsets[0],
-        PdfTextSchema.deserialize,
-        allOffsets,
-      ) ??
-      PdfText();
+    offsets[0],
+    PdfTextSchema.deserialize,
+    allOffsets,
+  );
   object.rhs = reader.readObjectOrNull<PdfText>(
     offsets[1],
     PdfTextSchema.deserialize,
@@ -100,11 +104,10 @@ P _pdfTableRowDeserializeProp<P>(
   switch (propertyId) {
     case 0:
       return (reader.readObjectOrNull<PdfText>(
-            offset,
-            PdfTextSchema.deserialize,
-            allOffsets,
-          ) ??
-          PdfText()) as P;
+        offset,
+        PdfTextSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 1:
       return (reader.readObjectOrNull<PdfText>(
         offset,
@@ -118,6 +121,22 @@ P _pdfTableRowDeserializeProp<P>(
 
 extension PdfTableRowQueryFilter
     on QueryBuilder<PdfTableRow, PdfTableRow, QFilterCondition> {
+  QueryBuilder<PdfTableRow, PdfTableRow, QAfterFilterCondition> lhsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lhs',
+      ));
+    });
+  }
+
+  QueryBuilder<PdfTableRow, PdfTableRow, QAfterFilterCondition> lhsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lhs',
+      ));
+    });
+  }
+
   QueryBuilder<PdfTableRow, PdfTableRow, QAfterFilterCondition> rhsIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(

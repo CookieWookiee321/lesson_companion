@@ -32,7 +32,9 @@ class PdfDoc {
   /// Creates and saves a report PDF based on the parent object.
   void create() async {
     final footer = PdfText();
-    footer.input(DataStorage.getSetting("footer").toString());
+    final temp1 = await DataStorage.getSetting("footer");
+    final temp2 = temp1 == "[Setting not found]" ? "" : temp1;
+    footer.input(temp2);
 
     // model the sections of the PDF to get styled objects
     final _name = await _newText(name, PdfSection.h1);
@@ -47,13 +49,15 @@ class PdfDoc {
     final _homework =
         homework == null ? await _newText(homework!, PdfSection.h2) : null;
     final _table1 = await newTable(table: table1);
-    final _table2 = table2 != null ? await newTable(table: table2!) : null;
-    final _table3 = table3 != null ? await newTable(table: table3!) : null;
+    final _table2 =
+        table2!.heading != null ? await newTable(table: table2!) : null;
+    final _table3 =
+        table3!.heading != null ? await newTable(table: table3!) : null;
     final _footer = await _newText(footer, PdfSection.footer);
 
     //initial set up
     var saveDest =
-        "${await CompanionMethods.getLocalPath()}\\${name.toString()} | ID ${DataStorage.getStudentId(name.toString())} | ${CompanionMethods.getShortDate(DateTime.parse(date.toString()))}.pdf";
+        "${await CompanionMethods.getLocalPath()}${name.toString()} (ID ${await DataStorage.getStudentId(name.toString())}) (${CompanionMethods.getShortDate(date.parseToDateTime())}).pdf";
 
     final pdf = Document();
     pdf.addPage(Page(build: ((context) {
@@ -70,25 +74,26 @@ class PdfDoc {
           Padding(padding: const EdgeInsets.symmetric(horizontal: 10.0)),
           Expanded(child: _topic)
         ]),
-        if (homework != null)
+        if (homework!.components.isNotEmpty)
           Row(children: [_homeworkHeader, Expanded(child: _homework!)]),
         Padding(padding: const EdgeInsets.symmetric(vertical: 4.0)),
         // BODY
         _table1,
-        if (table2 != null) _table2!,
-        if (table3 != null) _table3!,
+        if (table2!.heading != null) _table2!,
+        if (table3!.heading != null) _table3!,
         // FOOTER
         _footer
       ]);
     })));
-    try {
-      final file = File(saveDest);
-      final x = await pdf.save();
-      await file.writeAsBytes(x);
-      print("${DateTime.now()} - PDF saved to $saveDest");
-    } on FileSystemException {
-      print("Report is currently being used by another process.");
-    }
+    // try {
+    final file = File(saveDest);
+    final x = await pdf.save();
+    await file.writeAsBytes(x);
+    print("${DateTime.now()} - PDF saved to $saveDest");
+    // }
+    // on FileSystemException {
+    //   print("Report is currently being used by another process.");
+    // }
   }
 
   //============================================================================
@@ -96,7 +101,7 @@ class PdfDoc {
   //============================================================================
   ///Takes a heading and a map of LHS and RHS values to build a table with
   Future<Table> newTable({required PdfTable table}) async {
-    final _heading = await _newText(table.heading, PdfSection.h3);
+    final _heading = await _newText(table.heading!, PdfSection.h3);
     final _rows = await styleTableRows(table);
 
     return Table(children: [
@@ -139,14 +144,14 @@ class PdfDoc {
   Future<List<List<RichText>>> styleTableRows(PdfTable table) async {
     final List<List<RichText>> output = [];
 
-    for (final row in table.rows) {
-      List<RichText> thisRow = [];
-      thisRow.add(await _newText(row.lhs, PdfSection.body));
+    for (final row in table.rows!) {
+      final lhs = (await _newText(row.lhs!, PdfSection.body));
       if (row.rhs != null) {
-        thisRow.add(await _newText(row.rhs!, PdfSection.body));
+        final rhs = await _newText(row.rhs!, PdfSection.body);
+        output.add([lhs, rhs]);
+      } else {
+        output.add([lhs]);
       }
-
-      output.add(thisRow);
     }
 
     return output;

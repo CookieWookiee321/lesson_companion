@@ -52,41 +52,46 @@ const ReportSchema = CollectionSchema(
       name: r'studentId',
       type: IsarType.long,
     ),
-    r'tableOneItems': PropertySchema(
+    r'studentName': PropertySchema(
       id: 7,
+      name: r'studentName',
+      type: IsarType.string,
+    ),
+    r'tableOneItems': PropertySchema(
+      id: 8,
       name: r'tableOneItems',
       type: IsarType.objectList,
       target: r'PdfTableRow',
     ),
     r'tableOneName': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'tableOneName',
       type: IsarType.string,
     ),
     r'tableThreeItems': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'tableThreeItems',
       type: IsarType.objectList,
       target: r'PdfTableRow',
     ),
     r'tableThreeName': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'tableThreeName',
       type: IsarType.string,
     ),
     r'tableTwoItems': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'tableTwoItems',
       type: IsarType.objectList,
       target: r'PdfTableRow',
     ),
     r'tableTwoName': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'tableTwoName',
       type: IsarType.string,
     ),
     r'topic': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'topic',
       type: IsarType.stringList,
     )
@@ -130,6 +135,12 @@ int _reportEstimateSize(
   }
   bytesCount += 3 + object.linePrefix.length * 3;
   bytesCount += 3 + object.objectSplitter.length * 3;
+  {
+    final value = object.studentName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final list = object.tableOneItems;
     if (list != null) {
@@ -218,28 +229,29 @@ void _reportSerialize(
   writer.writeString(offsets[4], object.linePrefix);
   writer.writeString(offsets[5], object.objectSplitter);
   writer.writeLong(offsets[6], object.studentId);
+  writer.writeString(offsets[7], object.studentName);
   writer.writeObjectList<PdfTableRow>(
-    offsets[7],
+    offsets[8],
     allOffsets,
     PdfTableRowSchema.serialize,
     object.tableOneItems,
   );
-  writer.writeString(offsets[8], object.tableOneName);
+  writer.writeString(offsets[9], object.tableOneName);
   writer.writeObjectList<PdfTableRow>(
-    offsets[9],
+    offsets[10],
     allOffsets,
     PdfTableRowSchema.serialize,
     object.tableThreeItems,
   );
-  writer.writeString(offsets[10], object.tableThreeName);
+  writer.writeString(offsets[11], object.tableThreeName);
   writer.writeObjectList<PdfTableRow>(
-    offsets[11],
+    offsets[12],
     allOffsets,
     PdfTableRowSchema.serialize,
     object.tableTwoItems,
   );
-  writer.writeString(offsets[12], object.tableTwoName);
-  writer.writeStringList(offsets[13], object.topic);
+  writer.writeString(offsets[13], object.tableTwoName);
+  writer.writeStringList(offsets[14], object.topic);
 }
 
 Report _reportDeserialize(
@@ -254,28 +266,29 @@ Report _reportDeserialize(
   object.id = id;
   object.lessonId = reader.readLongOrNull(offsets[3]);
   object.studentId = reader.readLongOrNull(offsets[6]);
+  object.studentName = reader.readStringOrNull(offsets[7]);
   object.tableOneItems = reader.readObjectList<PdfTableRow>(
-    offsets[7],
+    offsets[8],
     PdfTableRowSchema.deserialize,
     allOffsets,
     PdfTableRow(),
   );
-  object.tableOneName = reader.readStringOrNull(offsets[8]);
+  object.tableOneName = reader.readStringOrNull(offsets[9]);
   object.tableThreeItems = reader.readObjectList<PdfTableRow>(
-    offsets[9],
+    offsets[10],
     PdfTableRowSchema.deserialize,
     allOffsets,
     PdfTableRow(),
   );
-  object.tableThreeName = reader.readStringOrNull(offsets[10]);
+  object.tableThreeName = reader.readStringOrNull(offsets[11]);
   object.tableTwoItems = reader.readObjectList<PdfTableRow>(
-    offsets[11],
+    offsets[12],
     PdfTableRowSchema.deserialize,
     allOffsets,
     PdfTableRow(),
   );
-  object.tableTwoName = reader.readStringOrNull(offsets[12]);
-  object.topic = reader.readStringList(offsets[13]);
+  object.tableTwoName = reader.readStringOrNull(offsets[13]);
+  object.topic = reader.readStringList(offsets[14]);
   return object;
 }
 
@@ -301,33 +314,35 @@ P _reportDeserializeProp<P>(
     case 6:
       return (reader.readLongOrNull(offset)) as P;
     case 7:
-      return (reader.readObjectList<PdfTableRow>(
-        offset,
-        PdfTableRowSchema.deserialize,
-        allOffsets,
-        PdfTableRow(),
-      )) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readObjectList<PdfTableRow>(
+        offset,
+        PdfTableRowSchema.deserialize,
+        allOffsets,
+        PdfTableRow(),
+      )) as P;
     case 9:
-      return (reader.readObjectList<PdfTableRow>(
-        offset,
-        PdfTableRowSchema.deserialize,
-        allOffsets,
-        PdfTableRow(),
-      )) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
-      return (reader.readStringOrNull(offset)) as P;
-    case 11:
       return (reader.readObjectList<PdfTableRow>(
         offset,
         PdfTableRowSchema.deserialize,
         allOffsets,
         PdfTableRow(),
       )) as P;
-    case 12:
+    case 11:
       return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readObjectList<PdfTableRow>(
+        offset,
+        PdfTableRowSchema.deserialize,
+        allOffsets,
+        PdfTableRow(),
+      )) as P;
     case 13:
+      return (reader.readStringOrNull(offset)) as P;
+    case 14:
       return (reader.readStringList(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1301,6 +1316,152 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'studentName',
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'studentName',
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'studentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'studentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'studentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'studentName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'studentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'studentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'studentName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'studentName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'studentName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'studentName',
+        value: '',
       ));
     });
   }
@@ -2387,6 +2548,18 @@ extension ReportQuerySortBy on QueryBuilder<Report, Report, QSortBy> {
     });
   }
 
+  QueryBuilder<Report, Report, QAfterSortBy> sortByStudentName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'studentName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterSortBy> sortByStudentNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'studentName', Sort.desc);
+    });
+  }
+
   QueryBuilder<Report, Report, QAfterSortBy> sortByTableOneName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tableOneName', Sort.asc);
@@ -2509,6 +2682,18 @@ extension ReportQuerySortThenBy on QueryBuilder<Report, Report, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Report, Report, QAfterSortBy> thenByStudentName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'studentName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterSortBy> thenByStudentNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'studentName', Sort.desc);
+    });
+  }
+
   QueryBuilder<Report, Report, QAfterSortBy> thenByTableOneName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tableOneName', Sort.asc);
@@ -2594,6 +2779,13 @@ extension ReportQueryWhereDistinct on QueryBuilder<Report, Report, QDistinct> {
     });
   }
 
+  QueryBuilder<Report, Report, QDistinct> distinctByStudentName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'studentName', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Report, Report, QDistinct> distinctByTableOneName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2669,6 +2861,12 @@ extension ReportQueryProperty on QueryBuilder<Report, Report, QQueryProperty> {
   QueryBuilder<Report, int?, QQueryOperations> studentIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'studentId');
+    });
+  }
+
+  QueryBuilder<Report, String?, QQueryOperations> studentNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'studentName');
     });
   }
 

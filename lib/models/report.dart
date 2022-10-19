@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
-import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_document.dart';
@@ -11,9 +10,6 @@ import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 import 'package:lesson_companion/models/student.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart';
 
 part 'report.g.dart';
 
@@ -21,6 +17,7 @@ part 'report.g.dart';
 class Report {
   Id id = Isar.autoIncrement;
   int? studentId;
+  String? studentName;
   int? lessonId;
   DateTime? date;
   List<String>? topic;
@@ -38,14 +35,19 @@ class Report {
 
   Report();
 
+  Future<void> buildFromText(String fullText) async {
+    Map<String, List<String>> mappings = mapTextInput(fullText);
+    await _initReport(mappings);
+  }
+
   Future<void> _initReport(Map<String, List<String>> mappings) async {
     //check if Student exists
     final student = Student();
-    if (!await DataStorage.checkStudentExists(mappings["Name"]!.first)) {
+    if (!await DataStorage.checkStudentExistsByName(mappings["Name"]!.first)) {
       //if not, create new Hive entry
       student.name = mappings["Name"]!.first;
       student.active = true;
-      DataStorage.saveStudent(student);
+      await DataStorage.saveStudent(student);
     }
     studentId = await DataStorage.getStudentId(mappings["Name"]!.first);
 
@@ -57,7 +59,7 @@ class Report {
       student.id = studentId!;
     }
 
-//format the Date string
+    //format the Date string
     if (mappings["Date"]!.first.toString().contains('/')) {
       mappings["Date"]!.first = mappings["Date"]!.first.replaceAll('/', '-');
     }
@@ -88,42 +90,39 @@ class Report {
     //check if Lesson exists
     if (!await DataStorage.checkLessonExists(studentId!, date!)) {
       //if not, create new Hive entry
-      DataStorage.saveLesson(lesson);
+      await DataStorage.saveLesson(lesson);
     }
 
     // Skip over pre-defined heading keywords.
     var counter = 1;
-    for (var key in mappings.keys) {
-      if (key == "Name" ||
-          key == "Date" ||
-          key == "Topic" ||
-          key == "Homework") {
-        continue;
-      }
+    if (mappings.length > 3) {
+      for (var key in mappings.keys) {
+        if (key == "Name" ||
+            key == "Date" ||
+            key == "Topic" ||
+            key == "Homework") {
+          continue;
+        }
 
-      // Process only user-defined headings.
-      switch (counter) {
-        case 1:
-          tableOneName = key;
-          tableOneItems = cnvtStringToTableRows(mappings[key]!);
-          break;
-        case 2:
-          tableTwoName = key;
-          tableTwoItems = cnvtStringToTableRows(mappings[key]!);
-          break;
-        case 3:
-          tableThreeName = key;
-          tableThreeItems = cnvtStringToTableRows(mappings[key]!);
-          break;
-      }
+        // Process only user-defined headings.
+        switch (counter) {
+          case 1:
+            tableOneName = key;
+            tableOneItems = cnvtStringToTableRows(mappings[key]!);
+            break;
+          case 2:
+            tableTwoName = key;
+            tableTwoItems = cnvtStringToTableRows(mappings[key]!);
+            break;
+          case 3:
+            tableThreeName = key;
+            tableThreeItems = cnvtStringToTableRows(mappings[key]!);
+            break;
+        }
 
-      counter++;
+        counter++;
+      }
     }
-  }
-
-  Future<void> buildFromText(String fullText) async {
-    Map<String, List<String>> mappings = mapTextInput(fullText);
-    await _initReport(mappings);
   }
 
   //TODO: syntax highlighting
@@ -197,12 +196,10 @@ class Report {
   List<PdfTableRow> cnvtStringToTableRows(List<String> entries) {
     List<PdfTableRow> output = [];
 
-    //TODO: Do need to create new obj each time?
-    final lhs = PdfText();
-    final rhs = PdfText();
-
     for (final row in entries) {
       final thisRow = PdfTableRow();
+      final lhs = PdfText();
+      final rhs = PdfText();
 
       if (row.contains("||")) {
         final split = row.split("||");
@@ -216,6 +213,7 @@ class Report {
         output.add(thisRow);
       } else {
         lhs.input(row.trim());
+        thisRow.lhs = lhs;
         output.add(thisRow);
       }
     }

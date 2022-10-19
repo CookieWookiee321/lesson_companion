@@ -5,12 +5,12 @@ part 'pdf_table_row.g.dart';
 
 @embedded
 class PdfTableRow {
-  late PdfText _lhs;
+  PdfText? _lhs;
   PdfText? _rhs;
 
-  PdfText get lhs => _lhs;
+  PdfText? get lhs => _lhs;
 
-  set lhs(PdfText value) {
+  set lhs(PdfText? value) {
     _lhs = value;
   }
 

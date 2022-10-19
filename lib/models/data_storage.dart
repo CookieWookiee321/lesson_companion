@@ -103,7 +103,7 @@ class DataStorage {
     });
   }
 
-  static void saveLesson(Lesson lesson) async {
+  static Future<void> saveLesson(Lesson lesson) async {
     final isar = Isar.getInstance("lesson_db") ??
         await Isar.open([LessonSchema], name: "lesson_db");
     await isar.writeTxn(() async {
@@ -119,12 +119,23 @@ class DataStorage {
   //============================================================================
   //CHECK----------------------------------------------------------------------
   //============================================================================
-  static Future<bool> checkStudentExists(String name) async {
+  static Future<bool> checkStudentExistsByName(String name) async {
     final isar = Isar.getInstance("student_db") ??
         await Isar.open([StudentSchema], name: "student_db");
     final students = isar.students;
     final bool exists =
         await students.filter().nameEqualTo(name).findFirst() != null
+            ? true
+            : false;
+    return exists;
+  }
+
+  static Future<bool> checkStudentExistsById(int id) async {
+    final isar = Isar.getInstance("student_db") ??
+        await Isar.open([StudentSchema], name: "student_db");
+    final students = isar.students;
+    final bool exists =
+        await students.filter().idEqualTo(id).findFirst() != null
             ? true
             : false;
     return exists;
