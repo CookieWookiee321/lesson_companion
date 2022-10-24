@@ -43,22 +43,24 @@ class _StudentListRowState extends State<StudentListRow> {
       builder: ((context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData) {
-            final data = snapshot.data as String;
-
             return Container(
                 decoration: BoxDecoration(
                     border: Border.all(),
                     borderRadius: const BorderRadius.all(Radius.circular(8))),
                 margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
                 padding: const EdgeInsets.all(6),
-                child: Row(
-                  children: [
-                    Text(
-                      data,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    )
-                  ],
-                ));
+                child: ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: Icon(Icons.person_2_rounded),
+                        title: Text(snapshot.data![index]),
+                      );
+                    }));
+          } else {
+            Center(
+              child: Text("Failed to load students"),
+            );
           }
         }
         //TODO: handle error connection state
@@ -66,7 +68,7 @@ class _StudentListRowState extends State<StudentListRow> {
           child: CircularProgressIndicator(),
         );
       }),
-      future: DataStorage.getStudentName(0),
+      future: DataStorage.getAllStudentNames(),
     );
   }
 }

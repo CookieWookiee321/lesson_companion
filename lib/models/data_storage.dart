@@ -1,6 +1,5 @@
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/models/lesson.dart';
-import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -69,7 +68,8 @@ class DataStorage {
         .filter()
         .idEqualTo(studentId)
         .and()
-        .dateEqualTo(date)
+        .dateBetween(DateTime(date.year, date.month, date.day, 0, 0, 1),
+            DateTime(date.year, date.month, date.day, 23, 59, 59))
         .findFirst();
     return lesson != null ? lesson.id : null;
   }
@@ -150,6 +150,10 @@ class DataStorage {
     }
     return exists;
   }
+
+  //============================================================================
+  //UPDATE----------------------------------------------------------------------
+  //============================================================================
 
   //============================================================================
   //Delete----------------------------------------------------------------------

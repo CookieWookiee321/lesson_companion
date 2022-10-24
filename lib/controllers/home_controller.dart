@@ -1,7 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:lesson_companion/models/lesson.dart';
-import 'package:lesson_companion/models/report.dart';
-import 'package:lesson_companion/models/student.dart';
 
 import 'companion_methods.dart';
 
@@ -20,24 +17,6 @@ class HomeController extends ChangeNotifier {
     "November": 11,
     "December": 12
   };
-
-  static bool submitLesson(Student student, Lesson lesson, Report? report) {
-    //TODO: validate
-
-    int affectedRows = 0;
-
-    //check if Report is needed
-    if (report != null) {
-      //TODO: generate and print the report
-      //TODO: insert Lesson and Report as a transaction
-    } else {
-      //Otherwise, just insert the lesson
-      //TODO: affectedRows = HiveMethods.insertLesson(lesson) as int;
-    }
-
-    //return true if the transaction is successful, and false if not
-    return affectedRows > 0 ? true : false;
-  }
 
   static DateTime? convertStringToDateTime(
       String day, String month, String year) {

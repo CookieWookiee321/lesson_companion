@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/data_storage.dart';
@@ -31,7 +29,7 @@ class Report {
 
   final objectSplitter = "===";
   final headingPrefix = '*';
-  final linePrefix = "-"; //TODO:
+  final linePrefix = "-";
 
   Report();
 

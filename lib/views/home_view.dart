@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/student.dart';
-
-import '../controllers/home_controller.dart';
 
 import 'companion_widgets.dart';
 
@@ -20,15 +19,14 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  String? name;
-  String? day;
-  String? month;
-  String? year;
-  DateTime? date;
-  String? topic;
-  String? homework;
+  String? _name;
+  DateTime _date = DateTime.now();
+  String? _topic;
+  String? _homework;
 
   bool _showDetails = true;
+  final _dateController = TextEditingController(
+      text: CompanionMethods.getDateString(DateTime.now()));
 
   @override
   void initState() {
@@ -72,125 +70,175 @@ class _HomeViewState extends State<HomeView> {
           children: [
             if (_showDetails)
               Card(
-                child: Column(
-                  children: [
-                    TFOutlined(
-                      name: "tName",
-                      text: "Name",
-                      onTextChanged: (text) {
-                        name = text;
-                      },
-                    ),
-                    Focus(
-                      child: Row(
-                        children: [
-                          Expanded(
-                              child: TFOutlined(
-                            name: "tDateDay",
-                            text: "Day",
-                            size: 13,
-                            onTextChanged: (text) {
-                              day = text;
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
+                  child: Column(
+                    children: [
+                      Focus(
+                        child: Row(
+                          children: [
+                            Expanded(
+                                flex: 3,
+                                child: TFOutlined(
+                                  name: "tName",
+                                  hint: "Name",
+                                  onTextChanged: (text) {
+                                    _name = text;
+                                  },
+                                )),
+                            Expanded(
+                              flex: 2,
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                    2.0, 6.0, 12.0, 0.0),
+                                child: HomeTextField(
+                                  onTap: () async {
+                                    final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: _date,
+                                        firstDate: DateTime(2000, 01, 01),
+                                        lastDate: DateTime(2100, 01, 01));
 
-                              if (day != null &&
-                                  month != null &&
-                                  year != null) {
-                                date = HomeController.convertStringToDateTime(
-                                    text, month!, year!);
-                              }
-                            },
-                          )),
-                          Expanded(
-                              child: TFOutlined(
-                            name: "tDateMonth",
-                            text: "Month",
-                            size: 13,
-                            onTextChanged: (text) {
-                              month = text;
-
-                              if (day != null &&
-                                  month != null &&
-                                  year != null) {
-                                date = HomeController.convertStringToDateTime(
-                                    day!, text, year!);
-                              }
-                            },
-                          )),
-                          Expanded(
-                              child: TFOutlined(
-                            name: "tDateYear",
-                            text: "Year",
-                            size: 13,
-                            onTextChanged: (text) {
-                              year = text;
-
-                              if (day != null &&
-                                  month != null &&
-                                  year != null) {
-                                date = HomeController.convertStringToDateTime(
-                                    day!, month!, text);
-                              }
-                            },
-                          )),
-                        ],
+                                    if (picked != null && picked != _date) {
+                                      setState(() {
+                                        _date = picked;
+                                        _dateController.text =
+                                            CompanionMethods.getDateString(
+                                                _date);
+                                      });
+                                    }
+                                  },
+                                  controller: _dateController,
+                                  hintText: "Date",
+                                  alignment: TextAlign.center,
+                                  edittable: false,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                    TFOutlined(
-                      name: "tTopic",
-                      text: "Topic",
-                      size: 13,
-                      onTextChanged: (text) {
-                        topic = text;
-                      },
-                    ),
-                    TFOutlined(
-                      name: "tHomework",
-                      text: "Homework",
-                      size: 13,
-                      onTextChanged: (text) {
-                        homework = text;
-                      },
-                    ),
-                    Padding(
-                        padding: const EdgeInsets.all(6.0),
-                        child: Divider(
-                          color: Theme.of(context).colorScheme.primary,
-                        )),
-                  ],
+                      TFOutlined(
+                        name: "tTopic",
+                        hint: "Topic",
+                        size: 13,
+                        onTextChanged: (text) {
+                          _topic = text;
+                        },
+                      ),
+                      TFOutlined(
+                        name: "tHomework",
+                        hint: "Homework",
+                        size: 13,
+                        onTextChanged: (text) {
+                          _homework = text;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
+            Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Divider(
+                  color: Theme.of(context).colorScheme.primary,
+                )),
             Expanded(
-                child: Container(
               child: Column(children: const [
                 Expanded(child: ReportTable(title: "New Language")),
                 Expanded(child: ReportTable(title: "Pronunciation")),
                 Expanded(child: ReportTable(title: "Corrections"))
               ]),
-            )),
+            ),
             Padding(
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
                 child: ElevatedButton(
-                    onPressed: () {
-                      if (name == null || topic == null || date == null) return;
+                    onPressed: () async {
+                      if (_name == null || _topic == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: const Text(
+                                "A name and topic are required at least to submit a lesson")));
+                        return;
+                      }
 
-                      Student thisStudent =
-                          DataStorage.getStudentByName(name!) as Student;
+                      Student? thisStudent;
+
+                      //check if student exists
+                      if (!await DataStorage.checkStudentExistsByName(_name!)) {
+                        //create new entry if not existant
+                        thisStudent = Student();
+                        thisStudent.name = _name!;
+                        thisStudent.active = true;
+                        await DataStorage.saveStudent(thisStudent);
+                      }
+                      thisStudent = await DataStorage.getStudentByName(_name!);
+
                       Lesson thisLesson = Lesson(
-                          studentId: thisStudent.id,
-                          date: date!,
-                          topic: topic!,
-                          homework: homework == null ? "" : homework!);
-                      //TODO: Report thisReport =
+                          studentId: thisStudent!.id,
+                          date: _date,
+                          topic: _topic!,
+                          homework: _homework);
 
-                      HomeController.submitLesson(
-                          thisStudent, thisLesson, null);
+                      //check if student exists
+                      if (await DataStorage.checkLessonExists(
+                          thisLesson.studentId, thisLesson.date)) {
+                        //update details of existing entry
+                        final id = await DataStorage.getLessonId(
+                            _name, thisLesson.date);
+                        thisLesson.id = id!;
+                      }
+                      await DataStorage.saveLesson(thisLesson);
 
-                      //TODO: Toast message on result
+                      //TODO: Reports current do not generate from this view
+                      // Report thisReport =
+
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("Lesson submitted successfully")));
                     },
                     child: const Text("Submit")))
           ],
         ),
         bottomNavigationBar: const BottomBar());
+  }
+}
+
+class HomeTextField extends StatefulWidget {
+  final String? hintText;
+  final TextAlign alignment;
+  final TextEditingController controller;
+  final Function()? onTap;
+  final bool edittable;
+
+  const HomeTextField(
+      {super.key,
+      this.hintText,
+      this.alignment = TextAlign.start,
+      required this.controller,
+      this.onTap = null,
+      this.edittable = true});
+
+  @override
+  State<HomeTextField> createState() => _HomeTextFieldState();
+}
+
+class _HomeTextFieldState extends State<HomeTextField> {
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      readOnly: !widget.edittable,
+      onTap: widget.onTap,
+      textInputAction: TextInputAction.next,
+      controller: widget.controller,
+      textAlign: widget.alignment,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        hintText: widget.hintText,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+      ),
+      style: TextStyle(fontSize: 13),
+      maxLines: null,
+    );
   }
 }
 
@@ -217,11 +265,13 @@ class _ReportTableState extends State<ReportTable> {
   final _currentCell = [0, 0];
   var _inFocus = false;
 
-  void _onRowFocus(int row, int column) {
-    _currentRow = row;
-    _currentColumn = column;
-    _currentCell[0] = _currentRow;
-    _currentCell[1] = _currentColumn;
+  void _updateCurrent(int rowIndex, int columnIndex) {
+    setState(() {
+      _currentRow = rowIndex;
+      _currentColumn = columnIndex;
+      _currentCell[0] = rowIndex;
+      _currentCell[1] = columnIndex;
+    });
   }
 
   @override
@@ -301,15 +351,6 @@ class _ReportTableState extends State<ReportTable> {
         _inFocus = hasFocus ? true : false;
       },
     );
-  }
-
-  void _updateCurrent(int rowIndex, int columnIndex) {
-    setState(() {
-      _currentRow = rowIndex;
-      _currentColumn = columnIndex;
-      _currentCell[0] = rowIndex;
-      _currentCell[1] = columnIndex;
-    });
   }
 }
 

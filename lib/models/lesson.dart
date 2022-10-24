@@ -4,7 +4,7 @@ part 'lesson.g.dart';
 
 @collection
 class Lesson {
-  final Id id;
+  Id id;
   final int studentId;
   final DateTime date;
   final String topic;

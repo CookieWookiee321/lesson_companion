@@ -18,6 +18,7 @@ class PdfSubstring {
   @enumerated
   PdfTextType get setTextType => _textType;
 
+  // ignore: invalid_annotation_target
   @enumerated
   set setTextType(PdfTextType value) {
     _textType = value;

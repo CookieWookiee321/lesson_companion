@@ -1,5 +1,4 @@
 import 'package:isar/isar.dart';
-import 'package:lesson_companion/models/data_storage.dart';
 
 part 'student.g.dart';
 

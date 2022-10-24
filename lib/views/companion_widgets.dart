@@ -12,14 +12,14 @@ class TFOutlined extends StatefulWidget {
   const TFOutlined(
       {Key? key,
       required this.name,
-      required this.text,
+      this.hint,
       this.size = 13,
       this.padded = true,
       this.onTextChanged})
       : super(key: key);
 
   final String name;
-  final String text;
+  final String? hint;
   final double size;
   final bool padded;
   final Function(String text)? onTextChanged;
@@ -35,22 +35,17 @@ class _TFOutlinedState extends State<TFOutlined> {
       padding: widget.padded
           ? const EdgeInsets.fromLTRB(13.0, 6.0, 13.0, 0.0)
           : const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 0.0),
-      child: Row(
-        children: [
-          Expanded(
-              child: TextField(
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              hintText: widget.text,
-              isDense: true,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-            ),
-            style: TextStyle(fontSize: widget.size),
-            maxLines: null,
-            onChanged: widget.onTextChanged,
-          ))
-        ],
+      child: TextField(
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          hintText: widget.hint,
+          isDense: true,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+        ),
+        style: TextStyle(fontSize: widget.size),
+        maxLines: null,
+        onChanged: widget.onTextChanged,
       ),
     );
   }
