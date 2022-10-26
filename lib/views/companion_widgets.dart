@@ -149,7 +149,7 @@ class _BottomBarState extends State<BottomBar> {
             break;
           case 2:
             Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext builder) => const StudentListView()));
+                builder: (BuildContext builder) => const StudentView()));
             break;
           case 3:
             Navigator.of(context).push(MaterialPageRoute(

@@ -3,14 +3,14 @@ import 'package:lesson_companion/models/data_storage.dart';
 
 import 'companion_widgets.dart';
 
-class StudentListView extends StatefulWidget {
-  const StudentListView({Key? key}) : super(key: key);
+class StudentView extends StatefulWidget {
+  const StudentView({Key? key}) : super(key: key);
 
   @override
-  State<StudentListView> createState() => _StudentListViewState();
+  State<StudentView> createState() => _StudentViewState();
 }
 
-class _StudentListViewState extends State<StudentListView> {
+class _StudentViewState extends State<StudentView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,9 +19,7 @@ class _StudentListViewState extends State<StudentListView> {
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
         ),
-        body: Column(
-          children: const [StudentListRow()],
-        ),
+        body: StudentListRow(),
         bottomNavigationBar: const BottomBar());
   }
 }
