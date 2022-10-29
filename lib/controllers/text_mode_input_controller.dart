@@ -10,8 +10,18 @@ class TextInputModeMethods extends ChangeNotifier {
     bool hasDate = false;
     bool hasTopic = false;
 
+    Map<int, List<bool>> results = {};
+    int counter = 0;
+
     for (var line in text.split("\n")) {
-      if (hasName & hasDate & hasTopic) return true;
+      if (line.trim() == "===") {
+        results[counter] = [hasName, hasDate, hasTopic];
+
+        counter++;
+        hasName = false;
+        hasDate = false;
+        hasTopic = false;
+      }
       if (line[0] != '*') continue;
 
       final lineConvert = line.toUpperCase().trim();
@@ -28,7 +38,15 @@ class TextInputModeMethods extends ChangeNotifier {
           break;
       }
     }
-    return false;
+
+    bool output = true;
+    for (final index in results.keys) {
+      if (results[index]!.contains(false)) {
+        print("There is a problem with entry number ${index + 1}");
+        output = false;
+      }
+    }
+    return output;
   }
 
   static Future<FilePickerResult?> pickFile() async {

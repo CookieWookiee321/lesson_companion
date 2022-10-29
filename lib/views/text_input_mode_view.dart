@@ -2,7 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lesson_companion/models/data_storage.dart';
+import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
+import 'package:lesson_companion/models/student.dart';
 
 import '../controllers/companion_methods.dart';
 import '../controllers/text_mode_input_controller.dart';
@@ -90,7 +93,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         baseOffset: currentIndex + 1, extentOffset: currentIndex + 1);
   }
 
-  void _autoFormatAll() {
+  String _autoFormatAll(String input) {
     final sb = StringBuffer();
     const stoppingPoint = "===";
 
@@ -108,7 +111,63 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       sb.writeln(line);
     }
 
-    _textController.text = sb.toString();
+    return sb.toString();
+  }
+
+  Map<String, List<String>> _mapTextInput(String text) {
+    String currentHeading = "";
+    final headingPrefix = "*";
+    final linePrefix = "-";
+    Map<String, List<String>> mappings = {};
+    List<String> currentEntryList = [];
+
+    //loop through each line in text
+    for (var line in text.split("\n")) {
+      //don't read blank lines
+      if (line.trim().isEmpty || line.trim() == "-") continue;
+      if (line.trim() == "===") continue;
+
+      //check if the line contains a heading or not
+      if (line[0] != headingPrefix) {
+        if (line[0] == linePrefix) {
+          final temp = line.substring(1).trim();
+          //add the line to the housing List obj
+          currentEntryList.add(temp);
+        }
+      } else {
+        //add the list of entries for the heading which was just processed
+        if (currentEntryList.isNotEmpty) {
+          mappings[currentHeading] = currentEntryList;
+          currentEntryList = [];
+        }
+
+        //if a new heading is detected
+        final currentHeadingUnchecked = line.substring(1).trim();
+        //determine if the heading is pre-defined + update the currentHeading var
+        switch (currentHeadingUnchecked.toUpperCase()) {
+          case "NAME":
+            currentHeading = "Name";
+            break;
+          case "DATE":
+            currentHeading = "Date";
+            break;
+          case "TOPIC":
+            currentHeading = "Topic";
+            break;
+          case "HOMEWORK":
+            currentHeading = "Homework";
+            break;
+          default:
+            currentHeading = currentHeadingUnchecked;
+            break;
+        }
+      }
+    }
+    if (currentEntryList.isNotEmpty) {
+      mappings[currentHeading] = currentEntryList;
+    }
+
+    return mappings;
   }
 
   @override
@@ -146,17 +205,83 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   @override
   Widget build(BuildContext context) {
     void _onPressedSubmit() async {
-      if (TextInputModeMethods.checkNeededHeadings(_textController.text)) {
+      String text = _textController.text;
+      if (TextInputModeMethods.checkNeededHeadings(text)) {
         try {
-          _autoFormatAll();
-          final report = Report();
-          await report.buildFromText(_textController.text);
+          text = _autoFormatAll(text);
 
-          // if (!await DataStorage.checkStudentExistsById(
-          //     report.id)) final student = Student.known(report.id, );
-          report.create();
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text("Lesson & report saved successfully")));
+          while (text.contains("===")) {
+            final stoppingPoint = text.indexOf("===");
+            final singleEntry = text.substring(0, stoppingPoint);
+            text = text.substring(stoppingPoint + 3, text.length);
+
+            final mapping = _mapTextInput(singleEntry);
+
+            //check if Student exists
+            final student = Student();
+            final studentId;
+            if (!await DataStorage.checkStudentExistsByName(
+                mapping["Name"]!.first)) {
+              //if not, create new Hive entry
+              student.name = mapping["Name"]!.first;
+              student.active = true;
+              await DataStorage.saveStudent(student);
+            }
+            studentId = await DataStorage.getStudentId(mapping["Name"]!.first);
+
+            if (student.name != null) {
+              student.id = studentId!;
+            } else {
+              student.name = mapping["Name"]!.first;
+              student.active = true;
+              student.id = studentId!;
+            }
+
+            //format the Date string
+            if (mapping["Date"]!.first.toString().contains('/')) {
+              mapping["Date"]!.first =
+                  mapping["Date"]!.first.replaceAll('/', '-');
+            }
+            if (mapping["Date"]!.first.toString().split('-')[2].length == 1) {
+              final tempList = mapping["Date"]!.first.toString().split('-');
+              final tempDay = "0${tempList[2]}";
+              mapping["Date"]!.first = "${tempList[0]}-${tempList[1]}-$tempDay";
+            }
+
+            final date;
+            final topic;
+            final homework;
+
+            date = DateTime.parse(mapping["Date"]!.first);
+            topic = mapping["Topic"]!;
+            homework = mapping["Homework"];
+            //Submit Lesson
+            var lesson = Lesson(
+                studentId: studentId!,
+                date: date!,
+                topic: CompanionMethods.convertListToString(topic!),
+                homework: homework != null
+                    ? CompanionMethods.convertListToString(homework!)
+                    : "");
+            //check if Lesson exists
+            if (!await DataStorage.checkLessonExists(studentId!, date!)) {
+              //if not, create new entry
+              await DataStorage.saveLesson(lesson);
+              print(
+                  "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}");
+            }
+
+            if (mapping.keys.length > 4 ||
+                (mapping.keys.length == 4 &&
+                    !mapping.keys.contains("Homework"))) {
+              final report = Report();
+              await report.fromMap(mapping);
+              await report.create();
+            }
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("All lessons saved successfully")));
           _textController.text = _template;
         } on InputException {
           final we =
@@ -223,77 +348,18 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         ],
       ),
       bottomNavigationBar: const BottomBar(),
+      floatingActionButton: FloatingActionButton(
+          child: Icon(
+            Icons.more,
+            color: Theme.of(context).colorScheme.onSecondary,
+          ),
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          hoverColor: Theme.of(context).colorScheme.tertiary,
+          onPressed: () {
+            //TODO: Extend bar to search bar
+          }),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
+      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
     );
   }
 }
-
-// class TextFieldColorizer extends TextEditingController {
-//   final Map<String, TextStyle> map;
-//   final Pattern pattern;
-
-//   TextFieldColorizer(this.map)
-//       : pattern = RegExp(
-//             map.keys.map((e) {
-//               return e;
-//             }).join('|'),
-//             multiLine: true);
-
-//   @override
-//   set text(String newText) {
-//     value = value.copyWith(
-//         text: newText,
-//         selection: TextSelection.collapsed(offset: newText.length),
-//         composing: TextRange.empty);
-//   }
-
-//   @override
-//   TextSpan buildTextSpan({TextStyle style, bool withComposing}) {
-//     final List<InlineSpan> children = [];
-//     String patternMatched;
-//     String formatText;
-//     TextStyle myStyle;
-//     text.splitMapJoin(
-//       pattern,
-//       onMatch: (Match match) {
-//         myStyle = map[match[0]] ??
-//             map[map.keys.firstWhere(
-//               (e) {
-//                 bool ret = false;
-//                 RegExp(e).allMatches(text)
-//                   ..forEach((element) {
-//                     if (element.group(0) == match[0]) {
-//                       patternMatched = e;
-//                       ret = true;
-//                       return true;
-//                     }
-//                   });
-//                 return ret;
-//               },
-//             )];
-
-//         if (patternMatched == r"_(.*?)\_") {
-//           formatText = match[0].replaceAll("_", " ");
-//         } else if (patternMatched == r'\*(.*?)\*') {
-//           formatText = match[0].replaceAll("*", " ");
-//         } else if (patternMatched == "~(.*?)~") {
-//           formatText = match[0].replaceAll("~", " ");
-//         } else if (patternMatched == r'```(.*?)```') {
-//           formatText = match[0].replaceAll("```", "   ");
-//         } else {
-//           formatText = match[0];
-//         }
-//         children.add(TextSpan(
-//           text: formatText,
-//           style: style.merge(myStyle),
-//         ));
-//         return "";
-//       },
-//       onNonMatch: (String text) {
-//         children.add(TextSpan(text: text, style: style));
-//         return "";
-//       },
-//     );
-
-//     return TextSpan(style: style, children: children);
-//   }
-// }

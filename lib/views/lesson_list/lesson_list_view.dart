@@ -104,11 +104,18 @@ class _LessonListViewState extends State<LessonListView> {
                                     _lessons[index].topic, context)
                               ],
                             ),
-                            subtitle: (_lessons[index].homework != null ||
-                                    _lessons[index].homework!.length > 0)
-                                ? Text(_lessons[index].homework!,
-                                    style:
-                                        Theme.of(context).textTheme.labelSmall)
+                            trailing: Icon(
+                              Icons.home_work,
+                              color: (_lessons[index].homework != null &&
+                                      _lessons[index].homework!.trim().length >
+                                          0)
+                                  ? Theme.of(context).colorScheme.tertiary
+                                  : Colors.grey,
+                            ),
+                            subtitle: (_lessons[index].homework != null &&
+                                    _lessons[index].homework!.trim().length > 0)
+                                ? CompanionMethods.styleText(
+                                    _lessons[index].homework!, context)
                                 : null,
                             onTap: () async {
                               await showDialog(
@@ -204,13 +211,19 @@ class _LessonListViewState extends State<LessonListView> {
           )
         ],
       ),
+      bottomNavigationBar: const BottomBar(),
       floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.search),
+          child: Icon(
+            Icons.search,
+            color: Theme.of(context).colorScheme.onSecondary,
+          ),
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          hoverColor: Theme.of(context).colorScheme.tertiary,
           onPressed: () {
             //TODO: Extend bar to search bar
           }),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      bottomNavigationBar: const BottomBar(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
+      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
     );
   }
 }

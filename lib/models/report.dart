@@ -33,63 +33,16 @@ class Report {
 
   Report();
 
-  Future<void> buildFromText(String fullText) async {
-    Map<String, List<String>> mappings = mapTextInput(fullText);
+  Future<void> fromMap(Map<String, List<String>> mappings) async {
     await _initReport(mappings);
   }
 
   Future<void> _initReport(Map<String, List<String>> mappings) async {
-    //check if Student exists
-    final student = Student();
-    if (!await DataStorage.checkStudentExistsByName(mappings["Name"]!.first)) {
-      //if not, create new Hive entry
-      student.name = mappings["Name"]!.first;
-      student.active = true;
-      await DataStorage.saveStudent(student);
-    }
     studentId = await DataStorage.getStudentId(mappings["Name"]!.first);
-
-    if (student.name != null) {
-      student.id = studentId!;
-    } else {
-      student.name = mappings["Name"]!.first;
-      student.active = true;
-      student.id = studentId!;
-    }
-
-    //format the Date string
-    if (mappings["Date"]!.first.toString().contains('/')) {
-      mappings["Date"]!.first = mappings["Date"]!.first.replaceAll('/', '-');
-    }
-    if (mappings["Date"]!.first.toString().split('-')[2].length == 1) {
-      final tempList = mappings["Date"]!.first.toString().split('-');
-      final tempDay = "0${tempList[2]}";
-      mappings["Date"]!.first = "${tempList[0]}-${tempList[1]}-$tempDay";
-    }
-
-    //assign values from the map into the class fields
-    if (mappings["Name"] == null ||
-        mappings["Date"] == null ||
-        mappings["Topic"] == null) {
-      throw InputException("Name, Date, and Topic fields are required.");
-    }
-
+    studentName = mappings["Name"]!.first;
     date = DateTime.parse(mappings["Date"]!.first);
-    topic = mappings["Topic"]!;
+    topic = mappings["Topic"];
     homework = mappings["Homework"];
-    //Submit Lesson
-    var lesson = Lesson(
-        studentId: studentId!,
-        date: date!,
-        topic: CompanionMethods.convertListToString(topic!),
-        homework: homework != null
-            ? CompanionMethods.convertListToString(homework!)
-            : "");
-    //check if Lesson exists
-    if (!await DataStorage.checkLessonExists(studentId!, date!)) {
-      //if not, create new Hive entry
-      await DataStorage.saveLesson(lesson);
-    }
 
     // Skip over pre-defined heading keywords.
     var counter = 1;
@@ -127,7 +80,7 @@ class Report {
   //TODO: import old database data
 
   /// Creates and saves a report PDF based on the parent object.
-  void create() async {
+  Future<void> create() async {
     // transform string vars into the right from to be printed
     final tempName = await DataStorage.getStudentName(studentId!);
     final strName = tempName!.contains("(")

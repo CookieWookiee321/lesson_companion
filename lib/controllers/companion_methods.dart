@@ -154,7 +154,7 @@ class CompanionMethods {
         } else if (input[i] == ">") {
           // close subtext substring
           if (sb.isNotEmpty) {
-            final sub = TextPart(counter, "[${sb.toString()}]", currentType);
+            final sub = TextPart(counter, "(${sb.toString()})", currentType);
             output.add(sub);
             sb.clear();
           }

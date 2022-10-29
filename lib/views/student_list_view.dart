@@ -11,9 +11,12 @@ class StudentView extends StatefulWidget {
 }
 
 class _StudentViewState extends State<StudentView> {
+  final _scaffoldKey = new GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
           title: const Text("Student List"),
           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -36,37 +39,68 @@ class StudentListRow extends StatefulWidget {
 }
 
 class _StudentListRowState extends State<StudentListRow> {
+  Map<String, bool> _studentMap = {};
+  final _scrollController = ScrollController(keepScrollOffset: true);
+
+  Future<void> _getStudentDetails() async {
+    final students = await DataStorage.getAllStudents();
+
+    if (_studentMap.isNotEmpty) _studentMap.clear();
+
+    for (final s in students) {
+      _studentMap[s.name!] = s.active!;
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   Widget build(BuildContext context) {
     return FutureBuilder(
+      future: _getStudentDetails(),
       builder: ((context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasData) {
-            return Container(
-                decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: const BorderRadius.all(Radius.circular(8))),
-                margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
-                padding: const EdgeInsets.all(6),
-                child: ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        leading: Icon(Icons.person_2_rounded),
-                        title: Text(snapshot.data![index]),
-                      );
-                    }));
-          } else {
-            Center(
-              child: Text("Failed to load students"),
-            );
-          }
+          return Container(
+            decoration: BoxDecoration(
+                border: Border.all(),
+                borderRadius: const BorderRadius.all(Radius.circular(8))),
+            margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
+            padding: const EdgeInsets.all(6),
+            child: GestureDetector(
+              child: ListView.builder(
+                  controller: _scrollController,
+                  itemCount: _studentMap.length,
+                  itemBuilder: (context, index) {
+                    return CheckboxListTile(
+                      value: _studentMap.values.elementAt(index) ? true : false,
+                      title: Text(_studentMap.keys.elementAt(index)),
+                      onChanged: (isChecked) async {
+                        final name = _studentMap.keys.elementAt(index);
+                        final student =
+                            await DataStorage.getStudentByName(name);
+                        student!.active = isChecked;
+                        await DataStorage.saveStudent(student);
+
+                        setState(() {
+                          _studentMap[name] == isChecked;
+                        });
+                      },
+                    );
+                  }),
+              onLongPress: () {
+                //TODO: add menu
+              },
+            ),
+          );
         }
         //TODO: handle error connection state
         return Center(
           child: CircularProgressIndicator(),
         );
       }),
-      future: DataStorage.getAllStudentNames(),
     );
   }
 }

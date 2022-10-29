@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'student_list_view.dart';
-import 'lesson_list_view.dart';
+import 'lesson_list/lesson_list_view.dart';
 import 'text_input_mode_view.dart';
 
 //==============================================================================
