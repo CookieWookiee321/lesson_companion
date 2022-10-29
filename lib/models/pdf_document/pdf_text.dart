@@ -13,7 +13,7 @@ class PdfText {
     var currentType = PdfTextType.base;
     final markerOpeners = ["q", "e", "i"];
     final sb = StringBuffer();
-    final specialChars = ["\\", "<", ">"];
+    final specialChars = ["\\", "[", "]"];
 
     input = input.replaceAll('//', '\n');
 
@@ -71,7 +71,7 @@ class PdfText {
               }
             }
           }
-        } else if (input[i] == "<") {
+        } else if (input[i] == "[") {
           // begin new subtext substring
           if (sb.isNotEmpty) {
             final sub = PdfSubstring();
@@ -82,7 +82,7 @@ class PdfText {
             sb.clear();
           }
           currentType = PdfTextType.sub;
-        } else if (input[i] == ">") {
+        } else if (input[i] == "]") {
           // close subtext substring
           if (sb.isNotEmpty) {
             final sub = PdfSubstring();

@@ -76,13 +76,13 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   // );
 
   void _autoInsertMarkers(String char, int currentIndex) {
-    assert(char == "q" || char == "e" || char == "i" || char == "<",
+    assert(char == "q" || char == "e" || char == "i" || char == "[",
         "This method must take a notation marker of either 'i', 'q', 'e', or '<'");
 
     switch (char) {
-      case "<":
+      case "[":
         _textController.text =
-            "${_textController.text.substring(0, currentIndex)}>${_textController.text.substring(currentIndex, _textController.text.length)}";
+            "${_textController.text.substring(0, currentIndex)}[]${_textController.text.substring(currentIndex, _textController.text.length)}";
         break;
       default:
         _textController.text =
@@ -110,6 +110,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
       sb.writeln(line);
     }
+
+    if (!input.contains(stoppingPoint)) sb.write(stoppingPoint);
 
     return sb.toString();
   }
@@ -183,9 +185,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             return true;
           }
         }
-      } else if (keyData.logical == LogicalKeyboardKey.comma &&
-          keyData.logical == LogicalKeyboardKey.shift) {
-        _autoInsertMarkers("<", indexNow);
+      } else if (keyData.character == "[") {
+        _autoInsertMarkers("[", indexNow);
         return true;
       }
 

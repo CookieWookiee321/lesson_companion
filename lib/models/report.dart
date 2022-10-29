@@ -1,13 +1,11 @@
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/data_storage.dart';
-import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_document.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_substring.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
-import 'package:lesson_companion/models/student.dart';
 
 part 'report.g.dart';
 
