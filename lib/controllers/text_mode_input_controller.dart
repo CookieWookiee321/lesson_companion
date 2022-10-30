@@ -22,6 +22,7 @@ class TextInputModeMethods extends ChangeNotifier {
         hasDate = false;
         hasTopic = false;
       }
+      if (line.isEmpty) continue;
       if (line[0] != '*') continue;
 
       final lineConvert = line.toUpperCase().trim();

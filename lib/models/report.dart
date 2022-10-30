@@ -78,7 +78,7 @@ class Report {
   //TODO: import old database data
 
   /// Creates and saves a report PDF based on the parent object.
-  Future<void> create() async {
+  Future<PdfDoc> create() async {
     // transform string vars into the right from to be printed
     final tempName = await DataStorage.getStudentName(studentId!);
     final strName = tempName!.contains("(")
@@ -135,7 +135,7 @@ class Report {
       _table2,
       _table3,
     );
-    pdf.create();
+    return pdf;
   }
 
   //============================================================================

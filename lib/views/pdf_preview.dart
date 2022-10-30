@@ -1,0 +1,53 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:lesson_companion/controllers/companion_methods.dart';
+import 'package:lesson_companion/models/data_storage.dart';
+import 'package:printing/printing.dart';
+
+import '../models/pdf_document/pdf_document.dart';
+
+class PdfPreviewPage extends StatelessWidget {
+  final PdfDoc _pdfDocument;
+  late final Uint8List _bytes;
+
+  PdfPreviewPage({super.key, required PdfDoc pdfDocument})
+      : _pdfDocument = pdfDocument;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Pdf Preview"),
+        ),
+        body: Column(mainAxisSize: MainAxisSize.min, children: [
+          Expanded(child: PdfPreview(build: (format) async {
+            _bytes = await _pdfDocument.create();
+            return _bytes;
+          })),
+          Row(
+            children: [
+              ElevatedButton(
+                child: Text("Close"),
+                onPressed: () async {
+                  Navigator.pop(context);
+                },
+              ),
+              ElevatedButton(
+                child: Text("Save"),
+                onPressed: () async {
+                  final saveDest =
+                      "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await DataStorage.getStudentId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
+                  final file = File(saveDest);
+                  await file.writeAsBytes(_bytes);
+
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text("Report PDF file saved successfully")));
+                },
+              )
+            ],
+          )
+        ]));
+  }
+}

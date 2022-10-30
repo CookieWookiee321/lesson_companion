@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
@@ -30,7 +31,7 @@ class PdfDoc {
       this.table2, this.table3);
 
   /// Creates and saves a report PDF based on the parent object.
-  void create() async {
+  Future<Uint8List> create() async {
     final footer = PdfText();
     final temp1 = await DataStorage.getSetting("footer");
     final temp2 = temp1 == "[Setting not found]" ? "" : temp1;
@@ -56,8 +57,6 @@ class PdfDoc {
     final _footer = await _newText(footer, PdfSection.footer);
 
     //initial set up
-    var saveDest =
-        "${await CompanionMethods.getLocalPath()}${name.toString()} (ID ${await DataStorage.getStudentId(name.toString())}) (${CompanionMethods.getShortDate(date.parseToDateTime())}).pdf";
 
     final pdf = Document();
     pdf.addPage(Page(build: ((context) {
@@ -86,10 +85,8 @@ class PdfDoc {
       ]);
     })));
     // try {
-    final file = File(saveDest);
-    final x = await pdf.save();
-    await file.writeAsBytes(x);
-    print("${DateTime.now()} - PDF saved to $saveDest");
+
+    return await pdf.save();
     // }
     // on FileSystemException {
     //   print("Report is currently being used by another process.");

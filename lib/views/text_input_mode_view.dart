@@ -6,56 +6,52 @@ import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
+import 'package:lesson_companion/views/pdf_preview.dart';
 
 import '../controllers/companion_methods.dart';
+import '../controllers/styler.dart';
 import '../controllers/text_mode_input_controller.dart';
 import 'companion_widgets.dart';
 
-//   final template = """* Name
-// Test
-// * Date
-// ${CompanionMethods.getShortDate(DateTime.now())}
-// * Topic
-// Topic 1
-// Topic 2
-// * Homework
-// Homework 1
-// Homework 2
-// * New Language
-// This e\\example\\ i\\info\\ q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
-// e\\example\\ i\\info\\ This q\\question\\ <subtext> || That
-// * Pronunciation
-// This <subtext> ||
-// e\\example\\ i\\info\\ This q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
-// * Corrections
-// This e\\example\\ i\\info\\ q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
-// e\\example\\ i\\info\\ This q\\question\\ <subtext>
-// ===""";
+final _template = """* Name
+Test
+* Date
+${CompanionMethods.getShortDate(DateTime.now())}
+* Topic
+Topic 1
+Topic 2
+* Homework
+Homework 1
+Homework 2
+* New Language
+This e\\example\\ i\\info\\ q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
+e\\example\\ i\\info\\ This q\\question\\ <subtext> || That
+* Pronunciation
+This <subtext> ||
+e\\example\\ i\\info\\ This q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
+* Corrections
+This e\\example\\ i\\info\\ q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
+e\\example\\ i\\info\\ This q\\question\\ <subtext>
+===""";
 
 //TODO: Fix the auto-completion (in edit)
 
-final _template = """* Name
+// final _template = """* Name
 
+// * Date
+// ${CompanionMethods.getShortDate(DateTime.now())}
 
-* Date
-${CompanionMethods.getShortDate(DateTime.now())}
+// * Topic
 
-* Topic
+// * Homework
 
+// * New Language
 
-* Homework
+// * Pronunciation
 
+// * Corrections
 
-* New Language
-
-
-* Pronunciation
-
-
-* Corrections
-
-
-===""";
+// ===""";
 
 class TextInputModeView extends StatefulWidget {
   const TextInputModeView({Key? key}) : super(key: key);
@@ -65,7 +61,7 @@ class TextInputModeView extends StatefulWidget {
 }
 
 class _TextInputModeViewState extends State<TextInputModeView> {
-  final _textController = TextEditingController(text: _template);
+  final _textController = TextEditingController();
   // final _focusNode = FocusNode(
   //   onKey: (node, event) {
   //     if (event.isKeyPressed(LogicalKeyboardKey.enter)) {
@@ -77,7 +73,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   void _autoInsertMarkers(String char, int currentIndex) {
     assert(char == "q" || char == "e" || char == "i" || char == "[",
-        "This method must take a notation marker of either 'i', 'q', 'e', or '<'");
+        "This method must take a notation marker of either 'i', 'q', 'e', or '['");
 
     switch (char) {
       case "[":
@@ -111,7 +107,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       sb.writeln(line);
     }
 
-    if (!input.contains(stoppingPoint)) sb.write(stoppingPoint);
+    if (!input.contains(stoppingPoint)) sb.writeln(stoppingPoint);
 
     return sb.toString();
   }
@@ -174,6 +170,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   @override
   initState() {
+    _textController.text = _template;
+
     window.onKeyData = (keyData) {
       final indexNow = _textController.selection.base.offset;
       if (keyData.logical == LogicalKeyboardKey.backslash.keyId) {
@@ -277,13 +275,14 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                     !mapping.keys.contains("Homework"))) {
               final report = Report();
               await report.fromMap(mapping);
-              await report.create();
+              final pdfDoc = await report.create();
+              Navigator.push(context, MaterialPageRoute(
+                builder: (context) {
+                  return PdfPreviewPage(pdfDocument: pdfDoc);
+                },
+              ));
             }
           }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("All lessons saved successfully")));
-          _textController.text = _template;
         } on InputException {
           final we =
               InputException("Name, Date, and Topic are required fields");
