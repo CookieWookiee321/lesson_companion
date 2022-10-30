@@ -10,7 +10,7 @@ import '../models/pdf_document/pdf_document.dart';
 
 class PdfPreviewPage extends StatelessWidget {
   final PdfDoc _pdfDocument;
-  late final Uint8List _bytes;
+  late Uint8List _bytes;
 
   PdfPreviewPage({super.key, required PdfDoc pdfDocument})
       : _pdfDocument = pdfDocument;
@@ -26,27 +26,33 @@ class PdfPreviewPage extends StatelessWidget {
             _bytes = await _pdfDocument.create();
             return _bytes;
           })),
-          Row(
-            children: [
-              ElevatedButton(
-                child: Text("Close"),
-                onPressed: () async {
-                  Navigator.pop(context);
-                },
-              ),
-              ElevatedButton(
-                child: Text("Save"),
-                onPressed: () async {
-                  final saveDest =
-                      "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await DataStorage.getStudentId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
-                  final file = File(saveDest);
-                  await file.writeAsBytes(_bytes);
+          Padding(
+            padding: EdgeInsets.all(10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  child: Text("Close"),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                  },
+                ),
+                Padding(padding: EdgeInsets.symmetric(horizontal: 8.0)),
+                ElevatedButton(
+                  child: Text("Save"),
+                  onPressed: () async {
+                    final saveDest =
+                        "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await DataStorage.getStudentId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
+                    final file = File(saveDest);
+                    await file.writeAsBytes(_bytes);
 
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text("Report PDF file saved successfully")));
-                },
-              )
-            ],
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text("Report PDF file saved successfully")));
+                  },
+                )
+              ],
+            ),
           )
         ]));
   }
