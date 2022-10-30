@@ -17,6 +17,7 @@ dependencies:
   isar: ^3.0.2
   isar_flutter_libs: ^3.0.2
   shared_preferences: ^2.0.15
+  rich_code_editor: ^1.0.5
 
 
 dev_dependencies:

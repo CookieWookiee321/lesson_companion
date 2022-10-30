@@ -6,8 +6,11 @@ import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
+import 'package:rich_code_editor/exports.dart';
+import 'package:rich_code_editor/rich_code_field.dart';
 
 import '../controllers/companion_methods.dart';
+import '../controllers/styler.dart';
 import '../controllers/text_mode_input_controller.dart';
 import 'companion_widgets.dart';
 
@@ -65,7 +68,8 @@ class TextInputModeView extends StatefulWidget {
 }
 
 class _TextInputModeViewState extends State<TextInputModeView> {
-  final _textController = TextEditingController(text: _template);
+  late SyntaxHighlighterBase _syntaxHighlighterBase;
+  late RichCodeEditingController _textController;
   // final _focusNode = FocusNode(
   //   onKey: (node, event) {
   //     if (event.isKeyPressed(LogicalKeyboardKey.enter)) {
@@ -111,7 +115,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       sb.writeln(line);
     }
 
-    if (!input.contains(stoppingPoint)) sb.write(stoppingPoint);
+    if (!input.contains(stoppingPoint)) sb.writeln(stoppingPoint);
 
     return sb.toString();
   }
@@ -174,6 +178,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   @override
   initState() {
+    _syntaxHighlighterBase = SyntaxHighlighter();
+    _textController =
+        RichCodeEditingController(_syntaxHighlighterBase, text: _template);
+
     window.onKeyData = (keyData) {
       final indexNow = _textController.selection.base.offset;
       if (keyData.logical == LogicalKeyboardKey.backslash.keyId) {
@@ -327,7 +335,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             child: Row(
               children: [
                 Expanded(
-                    child: TextField(
+                    child: RichCodeField(
                   controller: _textController,
                   onSubmitted: ((value) {}),
                   decoration: const InputDecoration(
@@ -362,5 +370,170 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
       floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
     );
+  }
+}
+
+class SyntaxHighlighter extends SyntaxHighlighterBase {
+  BuildContext context;
+
+  SyntaxHighlighter(this.context);
+
+  TextType _getCurrentType(String input) {
+    switch (input) {
+      case "q\\":
+        return TextType.question;
+      case "i\\":
+        return TextType.info;
+      case "e\\":
+        return TextType.example;
+      default:
+        return TextType.sub;
+    }
+  }
+
+  TextStyle _getCurrentStyle(TextType type) {
+    switch (type) {
+      case TextType.question:
+        return TextStyle(color: Colors.lightBlue, fontSize: 10);
+      case TextType.base:
+        return TextStyle(
+            color: Theme.of(context).colorScheme.onBackground, fontSize: 12);
+      case TextType.sub:
+        return TextStyle(
+            color: Colors.blueGrey, fontWeight: FontWeight.bold, fontSize: 10);
+      case TextType.example:
+        return TextStyle(
+            color: Colors.green, fontWeight: FontWeight.bold, fontSize: 10);
+      case TextType.info:
+        return TextStyle(color: Colors.orange, fontSize: 10);
+    }
+  }
+
+  @override
+  List<TextSpan> parseText(TextEditingValue tev) {
+    final List<TextSpan> components = [];
+    var currentType = TextType.base;
+    var currentStyle = TextStyle();
+    final markerOpeners = ["q\\", "e\\", "i\\", "["];
+    final sb = StringBuffer();
+    final markerCloser = "\\";
+    final markerCloserSub = "]";
+    String text = tev.text;
+
+    //check if markers are present
+    int start;
+    int end;
+    String? unprocessed;
+    String toProcess;
+    for (final opener in markerOpeners) {
+      if (text.contains(opener) && text.contains(markerCloser)) {
+        start = text.indexOf(opener);
+        end = text.indexOf(markerCloser);
+        if (start > 0) unprocessed = text.substring(0, start);
+
+        unprocessed ??
+            components.add(TextSpan(
+                text: unprocessed, style: _getCurrentStyle(TextType.base)));
+
+        //get type of marker
+        currentType = _getCurrentType(opener);
+        //get style for marker
+        currentStyle = _getCurrentStyle(currentType);
+
+        final tempStr = (opener != "[")
+            ? text.substring(start + 2, end)
+            : text.substring(start + 1, end);
+        components.add(TextSpan(text: tempStr, style: currentStyle));
+      }
+    }
+
+    if (text.contains(other))
+
+      //start looping through characters
+      int counter = 0;
+    for (final x in tev.text.characters) {
+      //build the substring until...
+      if (!specialChars.contains(input[i])) {
+        sb.write(input[i]);
+      } else {
+        if (input[i] == "\\") {
+          //determine if this is starting text markdown, or completing it
+          if (markerOpeners.contains(sb.toString()[sb.length - 1])) {
+            // open a new markdown substring, based on the character preceding the opening '\'
+            final marker = sb.toString()[sb.length - 1];
+
+            final temp = sb.toString().substring(0, sb.length - 1);
+            sb.clear();
+            sb.write(temp);
+
+            if (sb.isNotEmpty) {
+              final sub = PdfSubstring();
+              sub.setText = sb.toString();
+              sub.setTextType = currentType;
+
+              components.add(sub);
+              sb.clear();
+            }
+
+            switch (marker) {
+              case "q":
+                currentType = TextType.question;
+                break;
+              case "i":
+                currentType = TextType.info;
+                break;
+              case "e":
+                currentType = TextType.example;
+                break;
+            }
+          } else {
+            if (currentType != TextType.base) {
+              if (currentType == TextType.sub) {
+                sb.write(input[i]);
+              } else {
+                if (sb.isNotEmpty) {
+                  final sub = PdfSubstring();
+                  sub.setText = sb.toString();
+                  sub.setTextType = currentType;
+
+                  components.add(sub);
+                  sb.clear();
+                }
+
+                currentType = TextType.base;
+              }
+            }
+          }
+        } else if (input[i] == "[") {
+          // begin new subtext substring
+          if (sb.isNotEmpty) {
+            final sub = PdfSubstring();
+            sub.setText = sb.toString();
+            sub.setTextType = currentType;
+
+            components.add(sub);
+            sb.clear();
+          }
+          currentType = TextType.sub;
+        } else if (input[i] == "]") {
+          // close subtext substring
+          if (sb.isNotEmpty) {
+            final sub = PdfSubstring();
+            sub.setText = sb.toString();
+            sub.setTextType = currentType;
+
+            components.add(sub);
+            sb.clear();
+          }
+          currentType = TextType.base;
+        }
+      }
+    }
+
+    final sub = PdfSubstring();
+    sub.setText = sb.toString();
+    sub.setTextType = currentType;
+
+    components.add(sub);
   }
 }
