@@ -6,14 +6,14 @@ import '../../controllers/companion_methods.dart';
 
 import '../companion_widgets.dart';
 
-class LessonListView extends StatefulWidget {
-  const LessonListView({super.key});
+class LessonView extends StatefulWidget {
+  const LessonView({super.key});
 
   @override
-  State<LessonListView> createState() => _LessonListViewState();
+  State<LessonView> createState() => _LessonViewState();
 }
 
-class _LessonListViewState extends State<LessonListView> {
+class _LessonViewState extends State<LessonView> {
   var _selectedStudent;
   List<Lesson> _lessons = [];
   int _lessonCount = 0;
@@ -32,11 +32,6 @@ class _LessonListViewState extends State<LessonListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Lesson List"),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -211,8 +206,8 @@ class _LessonListViewState extends State<LessonListView> {
           )
         ],
       ),
-      bottomNavigationBar: const BottomBar(),
       floatingActionButton: FloatingActionButton(
+          heroTag: null,
           child: Icon(
             Icons.search,
             color: Theme.of(context).colorScheme.onSecondary,

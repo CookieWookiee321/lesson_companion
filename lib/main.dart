@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/material.dart';
+import 'package:lesson_companion/views/base_view.dart';
 
 import 'controllers/styler.dart';
 import 'views/home_view.dart';
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
       darkTheme:
           ThemeData(useMaterial3: true, colorScheme: Styler.darkColorScheme),
       //home: StudentListView(),
-      home: const HomeView(),
+      home: const BaseView(),
     );
   }
 }

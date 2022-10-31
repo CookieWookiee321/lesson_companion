@@ -35,170 +35,147 @@ class _HomeViewState extends State<HomeView> {
 
   void _onSwitched(bool isOn) {
     setState(() {
-      !isOn ? _showDetails = false : _showDetails = true;
+      _showDetails = isOn;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Lesson Companion"),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          actions: [
-            PopupMenuButton(
-              itemBuilder: (context) {
-                return [
-                  PopupMenuItem<int>(
-                    value: 0,
-                    child: Row(
-                      children: [
-                        const Expanded(child: Text("Show details")),
-                        Switch(
-                            value: _showDetails,
-                            onChanged: (state) => _onSwitched(state))
-                      ],
-                    ),
-                  ),
-                ];
-              },
-            )
-          ],
-        ),
-        body: Column(
-          children: [
-            if (_showDetails)
-              Card(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
-                  child: Column(
-                    children: [
-                      Focus(
-                        child: Row(
-                          children: [
-                            Expanded(
-                                flex: 3,
-                                child: TFOutlined(
-                                  name: "tName",
-                                  hint: "Name",
-                                  onTextChanged: (text) {
-                                    _name = text;
-                                  },
-                                )),
-                            Expanded(
-                              flex: 2,
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                    2.0, 6.0, 12.0, 0.0),
-                                child: HomeTextField(
-                                  onTap: () async {
-                                    final picked = await showDatePicker(
-                                        context: context,
-                                        initialDate: _date,
-                                        firstDate: DateTime(2000, 01, 01),
-                                        lastDate: DateTime(2100, 01, 01));
+      body: Column(
+        children: [
+          if (_showDetails)
+            Card(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
+                child: Column(
+                  children: [
+                    Focus(
+                      child: Row(
+                        children: [
+                          Expanded(
+                              flex: 3,
+                              child: TFOutlined(
+                                name: "tName",
+                                hint: "Name",
+                                onTextChanged: (text) {
+                                  _name = text;
+                                },
+                              )),
+                          Expanded(
+                            flex: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  2.0, 6.0, 12.0, 0.0),
+                              child: HomeTextField(
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: _date,
+                                      firstDate: DateTime(2000, 01, 01),
+                                      lastDate: DateTime(2100, 01, 01));
 
-                                    if (picked != null && picked != _date) {
-                                      setState(() {
-                                        _date = picked;
-                                        _dateController.text =
-                                            CompanionMethods.getDateString(
-                                                _date);
-                                      });
-                                    }
-                                  },
-                                  controller: _dateController,
-                                  hintText: "Date",
-                                  alignment: TextAlign.center,
-                                  edittable: false,
-                                ),
+                                  if (picked != null && picked != _date) {
+                                    setState(() {
+                                      _date = picked;
+                                      _dateController.text =
+                                          CompanionMethods.getDateString(_date);
+                                    });
+                                  }
+                                },
+                                controller: _dateController,
+                                hintText: "Date",
+                                alignment: TextAlign.center,
+                                edittable: false,
                               ),
-                            )
-                          ],
-                        ),
+                            ),
+                          )
+                        ],
                       ),
-                      TFOutlined(
-                        name: "tTopic",
-                        hint: "Topic",
-                        size: 13,
-                        onTextChanged: (text) {
-                          _topic = text;
-                        },
-                      ),
-                      TFOutlined(
-                        name: "tHomework",
-                        hint: "Homework",
-                        size: 13,
-                        onTextChanged: (text) {
-                          _homework = text;
-                        },
-                      ),
-                    ],
-                  ),
+                    ),
+                    TFOutlined(
+                      name: "tTopic",
+                      hint: "Topic",
+                      size: 13,
+                      onTextChanged: (text) {
+                        _topic = text;
+                      },
+                    ),
+                    TFOutlined(
+                      name: "tHomework",
+                      hint: "Homework",
+                      size: 13,
+                      onTextChanged: (text) {
+                        _homework = text;
+                      },
+                    ),
+                  ],
                 ),
               ),
-            Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Divider(
-                  color: Theme.of(context).colorScheme.primary,
-                )),
-            Expanded(
-              child: Column(children: const [
-                Expanded(child: ReportTable(title: "New Language")),
-                Expanded(child: ReportTable(title: "Pronunciation")),
-                Expanded(child: ReportTable(title: "Corrections"))
-              ]),
             ),
-            Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-                child: ElevatedButton(
-                    onPressed: () async {
-                      if (_name == null || _topic == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: const Text(
-                                "A name and topic are required at least to submit a lesson")));
-                        return;
-                      }
-
-                      Student? thisStudent;
-
-                      //check if student exists
-                      if (!await DataStorage.checkStudentExistsByName(_name!)) {
-                        //create new entry if not existant
-                        thisStudent = Student();
-                        thisStudent.name = _name!;
-                        thisStudent.active = true;
-                        await DataStorage.saveStudent(thisStudent);
-                      }
-                      thisStudent = await DataStorage.getStudentByName(_name!);
-
-                      Lesson thisLesson = Lesson(
-                          studentId: thisStudent!.id,
-                          date: _date,
-                          topic: _topic!,
-                          homework: _homework);
-
-                      //check if student exists
-                      if (await DataStorage.checkLessonExists(
-                          thisLesson.studentId, thisLesson.date)) {
-                        //update details of existing entry
-                        final id = await DataStorage.getLessonId(
-                            _name, thisLesson.date);
-                        thisLesson.id = id!;
-                      }
-                      await DataStorage.saveLesson(thisLesson);
-
-                      //TODO: Reports current do not generate from this view
-                      // Report thisReport =
-
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Divider(
+                color: Theme.of(context).colorScheme.primary,
+              )),
+          Expanded(
+            child: Column(children: const [
+              Expanded(child: ReportTable(title: "New Language")),
+              Expanded(child: ReportTable(title: "Pronunciation")),
+              Expanded(child: ReportTable(title: "Corrections"))
+            ]),
+          ),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
+              child: ElevatedButton(
+                  onPressed: () async {
+                    if (_name == null || _topic == null) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text("Lesson submitted successfully")));
-                    },
-                    child: const Text("Submit")))
-          ],
-        ),
-        bottomNavigationBar: const BottomBar());
+                          content: const Text(
+                              "A name and topic are required at least to submit a lesson")));
+                      return;
+                    }
+
+                    Student? thisStudent;
+
+                    //check if student exists
+                    if (!await DataStorage.checkStudentExistsByName(_name!)) {
+                      //create new entry if not existant
+                      thisStudent = Student();
+                      thisStudent.name = _name!;
+                      thisStudent.active = true;
+                      await DataStorage.saveStudent(thisStudent);
+                    }
+                    thisStudent = await DataStorage.getStudentByName(_name!);
+
+                    Lesson thisLesson = Lesson(
+                        studentId: thisStudent!.id,
+                        date: _date,
+                        topic: _topic!,
+                        homework: _homework);
+
+                    //check if student exists
+                    if (await DataStorage.checkLessonExists(
+                        thisLesson.studentId, thisLesson.date)) {
+                      //update details of existing entry
+                      final id =
+                          await DataStorage.getLessonId(_name, thisLesson.date);
+                      thisLesson.id = id!;
+                    }
+                    await DataStorage.saveLesson(thisLesson);
+
+                    //TODO: Reports current do not generate from this view
+                    // Report thisReport =
+
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text("Lesson submitted successfully")));
+                  },
+                  child: const Text("Submit")))
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.small(
+          heroTag: null, child: Icon(Icons.more), onPressed: null),
+    );
   }
 }
 
@@ -277,75 +254,78 @@ class _ReportTableState extends State<ReportTable> {
   @override
   Widget build(BuildContext context) {
     return Focus(
-      child: Container(
-        decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).colorScheme.tertiary),
-            borderRadius: const BorderRadius.all(Radius.circular(4))),
-        padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-        margin: const EdgeInsets.fromLTRB(13, 2, 13, 2),
-        clipBehavior: Clip.antiAlias,
-        child: Column(children: [
-          Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(6, 0, 0, 0),
-                  child: Text(
-                    widget.title,
-                    style: Theme.of(context).textTheme.bodySmall,
+      child: Card(
+        child: Container(
+          decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).colorScheme.tertiary),
+              borderRadius: const BorderRadius.all(Radius.circular(10))),
+          padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
+          margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+          clipBehavior: Clip.antiAlias,
+          child: Column(children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(6, 0, 0, 0),
+                    child: Text(
+                      widget.title,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ),
                 ),
-              ),
 
-              //PLUS BUTTON
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    // updating the state
-                    _children.add(ReportTableRow(
-                      rowIndex: _children.isNotEmpty ? _children.length - 1 : 0,
-                      onFocus: (row, column) {
-                        _updateCurrent(row, column);
-                      },
-                    ));
-                  });
-                },
-                icon: Icon(
-                  Icons.plus_one_sharp,
-                  color: Theme.of(context).colorScheme.secondary,
+                //PLUS BUTTON
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      // updating the state
+                      _children.add(ReportTableRow(
+                        rowIndex:
+                            _children.isNotEmpty ? _children.length - 1 : 0,
+                        onFocus: (row, column) {
+                          _updateCurrent(row, column);
+                        },
+                      ));
+                    });
+                  },
+                  icon: Icon(
+                    Icons.plus_one_sharp,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  iconSize: 15.0,
+                  splashRadius: 10.0,
+                  padding: const EdgeInsets.all(4.0),
                 ),
-                iconSize: 15.0,
-                splashRadius: 10.0,
-                padding: const EdgeInsets.all(4.0),
-              ),
-              //MINUS BUTTON
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    // updating the state
-                    if (_inFocus && _children.isNotEmpty) {
-                      _children.removeAt(_currentRow);
-                    }
-                  });
-                },
-                icon: Icon(
-                  Icons.exposure_minus_1_sharp,
-                  color: Theme.of(context).colorScheme.secondary,
+                //MINUS BUTTON
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      // updating the state
+                      if (_inFocus && _children.isNotEmpty) {
+                        _children.removeAt(_currentRow);
+                      }
+                    });
+                  },
+                  icon: Icon(
+                    Icons.exposure_minus_1_sharp,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  iconSize: 15.0,
+                  splashRadius: 10.0,
+                  padding: const EdgeInsets.all(4.0),
                 ),
-                iconSize: 15.0,
-                splashRadius: 10.0,
-                padding: const EdgeInsets.all(4.0),
-              ),
 
-              //PLUS BUTTON
-            ],
-          ),
-          Expanded(
-              child: ListView(
-            controller: ScrollController(),
-            children: _children,
-          )),
-        ]),
+                //PLUS BUTTON
+              ],
+            ),
+            Expanded(
+                child: ListView(
+              controller: ScrollController(),
+              children: _children,
+            )),
+          ]),
+        ),
       ),
       onFocusChange: (hasFocus) {
         _inFocus = hasFocus ? true : false;

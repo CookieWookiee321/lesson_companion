@@ -18,6 +18,7 @@ dependencies:
   isar_flutter_libs: ^3.0.2
   shared_preferences: ^2.0.15
   printing: ^5.9.3
+  flutter_speed_dial: ^6.2.0
 
 
 dev_dependencies:

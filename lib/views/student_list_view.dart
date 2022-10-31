@@ -16,14 +16,9 @@ class _StudentViewState extends State<StudentView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        key: _scaffoldKey,
-        appBar: AppBar(
-          title: const Text("Student List"),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        ),
-        body: StudentListRow(),
-        bottomNavigationBar: const BottomBar());
+      key: _scaffoldKey,
+      body: StudentListRow(),
+    );
   }
 }
 

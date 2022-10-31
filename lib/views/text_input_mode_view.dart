@@ -297,48 +297,31 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Text Input Mode"),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        actions: [
-          PopupMenuButton(
-            itemBuilder: (context) {
-              return [
-                PopupMenuItem<int>(
-                    value: 0,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        TextInputModeMethods.pickFile();
-                      },
-                      child: const Text("Input from file"),
-                    )),
-              ];
-            },
-          )
-        ],
-      ),
       body: Column(
         children: [
           Expanded(
-              child: Padding(
-            padding: const EdgeInsets.fromLTRB(13.0, 6.0, 13.0, 0.0),
-            child: Row(
-              children: [
-                Expanded(
-                    child: TextField(
-                  controller: _textController,
-                  onSubmitted: ((value) {}),
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                  ),
-                  style: const TextStyle(fontSize: 11),
-                  maxLines: null,
-                  expands: true,
-                ))
-              ],
+              child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(0),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: TextField(
+                    controller: _textController,
+                    onSubmitted: ((value) {}),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(10.0))),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                    ),
+                    style: const TextStyle(fontSize: 11),
+                    maxLines: null,
+                    expands: true,
+                  ))
+                ],
+              ),
             ),
           )),
           Padding(
@@ -347,8 +330,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                   onPressed: _onPressedSubmit, child: const Text("Submit")))
         ],
       ),
-      bottomNavigationBar: const BottomBar(),
       floatingActionButton: FloatingActionButton(
+          heroTag: null,
           child: Icon(
             Icons.more,
             color: Theme.of(context).colorScheme.onSecondary,
