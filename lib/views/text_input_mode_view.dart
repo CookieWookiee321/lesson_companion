@@ -2,7 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:lesson_companion/models/data_storage.dart';
+import 'package:lesson_companion/models/free_dictionary.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
@@ -13,45 +15,89 @@ import '../controllers/styler.dart';
 import '../controllers/text_mode_input_controller.dart';
 import 'companion_widgets.dart';
 
-final _template = """* Name
-Test
-* Date
-${CompanionMethods.getShortDate(DateTime.now())}
-* Topic
-Topic 1
-Topic 2
-* Homework
-Homework 1
-Homework 2
-* New Language
-This e\\example\\ i\\info\\ q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
-e\\example\\ i\\info\\ This q\\question\\ <subtext> || That
-* Pronunciation
-This <subtext> ||
-e\\example\\ i\\info\\ This q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
-* Corrections
-This e\\example\\ i\\info\\ q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
-e\\example\\ i\\info\\ This q\\question\\ <subtext>
-===""";
+// final _template = """* Name
+// Test
+// * Date
+// ${CompanionMethods.getShortDate(DateTime.now())}
+// * Topic
+// Topic 1
+// Topic 2
+// * Homework
+// Homework 1
+// Homework 2
+// * New Language
+// This e\\example\\ i\\info\\ q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
+// e\\example\\ i\\info\\ This q\\question\\ <subtext> || That
+// * Pronunciation
+// This <subtext> ||
+// e\\example\\ i\\info\\ This q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
+// * Corrections
+// This e\\example\\ i\\info\\ q\\question\\ <subtext> || That e\\example\\ i\\info\\ q\\question\\
+// e\\example\\ i\\info\\ This q\\question\\ <subtext>
+// ===""";
 
 //TODO: Fix the auto-completion (in edit)
 
-// final _template = """* Name
+final _template =
+    """>Lines like this will not be processed, so please replace them with your own information.
+>Simply enter the data under the appropraite heading.
+>This template can be replaced by choosing "Change template" from the lower-hand side button on the screen.
 
-// * Date
-// ${CompanionMethods.getShortDate(DateTime.now())}
+>These four fields will dictate the header of the report.
+* Name
+>This is a required field. Only one entry is allowed here.
+>Each student must have a unique name.
+>If you have multiple students with the same first name, consider including their surnames, or some kind of distinguishing feature in brackets.
+>NOTE: The only field where text in rounded brackets will not be printed is this field. They have no special features in other fields.
+>E.g. "Jason", "Jason Friedman", or "Jason (from Germany)"
+* Date
+>This is a required field. Only one entry is allowed here.
+>Please enter the data format as either YYYY/MM/DD or YYYY-MM-DD.
+>E.g. "2021/04/16" or "2021-04-16"
+${CompanionMethods.getShortDate(DateTime.now())}
+* Topic
+>This is a required field. Multiple entries are allowed here, one per line.
+>At this point, you can begin with styling the report too.
+>Subtext is allowed here, in addition to the default text style.
+>Subtext is indicated by placing text in square brackets.
+>E.g:
+>"Adverbs of Frquency (Page 1-4) [Grammar]
+>Mingle Activities [Speaking]"
+>NOTE: Text in rounded brackets "()" will be printed normally.
+* Homework
+>Multiple entries are allowed here, one per line.
+>This field is optional. Leaving it blank will leave it out of the report entirely.
 
-// * Topic
+>The following 3 three fields dictate the tables of the report.
+>They work slightly differently from the header fields.
+>These can each take as many entries as you want.
+>Also, feel free to change the names of the headings.
+>NOTE: Some features are tied to specific heading names (See below)
 
-// * Homework
+>You can simply write a new line to place text into a table row.
+>If you want to have a row with two columns, then use a double-pipe "||" marker after the left-hand text to begin writing the right-hand text
+>For now, each entry MUST be placed on one line. An entry will end when the ENTER key is pressed to go to a new line.
 
-// * New Language
+>Notation Markers:
+>As indicated previously, text mark down and styling is available in Lesson Companion.
+>Subtext is indicated inside square brackets - "[sample]"
+>Questions are in light blue, and are indicated like so - "q\sample\"
+>Examples are bolded and in green, and are indicated like so - "e\sample\"
+>Informtion is in orange, and is indicated like so - "i\sample\"
 
-// * Pronunciation
+* New Language
+>Auto-Look Up:
+>If you want to utilise the dictionary auto-lookup feature, then the "New Language" heading name is a required one.
+>Place each entry on a new line, and with no other text included (including no mark down features or notation markers).
+>After looking up the details online, any results will be shown in a dialog window.
+>You can choose what to include and what not to include in your report, and then can edit the details after.
+* Pronunciation
+>Automatic Linking:
+>Anything placed in this section will link to Forvo.com, which is a pronuncation help website.
+>Only text in the left-hand column will be linked automatically
+* Corrections
 
-// * Corrections
-
-// ===""";
+===""";
 
 class TextInputModeView extends StatefulWidget {
   const TextInputModeView({Key? key}) : super(key: key);
@@ -92,10 +138,13 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   String _autoFormatAll(String input) {
     final sb = StringBuffer();
     const stoppingPoint = "===";
+    final commentPrefix = ">";
 
     for (var line in _textController.text.split("\n")) {
-      if (line.isNotEmpty) {
-        if (line[0] != "*" && line != stoppingPoint) {
+      if (line.length > 0) {
+        if (line[0] != "*" &&
+            line != stoppingPoint &&
+            line[0] != commentPrefix) {
           if (line[0] != "-") {
             line = "- $line";
           }
@@ -116,13 +165,15 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     String currentHeading = "";
     final headingPrefix = "*";
     final linePrefix = "-";
+    final commentPrefix = ">";
     Map<String, List<String>> mappings = {};
     List<String> currentEntryList = [];
 
     //loop through each line in text
     for (var line in text.split("\n")) {
       //don't read blank lines
-      if (line.trim().isEmpty || line.trim() == "-") continue;
+      if (line.trim().isEmpty || line.trim() == "-" || line[0] == commentPrefix)
+        continue;
       if (line.trim() == "===") continue;
 
       //check if the line contains a heading or not
@@ -297,52 +348,92 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
 
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-              child: Card(
-            child: Padding(
-              padding: EdgeInsets.all(0),
-              child: Row(
-                children: [
-                  Expanded(
-                      child: TextField(
-                    controller: _textController,
-                    onSubmitted: ((value) {}),
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.all(Radius.circular(10.0))),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                    ),
-                    style: const TextStyle(fontSize: 11),
-                    maxLines: null,
-                    expands: true,
-                  ))
-                ],
+        body: Column(
+          children: [
+            Expanded(
+                child: Card(
+              child: Padding(
+                padding: EdgeInsets.all(0),
+                child: Row(
+                  children: [
+                    Expanded(
+                        child: TextField(
+                      controller: _textController,
+                      onSubmitted: ((value) {}),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(10.0))),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                      ),
+                      style: const TextStyle(fontSize: 11),
+                      maxLines: null,
+                      expands: true,
+                    ))
+                  ],
+                ),
               ),
+            )),
+            Padding(
+                padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
+                child: ElevatedButton(
+                    onPressed: _onPressedSubmit, child: const Text("Submit")))
+          ],
+        ),
+        floatingActionButton: SpeedDial(
+          children: [
+            SpeedDialChild(
+              label: "Auto-Format Report",
+              onTap: () async {
+                List<FreeDictionary> results = [];
+                _textController.text = _autoFormatAll(_textController.text);
+                final indexStart =
+                    _textController.text.indexOf("* New Language");
+                final chunk = _textController.text.substring(indexStart,
+                    _textController.text.indexOf("*", indexStart + 1));
+                final terms = chunk.split("\n-");
+
+                //skip the first term as it is just the heading
+                for (int i = 1; i < terms.length; i++) {
+                  final thisTerm;
+
+                  if (terms[i].contains("||")) {
+                    thisTerm = terms[i]
+                        .trim()
+                        .substring(0, terms[i].trim().indexOf("||"));
+                  } else {
+                    thisTerm = terms[i].trim();
+                  }
+
+                  final url =
+                      "https://api.dictionaryapi.dev/api/v2/entries/en/${thisTerm}";
+                  final dictionary = await FreeDictionary.fetchJson(url);
+                  results.add(dictionary);
+                }
+
+                if (results.isNotEmpty) {
+                  await showDialog(
+                      context: context,
+                      builder: ((context) {
+                        return AlertDialog(
+                          title: Text("Dictionary Results"),
+                          content: SingleChildScrollView(
+                            child: Column(children: [
+                              ...results.map((e) {
+                                return Row(
+                                  children: [Text("Entry: ${e.word}")],
+                                );
+                              })
+                            ]),
+                          ),
+                        );
+                      }));
+                }
+              },
             ),
-          )),
-          Padding(
-              padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
-              child: ElevatedButton(
-                  onPressed: _onPressedSubmit, child: const Text("Submit")))
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-          heroTag: null,
-          child: Icon(
-            Icons.more,
-            color: Theme.of(context).colorScheme.onSecondary,
-          ),
-          backgroundColor: Theme.of(context).colorScheme.secondary,
-          hoverColor: Theme.of(context).colorScheme.tertiary,
-          onPressed: () {
-            //TODO: Extend bar to search bar
-          }),
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
-      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
-    );
+            SpeedDialChild(label: "Auto-Complete Report")
+          ],
+        ));
   }
 }
