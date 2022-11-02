@@ -80,10 +80,15 @@ ${CompanionMethods.getShortDate(DateTime.now())}
 
 >Notation Markers:
 >As indicated previously, text mark down and styling is available in Lesson Companion.
+>Line breaks WITHIN A TABLE CELL is indicated with a double-forward slash "//".
 >Subtext is indicated inside square brackets - "[sample]"
 >Questions are in light blue, and are indicated like so - "q\sample\"
 >Examples are bolded and in green, and are indicated like so - "e\sample\"
 >Informtion is in orange, and is indicated like so - "i\sample\"
+>NOTE: There is nothing stopping you from using the different styles for your own purposes, and not as they are outlined here. They are just named based on their original functions.
+>E.g. "q\What did you do yesterday?\//I go to school||I went to school//i\remember to use past tense verbs.\//e\go >> went\"
+>The above example has two cells in the row. The first has blue question text, then the original sentence from the student on a new line within the same cell.
+>The right-hand side cell has the correct sentence form, followed by an explanation of the correction on a new line in the cell, and then, on another new line, a clearer indication of the change which was made.
 
 * New Language
 >Auto-Look Up:
@@ -96,7 +101,7 @@ ${CompanionMethods.getShortDate(DateTime.now())}
 >Anything placed in this section will link to Forvo.com, which is a pronuncation help website.
 >Only text in the left-hand column will be linked automatically
 * Corrections
-
+>This section has no special features, but is just included for general purposes as a default.
 ===""";
 
 class TextInputModeView extends StatefulWidget {
@@ -119,12 +124,24 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   void _autoInsertMarkers(String char, int currentIndex) {
     assert(char == "q" || char == "e" || char == "i" || char == "[",
-        "This method must take a notation marker of either 'i', 'q', 'e', or '['");
+        "This method must take a notation marker of either 'i', 'q', 'e', '[', '(', '<', '{'");
 
     switch (char) {
       case "[":
         _textController.text =
             "${_textController.text.substring(0, currentIndex)}[]${_textController.text.substring(currentIndex, _textController.text.length)}";
+        break;
+      case "(":
+        _textController.text =
+            "${_textController.text.substring(0, currentIndex)}()${_textController.text.substring(currentIndex, _textController.text.length)}";
+        break;
+      case "{":
+        _textController.text =
+            "${_textController.text.substring(0, currentIndex)}{}${_textController.text.substring(currentIndex, _textController.text.length)}";
+        break;
+      case "<":
+        _textController.text =
+            "${_textController.text.substring(0, currentIndex)}<>${_textController.text.substring(currentIndex, _textController.text.length)}";
         break;
       default:
         _textController.text =
