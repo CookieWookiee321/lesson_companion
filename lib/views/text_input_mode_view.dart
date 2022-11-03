@@ -11,9 +11,7 @@ import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/pdf_preview.dart';
 
 import '../controllers/companion_methods.dart';
-import '../controllers/styler.dart';
 import '../controllers/text_mode_input_controller.dart';
-import 'companion_widgets.dart';
 
 // final _template = """* Name
 // Test

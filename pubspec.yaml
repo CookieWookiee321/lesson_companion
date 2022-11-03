@@ -19,6 +19,7 @@ dependencies:
   shared_preferences: ^2.0.15
   printing: ^5.9.3
   flutter_speed_dial: ^6.2.0
+  code_text_field: ^1.0.2
 
 
 dev_dependencies:

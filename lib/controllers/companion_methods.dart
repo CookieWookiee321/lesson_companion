@@ -23,52 +23,61 @@ class CompanionMethods {
   }
 
   static String getShortDate(DateTime dateTime) {
-    return "${dateTime.year}-${dateTime.month}-${dateTime.day}";
+    String dayStr;
+
+    dayStr = dateTime.day.toString();
+    if (dateTime.day < 10) dayStr = "0$dayStr";
+
+    return "${dateTime.year}-${dateTime.month}-$dayStr";
   }
 
   static String getDateString(DateTime dateTime) {
+    String monthStr;
     String dayStr;
 
     switch (dateTime.month) {
       case 1:
-        dayStr = "January";
+        monthStr = "Jan";
         break;
       case 2:
-        dayStr = "February";
+        monthStr = "Feb";
         break;
       case 3:
-        dayStr = "March";
+        monthStr = "Mar";
         break;
       case 4:
-        dayStr = "April";
+        monthStr = "Apr";
         break;
       case 5:
-        dayStr = "May";
+        monthStr = "May";
         break;
       case 6:
-        dayStr = "June";
+        monthStr = "Jun";
         break;
       case 7:
-        dayStr = "July";
+        monthStr = "Jul";
         break;
       case 8:
-        dayStr = "August";
+        monthStr = "Aug";
         break;
       case 9:
-        dayStr = "September";
+        monthStr = "Sep";
         break;
       case 10:
-        dayStr = "October";
+        monthStr = "Oct";
         break;
       case 11:
-        dayStr = "November";
+        monthStr = "Nov";
         break;
       default:
-        dayStr = "December";
+        monthStr = "Dec";
         break;
     }
 
-    return "${dateTime.day} $dayStr ${dateTime.year}";
+    dayStr = dateTime.day.toString();
+    if (dateTime.day < 10) dayStr = "0$dayStr";
+
+    return "$dayStr $monthStr ${dateTime.year}";
   }
 
   static String convertListToString(List<String> input) {
