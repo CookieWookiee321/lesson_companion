@@ -25,7 +25,8 @@ class PdfText {
       } else {
         if (input[i] == "\\") {
           //determine if this is starting text markdown, or completing it
-          if (markerOpeners.contains(sb.toString()[sb.length - 1])) {
+          if (sb.length != 0 &&
+              markerOpeners.contains(sb.toString()[sb.length - 1])) {
             // open a new markdown substring, based on the character preceding the opening '\'
             final marker = sb.toString()[sb.length - 1];
 

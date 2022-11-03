@@ -24,11 +24,15 @@ class CompanionMethods {
 
   static String getShortDate(DateTime dateTime) {
     String dayStr;
+    String monthStr;
 
     dayStr = dateTime.day.toString();
     if (dateTime.day < 10) dayStr = "0$dayStr";
 
-    return "${dateTime.year}-${dateTime.month}-$dayStr";
+    monthStr = dateTime.month.toString();
+    if (dateTime.month < 10) monthStr = "0$monthStr";
+
+    return "${dateTime.year}-$monthStr-$dayStr";
   }
 
   static String getDateString(DateTime dateTime) {

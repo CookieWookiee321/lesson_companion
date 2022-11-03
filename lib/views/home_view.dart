@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
@@ -39,16 +42,60 @@ class _HomeViewState extends State<HomeView> {
     });
   }
 
+  void _onPressedSubmit() async {
+    if (_name == null || _topic == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text(
+              "A name and topic are required at least to submit a lesson")));
+      return;
+    }
+
+    Student? thisStudent;
+
+    //check if student exists
+    if (!await DataStorage.checkStudentExistsByName(_name!)) {
+      //create new entry if not existant
+      thisStudent = Student();
+      thisStudent.name = _name!;
+      thisStudent.active = true;
+      await DataStorage.saveStudent(thisStudent);
+    }
+    thisStudent = await DataStorage.getStudentByName(_name!);
+
+    Lesson thisLesson = Lesson(
+        studentId: thisStudent!.id,
+        date: _date,
+        topic: _topic!,
+        homework: _homework);
+
+    //check if student exists
+    if (await DataStorage.checkLessonExists(
+        thisLesson.studentId, thisLesson.date)) {
+      //update details of existing entry
+      final id = await DataStorage.getLessonId(_name, thisLesson.date);
+      thisLesson.id = id!;
+    }
+    await DataStorage.saveLesson(thisLesson);
+
+    //TODO: Reports current do not generate from this view
+    // Report thisReport =
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text("Lesson submitted successfully")));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (_showDetails)
             Card(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Focus(
                       child: Row(
@@ -119,57 +166,25 @@ class _HomeViewState extends State<HomeView> {
                 color: Theme.of(context).colorScheme.primary,
               )),
           Expanded(
-            child: Column(children: const [
-              Expanded(child: ReportTable(title: "New Language")),
-              Expanded(child: ReportTable(title: "Pronunciation")),
-              Expanded(child: ReportTable(title: "Corrections"))
-            ]),
+            child: ListView(
+              children: [
+                ReportTable(title: "New Language"),
+                ReportTable(title: "Pronunciation"),
+                ReportTable(title: "Corrections")
+              ],
+            ),
           ),
+          // Expanded(
+          //   child: Column(children: const [
+          //     // ReportTable(title: "New Language"),
+          //     // Expanded(child: ReportTable(title: "Pronunciation")),
+          //     // Expanded(child: ReportTable(title: "Corrections"))
+          //   ]),
+          // ),
           Padding(
               padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
               child: ElevatedButton(
-                  onPressed: () async {
-                    if (_name == null || _topic == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: const Text(
-                              "A name and topic are required at least to submit a lesson")));
-                      return;
-                    }
-
-                    Student? thisStudent;
-
-                    //check if student exists
-                    if (!await DataStorage.checkStudentExistsByName(_name!)) {
-                      //create new entry if not existant
-                      thisStudent = Student();
-                      thisStudent.name = _name!;
-                      thisStudent.active = true;
-                      await DataStorage.saveStudent(thisStudent);
-                    }
-                    thisStudent = await DataStorage.getStudentByName(_name!);
-
-                    Lesson thisLesson = Lesson(
-                        studentId: thisStudent!.id,
-                        date: _date,
-                        topic: _topic!,
-                        homework: _homework);
-
-                    //check if student exists
-                    if (await DataStorage.checkLessonExists(
-                        thisLesson.studentId, thisLesson.date)) {
-                      //update details of existing entry
-                      final id =
-                          await DataStorage.getLessonId(_name, thisLesson.date);
-                      thisLesson.id = id!;
-                    }
-                    await DataStorage.saveLesson(thisLesson);
-
-                    //TODO: Reports current do not generate from this view
-                    // Report thisReport =
-
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text("Lesson submitted successfully")));
-                  },
+                  onPressed: () async => _onPressedSubmit(),
                   child: const Text("Submit")))
         ],
       ),
@@ -232,15 +247,16 @@ class ReportTable extends StatefulWidget {
 }
 
 class _ReportTableState extends State<ReportTable> {
+  final List<int> _cellIndexes = [0, 1];
   final _children = <ReportTableRow>[
-    const ReportTableRow(rowIndex: 0),
-    const ReportTableRow(rowIndex: 1),
-    const ReportTableRow(rowIndex: 2)
+    ReportTableRow(
+      cellIndexes: [0, 1],
+    )
   ];
   var _currentColumn = 0;
   var _currentRow = 0;
   final _currentCell = [0, 0];
-  var _inFocus = false;
+  bool _inFocus = false;
 
   void _updateCurrent(int rowIndex, int columnIndex) {
     setState(() {
@@ -262,7 +278,7 @@ class _ReportTableState extends State<ReportTable> {
           padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
           margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
           clipBehavior: Clip.antiAlias,
-          child: Column(children: [
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
             Row(
               children: [
                 Expanded(
@@ -274,15 +290,18 @@ class _ReportTableState extends State<ReportTable> {
                     ),
                   ),
                 ),
-
                 //PLUS BUTTON
                 IconButton(
                   onPressed: () {
                     setState(() {
                       // updating the state
+                      final lhsIndex = _cellIndexes.last + 1;
+                      final rhsIndex = _cellIndexes.last + 2;
+                      _cellIndexes.add(lhsIndex);
+                      _cellIndexes.add(rhsIndex);
+
                       _children.add(ReportTableRow(
-                        rowIndex:
-                            _children.isNotEmpty ? _children.length - 1 : 0,
+                        cellIndexes: _cellIndexes,
                         onFocus: (row, column) {
                           _updateCurrent(row, column);
                         },
@@ -300,12 +319,11 @@ class _ReportTableState extends State<ReportTable> {
                 //MINUS BUTTON
                 IconButton(
                   onPressed: () {
-                    setState(() {
-                      // updating the state
-                      if (_inFocus && _children.isNotEmpty) {
+                    if (_children.length > 1) {
+                      setState(() {
                         _children.removeAt(_currentRow);
-                      }
-                    });
+                      });
+                    }
                   },
                   icon: Icon(
                     Icons.exposure_minus_1_sharp,
@@ -319,16 +337,24 @@ class _ReportTableState extends State<ReportTable> {
                 //PLUS BUTTON
               ],
             ),
-            Expanded(
-                child: ListView(
-              controller: ScrollController(),
-              children: _children,
-            )),
+            FocusTraversalGroup(
+                child: Column(children: [
+              ..._children.map((e) {
+                return e;
+              })
+            ])),
+
+            // Expanded(
+            //     child: ListView(
+            //   children: _children,
+            // )),
           ]),
         ),
       ),
       onFocusChange: (hasFocus) {
-        _inFocus = hasFocus ? true : false;
+        setState(() {
+          _inFocus = hasFocus;
+        });
       },
     );
   }
@@ -338,19 +364,17 @@ class _ReportTableState extends State<ReportTable> {
 //REPORT INPUT TABLE ROW
 //======================================================================
 class ReportTableRow extends StatefulWidget {
-  const ReportTableRow({Key? key, required this.rowIndex, this.onFocus})
-      : super(key: key);
-
   final IntCallback? onFocus;
-  final int rowIndex;
+  final List<int> cellIndexes;
+
+  const ReportTableRow({Key? key, required this.cellIndexes, this.onFocus})
+      : super(key: key);
 
   @override
   State<ReportTableRow> createState() => _ReportTableRowState();
 }
 
 class _ReportTableRowState extends State<ReportTableRow> {
-  int _columnIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     return Focus(
@@ -364,62 +388,70 @@ class _ReportTableRowState extends State<ReportTableRow> {
         child: Row(
           children: [
             Expanded(
-              child: Focus(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(2.0, 2.0, 2.0, 2.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: TextFormField(
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 6),
-                          ),
-                          style: const TextStyle(fontSize: 11),
-                          maxLines: null,
-                        ))
-                      ],
-                    ),
-                  ),
-                  onFocusChange: (hasFocus) {
-                    if (hasFocus) _columnIndex = 0;
-                  }),
-            ),
+                child: FocusTraversalOrder(
+              order: NumericFocusOrder(widget.cellIndexes.last - 1),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(2.0, 2.0, 2.0, 2.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                        child: TextFormField(
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                      ),
+                      style: const TextStyle(fontSize: 11),
+                      maxLines: null,
+                    ))
+                  ],
+                ),
+              ),
+            )),
             const Padding(
               padding: EdgeInsets.all(3.0),
             ),
             Expanded(
-              child: Focus(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(2.0, 2.0, 2.0, 2.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: TextFormField(
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 6),
-                          ),
-                          style: const TextStyle(fontSize: 11),
-                          maxLines: null,
-                        ))
-                      ],
-                    ),
-                  ),
-                  onFocusChange: (hasFocus) {
-                    if (hasFocus) _columnIndex = 1;
-                  }),
-            ),
+                child: FocusTraversalOrder(
+                    order:
+                        NumericFocusOrder(widget.cellIndexes.last.toDouble()),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(2.0, 2.0, 2.0, 2.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                              child: TextFormField(
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 6),
+                            ),
+                            style: const TextStyle(fontSize: 11),
+                            maxLines: null,
+                          ))
+                        ],
+                      ),
+                    ))),
           ],
         ),
       ),
-      onFocusChange: (hasFocus) {
-        widget.onFocus != null
-            ? widget.onFocus!(widget.rowIndex, _columnIndex)
-            : null;
-      },
     );
+  }
+}
+
+class AdjustableScrollController extends ScrollController {
+  AdjustableScrollController([int extraScrollSpeed = 40]) {
+    super.addListener(() {
+      ScrollDirection scrollDirection = super.position.userScrollDirection;
+      if (scrollDirection != ScrollDirection.idle) {
+        double scrollEnd = super.offset +
+            (scrollDirection == ScrollDirection.reverse
+                ? extraScrollSpeed
+                : -extraScrollSpeed);
+        scrollEnd = min(super.position.maxScrollExtent,
+            max(super.position.minScrollExtent, scrollEnd));
+        jumpTo(scrollEnd);
+      }
+    });
   }
 }

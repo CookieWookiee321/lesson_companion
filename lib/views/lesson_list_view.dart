@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
 
-import '../../controllers/companion_methods.dart';
+import '../controllers/companion_methods.dart';
 
-import '../companion_widgets.dart';
+import 'companion_widgets.dart';
 
 class LessonView extends StatefulWidget {
   const LessonView({super.key});
@@ -107,87 +107,38 @@ class _LessonViewState extends State<LessonView> {
                                   ? Theme.of(context).colorScheme.tertiary
                                   : Colors.grey,
                             ),
-                            subtitle: (_lessons[index].homework != null &&
-                                    _lessons[index].homework!.trim().length > 0)
-                                ? CompanionMethods.styleText(
-                                    _lessons[index].homework!, context)
-                                : null,
                             onTap: () async {
                               await showDialog(
                                   context: context,
                                   builder: ((context) {
-                                    final _selectedId = _lessons[index].id;
-                                    DateTime? _selectedDate =
-                                        _lessons[index].date;
-                                    String _selectedTopic =
-                                        _lessons[index].topic;
-                                    String? _selectedHomework =
-                                        _lessons[index].homework;
-
                                     return AlertDialog(
-                                      scrollable: true,
-                                      title: Text("Lesson Details"),
-                                      actions: [
-                                        Row(
-                                          children: [
-                                            Text("Date:"),
-                                            Expanded(
-                                                child: TextFormField(
-                                              maxLines: null,
-                                              onChanged: (value) {
-                                                _selectedDate =
-                                                    DateTime.tryParse(value);
-                                              },
-                                              initialValue: _lessons[index]
-                                                  .date
-                                                  .toString(),
-                                            ))
-                                          ],
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text("Topic:"),
-                                            Expanded(
-                                                child: TextFormField(
-                                              maxLines: null,
-                                              onChanged: (value) {
-                                                _selectedTopic = value;
-                                              },
-                                              initialValue:
-                                                  _lessons[index].topic,
-                                            ))
-                                          ],
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text("Homework:"),
-                                            Expanded(
-                                                child: TextFormField(
-                                              maxLines: null,
-                                              onChanged: (value) {
-                                                _selectedTopic = value;
-                                              },
-                                              initialValue:
-                                                  _lessons[index].homework,
-                                            ))
-                                          ],
-                                        ),
-                                        Center(
-                                          child: OutlinedButton(
-                                              onPressed: () async {
-                                                final lesson = Lesson(
-                                                    date: _selectedDate!,
-                                                    homework: _selectedHomework,
-                                                    studentId: _selectedId,
-                                                    topic: _selectedTopic);
-
-                                                await DataStorage.saveLesson(
-                                                    lesson);
-                                                Navigator.pop(context);
-                                              },
-                                              child: Text("Submit")),
-                                        )
-                                      ],
+                                      title: Text("Item Menu"),
+                                      content: Column(
+                                        children: [
+                                          OutlinedButton(
+                                            child: Text("Edit Lesson"),
+                                            onPressed: () async {
+                                              await showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return _editDialog(
+                                                        studentId:
+                                                            _lessons[index]
+                                                                .studentId,
+                                                        initialDate:
+                                                            _lessons[index]
+                                                                .date,
+                                                        initialTopic:
+                                                            _lessons[index]
+                                                                .topic,
+                                                        initialHomework:
+                                                            _lessons[index]
+                                                                .homework);
+                                                  });
+                                            },
+                                          )
+                                        ],
+                                      ),
                                     );
                                   }));
                             },
@@ -219,6 +170,92 @@ class _LessonViewState extends State<LessonView> {
           }),
       floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
       floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
+    );
+  }
+}
+
+class _editDialog extends StatefulWidget {
+  final int studentId;
+  final DateTime initialDate;
+  final String initialTopic;
+  final String? initialHomework;
+
+  const _editDialog(
+      {super.key,
+      required this.studentId,
+      required this.initialDate,
+      required this.initialTopic,
+      required this.initialHomework});
+
+  @override
+  State<_editDialog> createState() => __editDialogState();
+}
+
+class __editDialogState extends State<_editDialog> {
+  DateTime? _selectedDate;
+  String? _selectedTopic;
+  String? _selectedHomework;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      scrollable: true,
+      title: Text("Lesson Details"),
+      actions: [
+        Row(
+          children: [
+            Text("Date:"),
+            Expanded(
+                child: TextFormField(
+              maxLines: null,
+              onChanged: (value) {
+                _selectedDate = DateTime.tryParse(value);
+              },
+              initialValue: CompanionMethods.getShortDate(widget.initialDate),
+            ))
+          ],
+        ),
+        Row(
+          children: [
+            Text("Topic:"),
+            Expanded(
+                child: TextFormField(
+              maxLines: null,
+              onChanged: (value) {
+                _selectedTopic = value;
+              },
+              initialValue: widget.initialTopic,
+            ))
+          ],
+        ),
+        Row(
+          children: [
+            Text("Homework:"),
+            Expanded(
+                child: TextFormField(
+              maxLines: null,
+              onChanged: (value) {
+                _selectedTopic = value;
+              },
+              initialValue: widget.initialHomework,
+            ))
+          ],
+        ),
+        Center(
+            child: OutlinedButton(
+          child: Text("Submit"),
+          onPressed: () async {
+            final lesson = Lesson(
+                studentId: widget.studentId,
+                date: _selectedDate ?? widget.initialDate,
+                topic: _selectedTopic ?? widget.initialTopic,
+                homework: _selectedHomework ?? widget.initialHomework);
+
+            await DataStorage.saveLesson(lesson);
+            Navigator.pop(context);
+          },
+        ))
+      ],
     );
   }
 }
