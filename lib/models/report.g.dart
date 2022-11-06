@@ -146,7 +146,7 @@ int _reportEstimateSize(
     if (list != null) {
       bytesCount += 3 + list.length * 3;
       {
-        final offsets = allOffsets[PdfTableRow]!;
+        final offsets = allOffsets[PdfTableRowModel]!;
         for (var i = 0; i < list.length; i++) {
           final value = list[i];
           bytesCount +=
@@ -166,7 +166,7 @@ int _reportEstimateSize(
     if (list != null) {
       bytesCount += 3 + list.length * 3;
       {
-        final offsets = allOffsets[PdfTableRow]!;
+        final offsets = allOffsets[PdfTableRowModel]!;
         for (var i = 0; i < list.length; i++) {
           final value = list[i];
           bytesCount +=
@@ -186,7 +186,7 @@ int _reportEstimateSize(
     if (list != null) {
       bytesCount += 3 + list.length * 3;
       {
-        final offsets = allOffsets[PdfTableRow]!;
+        final offsets = allOffsets[PdfTableRowModel]!;
         for (var i = 0; i < list.length; i++) {
           final value = list[i];
           bytesCount +=
@@ -230,21 +230,21 @@ void _reportSerialize(
   writer.writeString(offsets[5], object.objectSplitter);
   writer.writeLong(offsets[6], object.studentId);
   writer.writeString(offsets[7], object.studentName);
-  writer.writeObjectList<PdfTableRow>(
+  writer.writeObjectList<PdfTableRowModel>(
     offsets[8],
     allOffsets,
     PdfTableRowSchema.serialize,
     object.tableOneItems,
   );
   writer.writeString(offsets[9], object.tableOneName);
-  writer.writeObjectList<PdfTableRow>(
+  writer.writeObjectList<PdfTableRowModel>(
     offsets[10],
     allOffsets,
     PdfTableRowSchema.serialize,
     object.tableThreeItems,
   );
   writer.writeString(offsets[11], object.tableThreeName);
-  writer.writeObjectList<PdfTableRow>(
+  writer.writeObjectList<PdfTableRowModel>(
     offsets[12],
     allOffsets,
     PdfTableRowSchema.serialize,
@@ -267,25 +267,25 @@ Report _reportDeserialize(
   object.lessonId = reader.readLongOrNull(offsets[3]);
   object.studentId = reader.readLongOrNull(offsets[6]);
   object.studentName = reader.readStringOrNull(offsets[7]);
-  object.tableOneItems = reader.readObjectList<PdfTableRow>(
+  object.tableOneItems = reader.readObjectList<PdfTableRowModel>(
     offsets[8],
     PdfTableRowSchema.deserialize,
     allOffsets,
-    PdfTableRow(),
+    PdfTableRowModel(),
   );
   object.tableOneName = reader.readStringOrNull(offsets[9]);
-  object.tableThreeItems = reader.readObjectList<PdfTableRow>(
+  object.tableThreeItems = reader.readObjectList<PdfTableRowModel>(
     offsets[10],
     PdfTableRowSchema.deserialize,
     allOffsets,
-    PdfTableRow(),
+    PdfTableRowModel(),
   );
   object.tableThreeName = reader.readStringOrNull(offsets[11]);
-  object.tableTwoItems = reader.readObjectList<PdfTableRow>(
+  object.tableTwoItems = reader.readObjectList<PdfTableRowModel>(
     offsets[12],
     PdfTableRowSchema.deserialize,
     allOffsets,
-    PdfTableRow(),
+    PdfTableRowModel(),
   );
   object.tableTwoName = reader.readStringOrNull(offsets[13]);
   object.topic = reader.readStringList(offsets[14]);
@@ -316,29 +316,29 @@ P _reportDeserializeProp<P>(
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readObjectList<PdfTableRow>(
+      return (reader.readObjectList<PdfTableRowModel>(
         offset,
         PdfTableRowSchema.deserialize,
         allOffsets,
-        PdfTableRow(),
+        PdfTableRowModel(),
       )) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
-      return (reader.readObjectList<PdfTableRow>(
+      return (reader.readObjectList<PdfTableRowModel>(
         offset,
         PdfTableRowSchema.deserialize,
         allOffsets,
-        PdfTableRow(),
+        PdfTableRowModel(),
       )) as P;
     case 11:
       return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readObjectList<PdfTableRow>(
+      return (reader.readObjectList<PdfTableRowModel>(
         offset,
         PdfTableRowSchema.deserialize,
         allOffsets,
-        PdfTableRow(),
+        PdfTableRowModel(),
       )) as P;
     case 13:
       return (reader.readStringOrNull(offset)) as P;
@@ -2452,21 +2452,21 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
 
 extension ReportQueryObject on QueryBuilder<Report, Report, QFilterCondition> {
   QueryBuilder<Report, Report, QAfterFilterCondition> tableOneItemsElement(
-      FilterQuery<PdfTableRow> q) {
+      FilterQuery<PdfTableRowModel> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'tableOneItems');
     });
   }
 
   QueryBuilder<Report, Report, QAfterFilterCondition> tableThreeItemsElement(
-      FilterQuery<PdfTableRow> q) {
+      FilterQuery<PdfTableRowModel> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'tableThreeItems');
     });
   }
 
   QueryBuilder<Report, Report, QAfterFilterCondition> tableTwoItemsElement(
-      FilterQuery<PdfTableRow> q) {
+      FilterQuery<PdfTableRowModel> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'tableTwoItems');
     });
@@ -2870,7 +2870,7 @@ extension ReportQueryProperty on QueryBuilder<Report, Report, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Report, List<PdfTableRow>?, QQueryOperations>
+  QueryBuilder<Report, List<PdfTableRowModel>?, QQueryOperations>
       tableOneItemsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'tableOneItems');
@@ -2883,7 +2883,7 @@ extension ReportQueryProperty on QueryBuilder<Report, Report, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Report, List<PdfTableRow>?, QQueryOperations>
+  QueryBuilder<Report, List<PdfTableRowModel>?, QQueryOperations>
       tableThreeItemsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'tableThreeItems');
@@ -2896,7 +2896,7 @@ extension ReportQueryProperty on QueryBuilder<Report, Report, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Report, List<PdfTableRow>?, QQueryOperations>
+  QueryBuilder<Report, List<PdfTableRowModel>?, QQueryOperations>
       tableTwoItemsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'tableTwoItems');

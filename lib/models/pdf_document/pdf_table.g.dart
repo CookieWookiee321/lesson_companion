@@ -33,7 +33,7 @@ const PdfTableSchema = Schema(
 );
 
 int _pdfTableEstimateSize(
-  PdfTable object,
+  PdfTableModel object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -50,7 +50,7 @@ int _pdfTableEstimateSize(
     if (list != null) {
       bytesCount += 3 + list.length * 3;
       {
-        final offsets = allOffsets[PdfTableRow]!;
+        final offsets = allOffsets[PdfTableRowModel]!;
         for (var i = 0; i < list.length; i++) {
           final value = list[i];
           bytesCount +=
@@ -63,7 +63,7 @@ int _pdfTableEstimateSize(
 }
 
 void _pdfTableSerialize(
-  PdfTable object,
+  PdfTableModel object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -74,7 +74,7 @@ void _pdfTableSerialize(
     PdfTextSchema.serialize,
     object.heading,
   );
-  writer.writeObjectList<PdfTableRow>(
+  writer.writeObjectList<PdfTableRowModel>(
     offsets[1],
     allOffsets,
     PdfTableRowSchema.serialize,
@@ -82,23 +82,23 @@ void _pdfTableSerialize(
   );
 }
 
-PdfTable _pdfTableDeserialize(
+PdfTableModel _pdfTableDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = PdfTable();
+  final object = PdfTableModel();
   object.heading = reader.readObjectOrNull<PdfText>(
     offsets[0],
     PdfTextSchema.deserialize,
     allOffsets,
   );
-  object.rows = reader.readObjectList<PdfTableRow>(
+  object.rows = reader.readObjectList<PdfTableRowModel>(
     offsets[1],
     PdfTableRowSchema.deserialize,
     allOffsets,
-    PdfTableRow(),
+    PdfTableRowModel(),
   );
   return object;
 }
@@ -117,11 +117,11 @@ P _pdfTableDeserializeProp<P>(
         allOffsets,
       )) as P;
     case 1:
-      return (reader.readObjectList<PdfTableRow>(
+      return (reader.readObjectList<PdfTableRowModel>(
         offset,
         PdfTableRowSchema.deserialize,
         allOffsets,
-        PdfTableRow(),
+        PdfTableRowModel(),
       )) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -129,8 +129,9 @@ P _pdfTableDeserializeProp<P>(
 }
 
 extension PdfTableQueryFilter
-    on QueryBuilder<PdfTable, PdfTable, QFilterCondition> {
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> headingIsNull() {
+    on QueryBuilder<PdfTableModel, PdfTableModel, QFilterCondition> {
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
+      headingIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'heading',
@@ -138,7 +139,8 @@ extension PdfTableQueryFilter
     });
   }
 
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> headingIsNotNull() {
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
+      headingIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'heading',
@@ -146,7 +148,8 @@ extension PdfTableQueryFilter
     });
   }
 
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsIsNull() {
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
+      rowsIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'rows',
@@ -154,7 +157,8 @@ extension PdfTableQueryFilter
     });
   }
 
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsIsNotNull() {
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
+      rowsIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'rows',
@@ -162,8 +166,8 @@ extension PdfTableQueryFilter
     });
   }
 
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsLengthEqualTo(
-      int length) {
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
+      rowsLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'rows',
@@ -175,7 +179,8 @@ extension PdfTableQueryFilter
     });
   }
 
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsIsEmpty() {
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
+      rowsIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'rows',
@@ -187,7 +192,8 @@ extension PdfTableQueryFilter
     });
   }
 
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsIsNotEmpty() {
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
+      rowsIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'rows',
@@ -199,7 +205,8 @@ extension PdfTableQueryFilter
     });
   }
 
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsLengthLessThan(
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
+      rowsLengthLessThan(
     int length, {
     bool include = false,
   }) {
@@ -214,7 +221,8 @@ extension PdfTableQueryFilter
     });
   }
 
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsLengthGreaterThan(
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
+      rowsLengthGreaterThan(
     int length, {
     bool include = false,
   }) {
@@ -229,7 +237,8 @@ extension PdfTableQueryFilter
     });
   }
 
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsLengthBetween(
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
+      rowsLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -248,16 +257,16 @@ extension PdfTableQueryFilter
 }
 
 extension PdfTableQueryObject
-    on QueryBuilder<PdfTable, PdfTable, QFilterCondition> {
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> heading(
+    on QueryBuilder<PdfTableModel, PdfTableModel, QFilterCondition> {
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition> heading(
       FilterQuery<PdfText> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'heading');
     });
   }
 
-  QueryBuilder<PdfTable, PdfTable, QAfterFilterCondition> rowsElement(
-      FilterQuery<PdfTableRow> q) {
+  QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition> rowsElement(
+      FilterQuery<PdfTableRowModel> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'rows');
     });

@@ -23,9 +23,9 @@ class PdfDoc {
   final PdfText date;
   final PdfText topic;
   final PdfText? homework;
-  final PdfTable table1;
-  final PdfTable? table2;
-  final PdfTable? table3;
+  final PdfTableModel table1;
+  final PdfTableModel? table2;
+  final PdfTableModel? table3;
 
   PdfDoc(this.name, this.date, this.topic, this.homework, this.table1,
       this.table2, this.table3);
@@ -48,7 +48,7 @@ class PdfDoc {
         style:
             await StylerMethods.getTextStyle(PdfSection.h2, PdfTextType.base));
     final _homework =
-        homework == null ? await _newText(homework!, PdfSection.h2) : null;
+        homework != null ? await _newText(homework!, PdfSection.h2) : null;
     final _table1 = await newTable(table: table1);
     final _table2 =
         table2!.heading != null ? await newTable(table: table2!) : null;
@@ -73,7 +73,7 @@ class PdfDoc {
           Padding(padding: const EdgeInsets.symmetric(horizontal: 10.0)),
           Expanded(child: _topic)
         ]),
-        if (homework!.components.isNotEmpty)
+        if (homework != null)
           Row(children: [_homeworkHeader, Expanded(child: _homework!)]),
         Padding(padding: const EdgeInsets.symmetric(vertical: 4.0)),
         // BODY
@@ -97,7 +97,7 @@ class PdfDoc {
   //COMPONENTS------------------------------------------------------------------
   //============================================================================
   ///Takes a heading and a map of LHS and RHS values to build a table with
-  Future<Table> newTable({required PdfTable table}) async {
+  Future<Table> newTable({required PdfTableModel table}) async {
     final _heading = await _newText(table.heading!, PdfSection.h3);
     final _rows = await styleTableRows(table);
 
@@ -138,7 +138,7 @@ class PdfDoc {
     ]);
   }
 
-  Future<List<List<RichText>>> styleTableRows(PdfTable table) async {
+  Future<List<List<RichText>>> styleTableRows(PdfTableModel table) async {
     final List<List<RichText>> output = [];
 
     for (final row in table.rows!) {

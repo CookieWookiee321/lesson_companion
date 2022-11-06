@@ -33,7 +33,7 @@ const PdfTableRowSchema = Schema(
 );
 
 int _pdfTableRowEstimateSize(
-  PdfTableRow object,
+  PdfTableRowModel object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -56,7 +56,7 @@ int _pdfTableRowEstimateSize(
 }
 
 void _pdfTableRowSerialize(
-  PdfTableRow object,
+  PdfTableRowModel object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -75,13 +75,13 @@ void _pdfTableRowSerialize(
   );
 }
 
-PdfTableRow _pdfTableRowDeserialize(
+PdfTableRowModel _pdfTableRowDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = PdfTableRow();
+  final object = PdfTableRowModel();
   object.lhs = reader.readObjectOrNull<PdfText>(
     offsets[0],
     PdfTextSchema.deserialize,
@@ -120,8 +120,9 @@ P _pdfTableRowDeserializeProp<P>(
 }
 
 extension PdfTableRowQueryFilter
-    on QueryBuilder<PdfTableRow, PdfTableRow, QFilterCondition> {
-  QueryBuilder<PdfTableRow, PdfTableRow, QAfterFilterCondition> lhsIsNull() {
+    on QueryBuilder<PdfTableRowModel, PdfTableRowModel, QFilterCondition> {
+  QueryBuilder<PdfTableRowModel, PdfTableRowModel, QAfterFilterCondition>
+      lhsIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'lhs',
@@ -129,7 +130,8 @@ extension PdfTableRowQueryFilter
     });
   }
 
-  QueryBuilder<PdfTableRow, PdfTableRow, QAfterFilterCondition> lhsIsNotNull() {
+  QueryBuilder<PdfTableRowModel, PdfTableRowModel, QAfterFilterCondition>
+      lhsIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'lhs',
@@ -137,7 +139,8 @@ extension PdfTableRowQueryFilter
     });
   }
 
-  QueryBuilder<PdfTableRow, PdfTableRow, QAfterFilterCondition> rhsIsNull() {
+  QueryBuilder<PdfTableRowModel, PdfTableRowModel, QAfterFilterCondition>
+      rhsIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'rhs',
@@ -145,7 +148,8 @@ extension PdfTableRowQueryFilter
     });
   }
 
-  QueryBuilder<PdfTableRow, PdfTableRow, QAfterFilterCondition> rhsIsNotNull() {
+  QueryBuilder<PdfTableRowModel, PdfTableRowModel, QAfterFilterCondition>
+      rhsIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'rhs',
@@ -155,15 +159,15 @@ extension PdfTableRowQueryFilter
 }
 
 extension PdfTableRowQueryObject
-    on QueryBuilder<PdfTableRow, PdfTableRow, QFilterCondition> {
-  QueryBuilder<PdfTableRow, PdfTableRow, QAfterFilterCondition> lhs(
+    on QueryBuilder<PdfTableRowModel, PdfTableRowModel, QFilterCondition> {
+  QueryBuilder<PdfTableRowModel, PdfTableRowModel, QAfterFilterCondition> lhs(
       FilterQuery<PdfText> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'lhs');
     });
   }
 
-  QueryBuilder<PdfTableRow, PdfTableRow, QAfterFilterCondition> rhs(
+  QueryBuilder<PdfTableRowModel, PdfTableRowModel, QAfterFilterCondition> rhs(
       FilterQuery<PdfText> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'rhs');

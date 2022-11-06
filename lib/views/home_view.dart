@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
+import 'package:lesson_companion/controllers/home_controller.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
+import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
+import 'package:lesson_companion/views/pdf_preview.dart';
 
 import 'companion_widgets.dart';
 
@@ -31,6 +34,7 @@ class _HomeViewState extends State<HomeView> {
 
   bool _inFocus = false;
   int? _currentFocus = null;
+  double _traversalCap = 5;
 
   bool _showDetails = true;
   final _nameController = TextEditingController();
@@ -38,6 +42,12 @@ class _HomeViewState extends State<HomeView> {
       text: CompanionMethods.getDateString(DateTime.now()));
   final _topicController = TextEditingController();
   final _homeworkController = TextEditingController();
+
+  List<ReportTable> _tables = [
+    ReportTable(title: "New Language", children: []),
+    ReportTable(title: "Pronunciation", children: []),
+    ReportTable(title: "Corrections", children: [])
+  ];
 
   void _autoInsert(TextEditingController controller) {
     final indexNow = controller.selection.base.offset;
@@ -108,8 +118,48 @@ class _HomeViewState extends State<HomeView> {
     }
     await DataStorage.saveLesson(thisLesson);
 
-    //TODO: Reports current do not generate from this view
-    // Report thisReport =
+    final counter = HomeController.areTablesPopulated(_tables);
+    if (counter > 0) {
+      final dateSplit = _dateController.text.split(" ");
+
+      final thisReport = Report();
+      thisReport.studentId = thisStudent.id;
+      thisReport.lessonId = thisLesson.id;
+      thisReport.date = HomeController.convertStringToDateTime(
+          dateSplit[0], dateSplit[1], dateSplit[2]);
+      thisReport.topic = _topicController.text.split("\n").toList();
+      thisReport.homework = _topicController.text.split("\n").toList();
+
+      switch (counter) {
+        case 3:
+          thisReport.tableOneName = _tables[0].title;
+          thisReport.tableOneItems = HomeController.modelTableData(_tables[0]);
+
+          thisReport.tableTwoName = _tables[1].title;
+          thisReport.tableTwoItems = HomeController.modelTableData(_tables[1]);
+
+          thisReport.tableThreeName = _tables[2].title;
+          thisReport.tableThreeItems =
+              HomeController.modelTableData(_tables[2]);
+          break;
+        case 2:
+          thisReport.tableOneName = _tables[0].title;
+          thisReport.tableOneItems = HomeController.modelTableData(_tables[0]);
+
+          thisReport.tableTwoName = _tables[1].title;
+          thisReport.tableTwoItems = HomeController.modelTableData(_tables[1]);
+          break;
+        default:
+          thisReport.tableOneName = _tables[0].title;
+          thisReport.tableOneItems = HomeController.modelTableData(_tables[0]);
+          break;
+      }
+
+      final pdfDoc = await thisReport.create();
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return PdfPreviewPage(pdfDocument: pdfDoc);
+      }));
+    }
 
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text("Lesson submitted successfully")));
@@ -215,15 +265,10 @@ class _HomeViewState extends State<HomeView> {
             Expanded(
               child: ListView(
                 children: [
-                  FocusTraversalOrder(
-                      order: NumericFocusOrder(5),
-                      child: ReportTable(title: "New Language")),
-                  FocusTraversalOrder(
-                      order: NumericFocusOrder(6),
-                      child: ReportTable(title: "Pronunciation")),
-                  FocusTraversalOrder(
-                      order: NumericFocusOrder(7),
-                      child: ReportTable(title: "Corrections"))
+                  ..._tables.map((e) {
+                    return FocusTraversalOrder(
+                        order: NumericFocusOrder(_traversalCap++), child: e);
+                  })
                 ],
               ),
             ),
@@ -289,9 +334,11 @@ class _HomeTextFieldState extends State<HomeTextField> {
 //REPORT INPUT TABLE
 //======================================================================
 class ReportTable extends StatefulWidget {
-  const ReportTable({Key? key, required this.title}) : super(key: key);
-
   final String title;
+  final List<ReportTableRow> children;
+
+  const ReportTable({Key? key, required this.title, required this.children})
+      : super(key: key);
 
   @override
   State<ReportTable> createState() => _ReportTableState();
@@ -299,11 +346,6 @@ class ReportTable extends StatefulWidget {
 
 class _ReportTableState extends State<ReportTable> {
   final List<int> _cellIndexes = [0, 1];
-  final _children = <ReportTableRow>[
-    ReportTableRow(
-      cellIndexes: [0, 1],
-    )
-  ];
   var _currentColumn = 0;
   var _currentRow = 0;
   final _currentCell = [0, 0];
@@ -316,6 +358,15 @@ class _ReportTableState extends State<ReportTable> {
       _currentCell[0] = rowIndex;
       _currentCell[1] = columnIndex;
     });
+  }
+
+  @override
+  void initState() {
+    widget.children.add(ReportTableRow(
+      model: ReportTableRowModel(),
+      cellIndexes: [0, 1],
+    ));
+    super.initState();
   }
 
   @override
@@ -345,17 +396,17 @@ class _ReportTableState extends State<ReportTable> {
                 IconButton(
                   onPressed: () {
                     setState(() {
-                      // updating the state
                       final lhsIndex = _cellIndexes.last + 1;
                       final rhsIndex = _cellIndexes.last + 2;
                       _cellIndexes.add(lhsIndex);
                       _cellIndexes.add(rhsIndex);
 
-                      _children.add(ReportTableRow(
+                      widget.children.add(ReportTableRow(
                         cellIndexes: _cellIndexes,
                         onFocus: (row, column) {
                           _updateCurrent(row, column);
                         },
+                        model: ReportTableRowModel(),
                       ));
                     });
                   },
@@ -370,9 +421,9 @@ class _ReportTableState extends State<ReportTable> {
                 //MINUS BUTTON
                 IconButton(
                   onPressed: () {
-                    if (_children.length > 1) {
+                    if (widget.children.length > 1) {
                       setState(() {
-                        _children.removeAt(_currentRow);
+                        widget.children.removeAt(_currentRow);
                       });
                     }
                   },
@@ -390,7 +441,7 @@ class _ReportTableState extends State<ReportTable> {
             ),
             FocusTraversalGroup(
                 child: Column(children: [
-              ..._children.map((e) {
+              ...widget.children.map((e) {
                 return e;
               })
             ])),
@@ -410,11 +461,16 @@ class _ReportTableState extends State<ReportTable> {
 //REPORT INPUT TABLE ROW
 //======================================================================
 class ReportTableRow extends StatefulWidget {
+  final ReportTableRowModel model;
   final IntCallback? onFocus;
   final List<int> cellIndexes;
 
-  const ReportTableRow({Key? key, required this.cellIndexes, this.onFocus})
-      : super(key: key);
+  const ReportTableRow({
+    Key? key,
+    required this.model,
+    required this.cellIndexes,
+    this.onFocus,
+  }) : super(key: key);
 
   @override
   State<ReportTableRow> createState() => _ReportTableRowState();
@@ -449,6 +505,9 @@ class _ReportTableRowState extends State<ReportTableRow> {
                       ),
                       style: const TextStyle(fontSize: 11),
                       maxLines: null,
+                      onChanged: (value) {
+                        widget.model.lhs = value;
+                      },
                     ))
                   ],
                 ),
@@ -474,6 +533,9 @@ class _ReportTableRowState extends State<ReportTableRow> {
                             ),
                             style: const TextStyle(fontSize: 11),
                             maxLines: null,
+                            onChanged: (value) {
+                              widget.model.rhs = value;
+                            },
                           ))
                         ],
                       ),
@@ -500,4 +562,11 @@ class AdjustableScrollController extends ScrollController {
       }
     });
   }
+}
+
+class ReportTableRowModel {
+  String? lhs;
+  String? rhs;
+
+  ReportTableRowModel({this.lhs, this.rhs});
 }

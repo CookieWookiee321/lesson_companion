@@ -5,9 +5,9 @@ import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 part 'pdf_table.g.dart';
 
 @embedded
-class PdfTable {
+class PdfTableModel {
   PdfText? _heading;
-  List<PdfTableRow>? _rows;
+  List<PdfTableRowModel>? _rows;
 
   PdfText? get heading => _heading;
 
@@ -15,9 +15,9 @@ class PdfTable {
     _heading = value;
   }
 
-  List<PdfTableRow>? get rows => _rows;
+  List<PdfTableRowModel>? get rows => _rows;
 
-  set rows(List<PdfTableRow>? value) {
+  set rows(List<PdfTableRowModel>? value) {
     _rows = value;
   }
 }

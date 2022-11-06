@@ -19,11 +19,11 @@ class Report {
   List<String>? topic;
   List<String>? homework;
   String? tableOneName;
-  List<PdfTableRow>? tableOneItems;
+  List<PdfTableRowModel>? tableOneItems;
   String? tableTwoName;
-  List<PdfTableRow>? tableTwoItems;
+  List<PdfTableRowModel>? tableTwoItems;
   String? tableThreeName;
-  List<PdfTableRow>? tableThreeItems;
+  List<PdfTableRowModel>? tableThreeItems;
 
   final objectSplitter = "===";
   final headingPrefix = '*';
@@ -104,12 +104,12 @@ class Report {
     //tables
     final _tableName1 = PdfText();
     _tableName1.input(tableOneName!);
-    final _table1 = PdfTable();
+    final _table1 = PdfTableModel();
     _table1.heading = _tableName1;
     _table1.rows = tableOneItems!;
 
     PdfText _tableName2 = PdfText();
-    PdfTable _table2 = PdfTable();
+    PdfTableModel _table2 = PdfTableModel();
     if (tableTwoName != null) {
       _tableName2.input(tableTwoName!);
 
@@ -118,7 +118,7 @@ class Report {
     }
 
     PdfText _tableName3 = PdfText();
-    PdfTable _table3 = PdfTable();
+    PdfTableModel _table3 = PdfTableModel();
     if (tableThreeName != null) {
       _tableName3.input(tableThreeName!);
 
@@ -142,11 +142,11 @@ class Report {
   //METHODS---------------------------------------------------------------------
   //============================================================================
 
-  List<PdfTableRow> cnvtStringToTableRows(List<String> entries) {
-    List<PdfTableRow> output = [];
+  List<PdfTableRowModel> cnvtStringToTableRows(List<String> entries) {
+    List<PdfTableRowModel> output = [];
 
     for (final row in entries) {
-      final thisRow = PdfTableRow();
+      final thisRow = PdfTableRowModel();
       final lhs = PdfText();
       final rhs = PdfText();
 

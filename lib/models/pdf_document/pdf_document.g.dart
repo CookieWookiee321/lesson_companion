@@ -98,19 +98,21 @@ int _pdfDocEstimateSize(
       PdfTextSchema.estimateSize(object.name, allOffsets[PdfText]!, allOffsets);
   bytesCount += 3 +
       PdfTableSchema.estimateSize(
-          object.table1, allOffsets[PdfTable]!, allOffsets);
+          object.table1, allOffsets[PdfTableModel]!, allOffsets);
   {
     final value = object.table2;
     if (value != null) {
       bytesCount += 3 +
-          PdfTableSchema.estimateSize(value, allOffsets[PdfTable]!, allOffsets);
+          PdfTableSchema.estimateSize(
+              value, allOffsets[PdfTableModel]!, allOffsets);
     }
   }
   {
     final value = object.table3;
     if (value != null) {
       bytesCount += 3 +
-          PdfTableSchema.estimateSize(value, allOffsets[PdfTable]!, allOffsets);
+          PdfTableSchema.estimateSize(
+              value, allOffsets[PdfTableModel]!, allOffsets);
     }
   }
   bytesCount += 3 +
@@ -143,19 +145,19 @@ void _pdfDocSerialize(
     PdfTextSchema.serialize,
     object.name,
   );
-  writer.writeObject<PdfTable>(
+  writer.writeObject<PdfTableModel>(
     offsets[3],
     allOffsets,
     PdfTableSchema.serialize,
     object.table1,
   );
-  writer.writeObject<PdfTable>(
+  writer.writeObject<PdfTableModel>(
     offsets[4],
     allOffsets,
     PdfTableSchema.serialize,
     object.table2,
   );
-  writer.writeObject<PdfTable>(
+  writer.writeObject<PdfTableModel>(
     offsets[5],
     allOffsets,
     PdfTableSchema.serialize,
@@ -199,18 +201,18 @@ PdfDoc _pdfDocDeserialize(
       PdfTextSchema.deserialize,
       allOffsets,
     ),
-    reader.readObjectOrNull<PdfTable>(
+    reader.readObjectOrNull<PdfTableModel>(
           offsets[3],
           PdfTableSchema.deserialize,
           allOffsets,
         ) ??
-        PdfTable(),
-    reader.readObjectOrNull<PdfTable>(
+        PdfTableModel(),
+    reader.readObjectOrNull<PdfTableModel>(
       offsets[4],
       PdfTableSchema.deserialize,
       allOffsets,
     ),
-    reader.readObjectOrNull<PdfTable>(
+    reader.readObjectOrNull<PdfTableModel>(
       offsets[5],
       PdfTableSchema.deserialize,
       allOffsets,
@@ -247,20 +249,20 @@ P _pdfDocDeserializeProp<P>(
           ) ??
           PdfText()) as P;
     case 3:
-      return (reader.readObjectOrNull<PdfTable>(
+      return (reader.readObjectOrNull<PdfTableModel>(
             offset,
             PdfTableSchema.deserialize,
             allOffsets,
           ) ??
-          PdfTable()) as P;
+          PdfTableModel()) as P;
     case 4:
-      return (reader.readObjectOrNull<PdfTable>(
+      return (reader.readObjectOrNull<PdfTableModel>(
         offset,
         PdfTableSchema.deserialize,
         allOffsets,
       )) as P;
     case 5:
-      return (reader.readObjectOrNull<PdfTable>(
+      return (reader.readObjectOrNull<PdfTableModel>(
         offset,
         PdfTableSchema.deserialize,
         allOffsets,
@@ -487,21 +489,21 @@ extension PdfDocQueryObject on QueryBuilder<PdfDoc, PdfDoc, QFilterCondition> {
   }
 
   QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> table1(
-      FilterQuery<PdfTable> q) {
+      FilterQuery<PdfTableModel> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'table1');
     });
   }
 
   QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> table2(
-      FilterQuery<PdfTable> q) {
+      FilterQuery<PdfTableModel> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'table2');
     });
   }
 
   QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> table3(
-      FilterQuery<PdfTable> q) {
+      FilterQuery<PdfTableModel> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'table3');
     });
@@ -560,19 +562,19 @@ extension PdfDocQueryProperty on QueryBuilder<PdfDoc, PdfDoc, QQueryProperty> {
     });
   }
 
-  QueryBuilder<PdfDoc, PdfTable, QQueryOperations> table1Property() {
+  QueryBuilder<PdfDoc, PdfTableModel, QQueryOperations> table1Property() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'table1');
     });
   }
 
-  QueryBuilder<PdfDoc, PdfTable?, QQueryOperations> table2Property() {
+  QueryBuilder<PdfDoc, PdfTableModel?, QQueryOperations> table2Property() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'table2');
     });
   }
 
-  QueryBuilder<PdfDoc, PdfTable?, QQueryOperations> table3Property() {
+  QueryBuilder<PdfDoc, PdfTableModel?, QQueryOperations> table3Property() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'table3');
     });
