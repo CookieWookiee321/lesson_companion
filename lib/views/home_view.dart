@@ -1,7 +1,9 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
@@ -27,12 +29,41 @@ class _HomeViewState extends State<HomeView> {
   String? _topic;
   String? _homework;
 
+  bool _inFocus = false;
+  int? _currentFocus = null;
+
   bool _showDetails = true;
+  final _nameController = TextEditingController();
   final _dateController = TextEditingController(
       text: CompanionMethods.getDateString(DateTime.now()));
+  final _topicController = TextEditingController();
+  final _homeworkController = TextEditingController();
+
+  void _autoInsert(TextEditingController controller) {
+    final indexNow = controller.selection.base.offset;
+    final character = controller.text[indexNow - 1];
+    controller.text =
+        CompanionMethods.autoInsert(character, controller, indexNow);
+  }
 
   @override
   void initState() {
+    window.onKeyData = (keyData) {
+      switch (_currentFocus) {
+        case 1:
+          _autoInsert(_nameController);
+          return true;
+        case 3:
+          _autoInsert(_topicController);
+          return true;
+        case 4:
+          _autoInsert(_homeworkController);
+          return true;
+        default:
+          return false;
+      }
+    };
+
     super.initState();
   }
 
@@ -84,112 +115,132 @@ class _HomeViewState extends State<HomeView> {
         .showSnackBar(SnackBar(content: Text("Lesson submitted successfully")));
   }
 
+  Future<void> _onTapDateField() async {
+    final picked = await showDatePicker(
+        context: context,
+        initialDate: _date,
+        firstDate: DateTime(2000, 01, 01),
+        lastDate: DateTime(2100, 01, 01));
+
+    if (picked != null && picked != _date) {
+      setState(() {
+        _date = picked;
+        _dateController.text = CompanionMethods.getDateString(_date);
+        _currentFocus = 2;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (_showDetails)
-            Card(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Focus(
-                      child: Row(
+    return Focus(
+      child: Scaffold(
+        body: FocusTraversalGroup(
+            child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_showDetails)
+              Card(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
                         children: [
                           Expanded(
                               flex: 3,
-                              child: TFOutlined(
-                                name: "tName",
-                                hint: "Name",
-                                onTextChanged: (text) {
-                                  _name = text;
-                                },
-                              )),
+                              child: FocusTraversalOrder(
+                                  order: NumericFocusOrder(1),
+                                  child: TFOutlined(
+                                    name: "tName",
+                                    hint: "Name",
+                                    size: 13.0,
+                                    controller: _nameController,
+                                    onTextChanged: (text) {
+                                      _name = text;
+                                      _currentFocus = 1;
+                                    },
+                                  ))),
                           Expanded(
                             flex: 2,
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                  2.0, 6.0, 12.0, 0.0),
-                              child: HomeTextField(
-                                onTap: () async {
-                                  final picked = await showDatePicker(
-                                      context: context,
-                                      initialDate: _date,
-                                      firstDate: DateTime(2000, 01, 01),
-                                      lastDate: DateTime(2100, 01, 01));
-
-                                  if (picked != null && picked != _date) {
-                                    setState(() {
-                                      _date = picked;
-                                      _dateController.text =
-                                          CompanionMethods.getDateString(_date);
-                                    });
-                                  }
-                                },
-                                controller: _dateController,
-                                hintText: "Date",
-                                alignment: TextAlign.center,
-                                edittable: false,
-                              ),
+                              padding:
+                                  const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 0.0),
+                              child: FocusTraversalOrder(
+                                  order: NumericFocusOrder(2),
+                                  child: HomeTextField(
+                                      controller: _dateController,
+                                      hintText: "Date",
+                                      alignment: TextAlign.center,
+                                      edittable: false,
+                                      onTap: () async {
+                                        await _onTapDateField();
+                                      })),
                             ),
                           )
                         ],
                       ),
-                    ),
-                    TFOutlined(
-                      name: "tTopic",
-                      hint: "Topic",
-                      size: 13,
-                      onTextChanged: (text) {
-                        _topic = text;
-                      },
-                    ),
-                    TFOutlined(
-                      name: "tHomework",
-                      hint: "Homework",
-                      size: 13,
-                      onTextChanged: (text) {
-                        _homework = text;
-                      },
-                    ),
-                  ],
+                      FocusTraversalOrder(
+                          order: NumericFocusOrder(3),
+                          child: TFOutlined(
+                            name: "tTopic",
+                            hint: "Topic",
+                            size: 13,
+                            onTextChanged: (text) {
+                              _topic = text;
+                              _currentFocus = 3;
+                            },
+                          )),
+                      FocusTraversalOrder(
+                          order: NumericFocusOrder(4),
+                          child: TFOutlined(
+                            name: "tHomework",
+                            hint: "Homework",
+                            size: 13,
+                            onTextChanged: (text) {
+                              _homework = text;
+                              _currentFocus = 4;
+                            },
+                          )),
+                    ],
+                  ),
                 ),
               ),
+            Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Divider(
+                  color: Theme.of(context).colorScheme.primary,
+                )),
+            Expanded(
+              child: ListView(
+                children: [
+                  FocusTraversalOrder(
+                      order: NumericFocusOrder(5),
+                      child: ReportTable(title: "New Language")),
+                  FocusTraversalOrder(
+                      order: NumericFocusOrder(6),
+                      child: ReportTable(title: "Pronunciation")),
+                  FocusTraversalOrder(
+                      order: NumericFocusOrder(7),
+                      child: ReportTable(title: "Corrections"))
+                ],
+              ),
             ),
-          Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Divider(
-                color: Theme.of(context).colorScheme.primary,
-              )),
-          Expanded(
-            child: ListView(
-              children: [
-                ReportTable(title: "New Language"),
-                ReportTable(title: "Pronunciation"),
-                ReportTable(title: "Corrections")
-              ],
-            ),
-          ),
-          // Expanded(
-          //   child: Column(children: const [
-          //     // ReportTable(title: "New Language"),
-          //     // Expanded(child: ReportTable(title: "Pronunciation")),
-          //     // Expanded(child: ReportTable(title: "Corrections"))
-          //   ]),
-          // ),
-          Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-              child: ElevatedButton(
-                  onPressed: () async => _onPressedSubmit(),
-                  child: const Text("Submit")))
-        ],
+            ElevatedButton(
+              child: const Text("Submit"),
+              onPressed: () async => _onPressedSubmit(),
+            )
+          ],
+        )),
+        floatingActionButton: FloatingActionButton.small(
+            heroTag: null, child: Icon(Icons.more), onPressed: null),
       ),
-      floatingActionButton: FloatingActionButton.small(
-          heroTag: null, child: Icon(Icons.more), onPressed: null),
+      onFocusChange: (value) {
+        setState(() {
+          _inFocus = value;
+        });
+      },
     );
   }
 }
@@ -343,11 +394,6 @@ class _ReportTableState extends State<ReportTable> {
                 return e;
               })
             ])),
-
-            // Expanded(
-            //     child: ListView(
-            //   children: _children,
-            // )),
           ]),
         ),
       ),

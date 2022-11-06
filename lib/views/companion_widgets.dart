@@ -12,16 +12,18 @@ class TFOutlined extends StatefulWidget {
   const TFOutlined(
       {Key? key,
       required this.name,
+      this.controller,
       this.hint,
-      this.size = 13,
-      this.padded = true,
+      this.size,
+      this.padded,
       this.onTextChanged})
       : super(key: key);
 
   final String name;
+  final TextEditingController? controller;
   final String? hint;
-  final double size;
-  final bool padded;
+  final double? size;
+  final bool? padded;
   final Function(String text)? onTextChanged;
 
   @override
@@ -32,7 +34,7 @@ class _TFOutlinedState extends State<TFOutlined> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: widget.padded
+      padding: widget.padded != null
           ? const EdgeInsets.fromLTRB(13.0, 6.0, 13.0, 0.0)
           : const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 0.0),
       child: TextField(

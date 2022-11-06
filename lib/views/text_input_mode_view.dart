@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:lesson_companion/models/data_storage.dart';
-import 'package:lesson_companion/models/free_dictionary.dart';
+import 'package:lesson_companion/models/dictionary/free_dictionary.dart';
+import 'package:lesson_companion/models/dictionary/look_up.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
@@ -111,36 +112,7 @@ class TextInputModeView extends StatefulWidget {
 
 class _TextInputModeViewState extends State<TextInputModeView> {
   final _textController = TextEditingController();
-
-  void _autoInsertMarkers(String char, int currentIndex) {
-    assert(char == "q" || char == "e" || char == "i" || char == "[",
-        "This method must take a notation marker of either 'i', 'q', 'e', '[', '(', '<', '{'");
-
-    switch (char) {
-      case "[":
-        _textController.text =
-            "${_textController.text.substring(0, currentIndex)}[]${_textController.text.substring(currentIndex, _textController.text.length)}";
-        break;
-      case "(":
-        _textController.text =
-            "${_textController.text.substring(0, currentIndex)}()${_textController.text.substring(currentIndex, _textController.text.length)}";
-        break;
-      case "{":
-        _textController.text =
-            "${_textController.text.substring(0, currentIndex)}{}${_textController.text.substring(currentIndex, _textController.text.length)}";
-        break;
-      case "<":
-        _textController.text =
-            "${_textController.text.substring(0, currentIndex)}<>${_textController.text.substring(currentIndex, _textController.text.length)}";
-        break;
-      default:
-        _textController.text =
-            "${_textController.text.substring(0, currentIndex)}\\\\${_textController.text.substring(currentIndex, _textController.text.length)}";
-        break;
-    }
-    _textController.selection = TextSelection(
-        baseOffset: currentIndex + 1, extentOffset: currentIndex + 1);
-  }
+  bool _inFocus = false;
 
   String _autoFormatAll(String input) {
     final sb = StringBuffer();
@@ -322,24 +294,24 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     _textController.text = _template;
 
     window.onKeyData = (keyData) {
-      final indexNow = _textController.selection.base.offset;
-      if (keyData.logical == LogicalKeyboardKey.backslash.keyId) {
-        final marker = _textController.text[indexNow - 1];
+      if (_inFocus) {
+        final indexNow = _textController.selection.base.offset;
+        if (keyData.logical == LogicalKeyboardKey.backslash.keyId) {
+          final marker = _textController.text[indexNow - 1];
 
-        if (keyData.type == KeyEventType.down) {
-          if (marker == "q" || marker == "e" || marker == "i") {
-            _autoInsertMarkers(marker, indexNow);
-            return true;
-          }
+          CompanionMethods.autoInsert(marker, _textController, indexNow);
+          return true;
+        } else if (keyData.character != null) {
+          CompanionMethods.autoInsert(
+              keyData.character!, _textController, indexNow);
+          return true;
+        } else {
+          return false;
         }
-      } else if (keyData.character == "[") {
-        _autoInsertMarkers("[", indexNow);
-        return true;
+      } else {
+        return false;
       }
-
-      return false;
     };
-
     super.initState();
   }
 
@@ -352,93 +324,212 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: Column(
-          children: [
-            Expanded(
-                child: Card(
-              child: Padding(
-                padding: EdgeInsets.all(0),
-                child: Row(
-                  children: [
-                    Expanded(
-                        child: TextField(
-                      controller: _textController,
-                      onSubmitted: ((value) {}),
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(10.0))),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                      ),
-                      style: const TextStyle(fontSize: 11),
-                      maxLines: null,
-                      expands: true,
-                    ))
-                  ],
+    return Focus(
+      child: Scaffold(
+          body: Column(
+            children: [
+              Expanded(
+                  child: Card(
+                child: Padding(
+                  padding: EdgeInsets.all(0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: TextField(
+                        controller: _textController,
+                        onSubmitted: ((value) {}),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10.0))),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                        ),
+                        style: const TextStyle(fontSize: 11),
+                        maxLines: null,
+                        expands: true,
+                      ))
+                    ],
+                  ),
                 ),
-              ),
-            )),
-            Padding(
-                padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
-                child: ElevatedButton(
-                    onPressed: _onPressedSubmit, child: const Text("Submit")))
-          ],
-        ),
-        floatingActionButton: SpeedDial(
-          children: [
-            SpeedDialChild(
-              label: "Auto-Format Report",
-              onTap: () async {
-                List<FreeDictionary> results = [];
-                _textController.text = _autoFormatAll(_textController.text);
-                final indexStart =
-                    _textController.text.indexOf("* New Language");
-                final chunk = _textController.text.substring(indexStart,
-                    _textController.text.indexOf("*", indexStart + 1));
-                final terms = chunk.split("\n-");
+              )),
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
+                  child: ElevatedButton(
+                      onPressed: _onPressedSubmit, child: const Text("Submit")))
+            ],
+          ),
+          floatingActionButton: SpeedDial(
+            children: [
+              SpeedDialChild(
+                  label: "Reset to default template",
+                  onTap: () {
+                    setState(() {
+                      _textController.text = _template;
+                    });
+                  }),
+              SpeedDialChild(
+                label: "Dictionary look-up",
+                onTap: () async {
+                  List<LookUp> results = [];
+                  _textController.text = _autoFormatAll(_textController.text);
+                  final indexStart =
+                      _textController.text.indexOf("* New Language");
+                  final chunk = _textController.text.substring(indexStart,
+                      _textController.text.indexOf("*", indexStart + 1));
+                  final terms = chunk.split("\n-");
 
-                //skip the first term as it is just the heading
-                for (int i = 1; i < terms.length; i++) {
-                  final thisTerm;
+                  //skip the first term as it is just the heading
+                  for (int i = 1; i < terms.length; i++) {
+                    if (terms[i].trim().length == 0) continue;
 
-                  if (terms[i].contains("||")) {
-                    thisTerm = terms[i]
-                        .trim()
-                        .substring(0, terms[i].trim().indexOf("||"));
-                  } else {
-                    thisTerm = terms[i].trim();
+                    final thisTerm;
+
+                    if (terms[i].contains("||")) {
+                      thisTerm = terms[i]
+                          .trim()
+                          .substring(0, terms[i].trim().indexOf("||"));
+                    } else {
+                      thisTerm = terms[i].trim();
+                    }
+
+                    final url =
+                        "https://api.dictionaryapi.dev/api/v2/entries/en/${thisTerm}";
+                    final dictionary = await FreeDictionary.fetchJson(url);
+
+                    if (dictionary != null) {
+                      results.add(LookUp(dictionary));
+                    }
                   }
 
-                  final url =
-                      "https://api.dictionaryapi.dev/api/v2/entries/en/${thisTerm}";
-                  final dictionary = await FreeDictionary.fetchJson(url);
-                  results.add(dictionary);
-                }
+                  if (results.isNotEmpty) {
+                    await showDialog(
+                        context: context,
+                        builder: ((context) {
+                          return AlertDialog(
+                            title: Text("Dictionary Results"),
+                            content: SingleChildScrollView(
+                              child: Column(children: [
+                                ...results.map((term) {
+                                  return term.details.isNotEmpty
+                                      ? LookUpCard(
+                                          details: term,
+                                        )
+                                      : Container();
+                                })
+                              ]),
+                            ),
+                          );
+                        }));
+                  }
+                },
+              ),
+              SpeedDialChild(
+                  label: "Format report",
+                  onTap: () {
+                    setState(() {
+                      _textController.text =
+                          _autoFormatAll(_textController.text);
+                    });
+                  })
+            ],
+          )),
+      onFocusChange: (value) {
+        setState(() {
+          _inFocus = value;
+        });
+      },
+    );
+  }
+}
 
-                if (results.isNotEmpty) {
-                  await showDialog(
-                      context: context,
-                      builder: ((context) {
-                        return AlertDialog(
-                          title: Text("Dictionary Results"),
-                          content: SingleChildScrollView(
-                            child: Column(children: [
-                              ...results.map((e) {
-                                return Row(
-                                  children: [Text("Entry: ${e.word}")],
-                                );
-                              })
-                            ]),
-                          ),
-                        );
-                      }));
+class LookUpCard extends StatefulWidget {
+  final LookUp details;
+
+  const LookUpCard({super.key, required this.details});
+
+  @override
+  State<LookUpCard> createState() => _LookUpCardState();
+}
+
+class _LookUpCardState extends State<LookUpCard> {
+  String? _partOfSpeech;
+  String? _definition;
+  String? _example;
+  Map<String?, String?> _mapping = {};
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  List<DropdownMenuItem> _definitionDropdownMenuItem(String partOfSpeech) {
+    List<DropdownMenuItem> output = [];
+
+    widget.details.details
+        .where((element) => element.partOfSpeech == partOfSpeech)
+        .toList()
+        .forEach((element) {
+      for (final e in element.definitionsAndExamples.entries) {
+        if (!output
+            .contains(DropdownMenuItem(value: e.key, child: Text(e.key)))) {
+          output.add(DropdownMenuItem(value: e.key, child: Text(e.key)));
+          _mapping[e.key] = e.value;
+        }
+      }
+    });
+
+    return output;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+        child: Padding(
+      padding: EdgeInsets.all(6.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(widget.details.term)),
+              DropdownButton(
+                  items: [
+                    ...widget.details.details.map((e) {
+                      return DropdownMenuItem(
+                          value: e.partOfSpeech, child: Text(e.partOfSpeech));
+                    })
+                  ],
+                  value: _partOfSpeech,
+                  onChanged: (value) {
+                    setState(() {
+                      _partOfSpeech = value;
+                    });
+                  })
+            ],
+          ),
+          DropdownButton(
+              isDense: true,
+              isExpanded: true,
+              value: _definition,
+              items: _partOfSpeech != null
+                  ? _definitionDropdownMenuItem(_partOfSpeech!)
+                  : null,
+              onChanged: (value) {
+                if (_partOfSpeech != null) {
+                  setState(() {
+                    _definition = value;
+                    _example = _mapping[_definition];
+                  });
                 }
-              },
-            ),
-            SpeedDialChild(label: "Auto-Complete Report")
-          ],
-        ));
+              }),
+          TextFormField(
+            initialValue: _example ?? "",
+            readOnly: true,
+          )
+        ],
+      ),
+    ));
   }
 }

@@ -55,13 +55,24 @@ class FreeDictionary {
     return data;
   }
 
-  static Future<FreeDictionary> fetchJson(String url) async {
-    final response = await http.get(Uri.parse(url));
+  static Future<List<FreeDictionary>?> fetchJson(String url) async {
+    final List<FreeDictionary> output = [];
+    try {
+      final response = await http.get(Uri.parse(url));
 
-    if (response.statusCode == 200) {
-      return FreeDictionary.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception("Entry not found");
+      if (response.statusCode == 200) {
+        final words = jsonDecode(response.body);
+
+        for (final item in words) {
+          output.add(FreeDictionary.fromJson(item));
+        }
+
+        return output;
+      } else {
+        return null;
+      }
+    } catch (ex) {
+      return null;
     }
   }
 }

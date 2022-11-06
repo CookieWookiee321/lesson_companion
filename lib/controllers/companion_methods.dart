@@ -211,6 +211,45 @@ class CompanionMethods {
 
     return SelectableText.rich(TextSpan(children: outputComponents));
   }
+
+  static String autoInsert(
+      String char, TextEditingController controller, int currentIndex) {
+    if (char != "q" ||
+        char != "e" ||
+        char != "i" ||
+        char != "[" ||
+        char != "(" ||
+        char != "<" ||
+        char != "{") return controller.text;
+
+    final sb = StringBuffer();
+
+    switch (char) {
+      case "[":
+        sb.write(
+            "${controller.text.substring(0, currentIndex)}[]${controller.text.substring(currentIndex, controller.text.length)}");
+        break;
+      case "(":
+        sb.write(
+            "${controller.text.substring(0, currentIndex)}()${controller.text.substring(currentIndex, controller.text.length)}");
+        break;
+      case "{":
+        sb.write(
+            "${controller.text.substring(0, currentIndex)}{}${controller.text.substring(currentIndex, controller.text.length)}");
+        break;
+      case "<":
+        sb.write(
+            "${controller.text.substring(0, currentIndex)}<>${controller.text.substring(currentIndex, controller.text.length)}");
+        break;
+      default:
+        sb.write(
+            "${controller.text.substring(0, currentIndex)}\\\\${controller.text.substring(currentIndex, controller.text.length)}");
+        break;
+    }
+    controller.selection = TextSelection(
+        baseOffset: currentIndex + 1, extentOffset: currentIndex + 1);
+    return sb.toString();
+  }
 }
 
 class TextPart {

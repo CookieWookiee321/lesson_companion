@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/material.dart';
+import 'package:lesson_companion/models/dictionary/free_dictionary.dart';
+import 'package:lesson_companion/models/dictionary/look_up.dart';
 import 'package:lesson_companion/views/base_view.dart';
+import 'package:lesson_companion/views/text_input_mode_view.dart';
 
 import 'controllers/styler.dart';
 import 'views/home_view.dart';
@@ -31,7 +34,15 @@ class MyApp extends StatelessWidget {
           ThemeData(useMaterial3: true, colorScheme: Styler.lightColorScheme),
       darkTheme:
           ThemeData(useMaterial3: true, colorScheme: Styler.darkColorScheme),
-      //home: StudentListView(),
+      // home: FutureBuilder(
+      //     future: FreeDictionary.fetchJson(
+      //         "https://api.dictionaryapi.dev/api/v2/entries/en/purple"),
+      //     builder: ((context, snapshot) {
+      //       if (snapshot.connectionState == ConnectionState.done) {
+      //         return LookUpCard(details: LookUp(snapshot.data!));
+      //       }
+      //       return CircularProgressIndicator();
+      //     }))
       home: const BaseView(),
     );
   }
