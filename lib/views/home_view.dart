@@ -3,13 +3,13 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/controllers/home_controller.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
+import 'package:lesson_companion/models/views/home_view_models.dart';
 import 'package:lesson_companion/views/pdf_preview.dart';
 
 import 'companion_widgets.dart';
@@ -202,7 +202,7 @@ class _HomeViewState extends State<HomeView> {
                               flex: 3,
                               child: FocusTraversalOrder(
                                   order: NumericFocusOrder(1),
-                                  child: TFOutlined(
+                                  child: TextFieldOutlined(
                                     name: "tName",
                                     hint: "Name",
                                     size: 13.0,
@@ -233,7 +233,7 @@ class _HomeViewState extends State<HomeView> {
                       ),
                       FocusTraversalOrder(
                           order: NumericFocusOrder(3),
-                          child: TFOutlined(
+                          child: TextFieldOutlined(
                             name: "tTopic",
                             hint: "Topic",
                             size: 13,
@@ -244,7 +244,7 @@ class _HomeViewState extends State<HomeView> {
                           )),
                       FocusTraversalOrder(
                           order: NumericFocusOrder(4),
-                          child: TFOutlined(
+                          child: TextFieldOutlined(
                             name: "tHomework",
                             hint: "Homework",
                             size: 13,
@@ -290,6 +290,9 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
+//======================================================================
+//Home TextField
+//======================================================================
 class HomeTextField extends StatefulWidget {
   final String? hintText;
   final TextAlign alignment;
@@ -331,7 +334,7 @@ class _HomeTextFieldState extends State<HomeTextField> {
 }
 
 //======================================================================
-//REPORT INPUT TABLE
+//Report Table
 //======================================================================
 class ReportTable extends StatefulWidget {
   final String title;
@@ -458,7 +461,7 @@ class _ReportTableState extends State<ReportTable> {
 }
 
 //======================================================================
-//REPORT INPUT TABLE ROW
+//Report Table Row
 //======================================================================
 class ReportTableRow extends StatefulWidget {
   final ReportTableRowModel model;
@@ -547,6 +550,9 @@ class _ReportTableRowState extends State<ReportTableRow> {
   }
 }
 
+//======================================================================
+//Adjustable Scroll Controller
+//======================================================================
 class AdjustableScrollController extends ScrollController {
   AdjustableScrollController([int extraScrollSpeed = 40]) {
     super.addListener(() {
@@ -562,11 +568,4 @@ class AdjustableScrollController extends ScrollController {
       }
     });
   }
-}
-
-class ReportTableRowModel {
-  String? lhs;
-  String? rhs;
-
-  ReportTableRowModel({this.lhs, this.rhs});
 }

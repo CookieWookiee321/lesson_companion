@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 
-import 'companion_widgets.dart';
-
+//==============================================================================
+//Student View
+//==============================================================================
 class StudentView extends StatefulWidget {
   const StudentView({Key? key}) : super(key: key);
 
@@ -17,23 +18,22 @@ class _StudentViewState extends State<StudentView> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      body: StudentListRow(),
+      body: StudentListView(),
     );
   }
 }
 
 //==============================================================================
-//COMPONENTS
+//Student List View
 //==============================================================================
-
-class StudentListRow extends StatefulWidget {
-  const StudentListRow({Key? key}) : super(key: key);
+class StudentListView extends StatefulWidget {
+  const StudentListView({Key? key}) : super(key: key);
 
   @override
-  State<StudentListRow> createState() => _StudentListRowState();
+  State<StudentListView> createState() => _StudentListViewState();
 }
 
-class _StudentListRowState extends State<StudentListRow> {
+class _StudentListViewState extends State<StudentListView> {
   Map<String, bool> _studentMap = {};
   final _scrollController = ScrollController(keepScrollOffset: true);
 

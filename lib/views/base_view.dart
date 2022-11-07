@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:lesson_companion/views/companion_widgets.dart';
 import 'package:lesson_companion/views/home_view.dart';
 import 'package:lesson_companion/views/lesson_list_view.dart';
 import 'package:lesson_companion/views/student_list_view.dart';

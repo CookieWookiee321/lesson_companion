@@ -4,8 +4,9 @@ import 'package:lesson_companion/models/lesson.dart';
 
 import '../controllers/companion_methods.dart';
 
-import 'companion_widgets.dart';
-
+//==============================================================================
+//Student List View
+//==============================================================================
 class LessonView extends StatefulWidget {
   const LessonView({super.key});
 
@@ -174,6 +175,9 @@ class _LessonViewState extends State<LessonView> {
   }
 }
 
+//==============================================================================
+//Edit Dialog (private)
+//==============================================================================
 class _editDialog extends StatefulWidget {
   final int studentId;
   final DateTime initialDate;

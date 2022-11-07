@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:isar/isar.dart';
-import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_substring.dart';
@@ -73,7 +71,7 @@ class PdfDoc {
           Padding(padding: const EdgeInsets.symmetric(horizontal: 10.0)),
           Expanded(child: _topic)
         ]),
-        if (homework != null)
+        if (homework!.components.isNotEmpty)
           Row(children: [_homeworkHeader, Expanded(child: _homework!)]),
         Padding(padding: const EdgeInsets.symmetric(vertical: 4.0)),
         // BODY
@@ -84,13 +82,8 @@ class PdfDoc {
         _footer
       ]);
     })));
-    // try {
 
     return await pdf.save();
-    // }
-    // on FileSystemException {
-    //   print("Report is currently being used by another process.");
-    // }
   }
 
   //============================================================================

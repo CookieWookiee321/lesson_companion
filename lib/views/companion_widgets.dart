@@ -5,11 +5,10 @@ import 'lesson_list_view.dart';
 import 'text_input_mode_view.dart';
 
 //==============================================================================
-//TEXT FIELDS
+//TextField Outlined
 //==============================================================================
-
-class TFOutlined extends StatefulWidget {
-  const TFOutlined(
+class TextFieldOutlined extends StatefulWidget {
+  const TextFieldOutlined(
       {Key? key,
       required this.name,
       this.controller,
@@ -27,10 +26,10 @@ class TFOutlined extends StatefulWidget {
   final Function(String text)? onTextChanged;
 
   @override
-  State<TFOutlined> createState() => _TFOutlinedState();
+  State<TextFieldOutlined> createState() => _TextFieldOutlinedState();
 }
 
-class _TFOutlinedState extends State<TFOutlined> {
+class _TextFieldOutlinedState extends State<TextFieldOutlined> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -53,14 +52,17 @@ class _TFOutlinedState extends State<TFOutlined> {
   }
 }
 
-class TFBorderless extends StatefulWidget {
+//==============================================================================
+//TextField Borderless
+//==============================================================================
+class TextFieldBorderless extends StatefulWidget {
   final String defaultText;
   final String hintText;
   final bool padded;
   final Function(String)? onTextChanged;
   final bool expands;
 
-  const TFBorderless(
+  const TextFieldBorderless(
       {Key? key,
       this.defaultText = "",
       this.hintText = "",
@@ -70,10 +72,10 @@ class TFBorderless extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<TFBorderless> createState() => _TFBorderlessState();
+  State<TextFieldBorderless> createState() => _TextFieldBorderlessState();
 }
 
-class _TFBorderlessState extends State<TFBorderless> {
+class _TextFieldBorderlessState extends State<TextFieldBorderless> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -105,17 +107,16 @@ class _TFBorderlessState extends State<TFBorderless> {
 //==============================================================================
 //Bottom Bar
 //==============================================================================
-
-class LabelledSwich extends StatefulWidget {
+class LabelledSwitch extends StatefulWidget {
   final String label;
 
-  const LabelledSwich({super.key, required this.label});
+  const LabelledSwitch({super.key, required this.label});
 
   @override
-  State<LabelledSwich> createState() => _LabelledSwichState();
+  State<LabelledSwitch> createState() => _LabelledSwitchState();
 }
 
-class _LabelledSwichState extends State<LabelledSwich> {
+class _LabelledSwitchState extends State<LabelledSwitch> {
   bool _isOn = true;
 
   void _onSwitched(bool isOn) {

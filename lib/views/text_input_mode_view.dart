@@ -81,11 +81,11 @@ ${CompanionMethods.getShortDate(DateTime.now())}
 >As indicated previously, text mark down and styling is available in Lesson Companion.
 >Line breaks WITHIN A TABLE CELL is indicated with a double-forward slash "//".
 >Subtext is indicated inside square brackets - "[sample]"
->Questions are in light blue, and are indicated like so - "q\sample\"
->Examples are bolded and in green, and are indicated like so - "e\sample\"
->Informtion is in orange, and is indicated like so - "i\sample\"
+>Questions are in light blue, and are indicated like so - "q\\sample\\"
+>Examples are bolded and in green, and are indicated like so - "e\\sample\\"
+>Informtion is in orange, and is indicated like so - "i\\sample\\"
 >NOTE: There is nothing stopping you from using the different styles for your own purposes, and not as they are outlined here. They are just named based on their original functions.
->E.g. "q\What did you do yesterday?\//I go to school||I went to school//i\remember to use past tense verbs.\//e\go >> went\"
+>E.g. "q\\What did you do yesterday?\\//I go to school||I went to school//i\\remember to use past tense verbs.\\//e\\go >> went\\"
 >The above example has two cells in the row. The first has blue question text, then the original sentence from the student on a new line within the same cell.
 >The right-hand side cell has the correct sentence form, followed by an explanation of the correction on a new line in the cell, and then, on another new line, a clearer indication of the change which was made.
 
@@ -103,6 +103,9 @@ ${CompanionMethods.getShortDate(DateTime.now())}
 >This section has no special features, but is just included for general purposes as a default.
 ===""";
 
+//======================================================================
+//Text Input Mode View
+//======================================================================
 class TextInputModeView extends StatefulWidget {
   const TextInputModeView({Key? key}) : super(key: key);
 
@@ -443,6 +446,9 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   }
 }
 
+//======================================================================
+//Look Up Card
+//======================================================================
 class LookUpCard extends StatefulWidget {
   final LookUp details;
 
