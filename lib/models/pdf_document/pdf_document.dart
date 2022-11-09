@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/data_storage.dart';
@@ -39,12 +40,18 @@ class PdfDoc {
     final _name = await _newText(name, PdfSection.h1);
     final _date = await _newText(date, PdfSection.h1);
     final _topicHeader = Text("Topic:",
-        style:
-            await StylerMethods.getTextStyle(PdfSection.h2, PdfTextType.base));
+        style: TextStyle(
+            color: PdfColors.blueGrey700,
+            fontSize: 13.0,
+            font: Font.ttf(await rootBundle
+                .load("lib/assets/IBMPlexSansKR-SemiBold.ttf"))));
     final _topic = await _newText(topic, PdfSection.h2);
     final _homeworkHeader = Text("Homework:",
-        style:
-            await StylerMethods.getTextStyle(PdfSection.h2, PdfTextType.base));
+        style: TextStyle(
+            color: PdfColors.blueGrey700,
+            fontSize: 13.0,
+            font: Font.ttf(await rootBundle
+                .load("lib/assets/IBMPlexSansKR-SemiBold.ttf"))));
     final _homework =
         homework != null ? await _newText(homework!, PdfSection.h2) : null;
     final _table1 = await newTable(table: table1);
@@ -67,12 +74,18 @@ class PdfDoc {
         ]),
         // H2
         Row(children: [
-          _topicHeader,
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 10.0)),
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: _topicHeader),
           Expanded(child: _topic)
         ]),
         if (homework!.components.isNotEmpty)
-          Row(children: [_homeworkHeader, Expanded(child: _homework!)]),
+          Row(children: [
+            Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                child: _homeworkHeader),
+            Expanded(child: _homework!)
+          ]),
         Padding(padding: const EdgeInsets.symmetric(vertical: 4.0)),
         // BODY
         _table1,

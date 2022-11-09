@@ -5,6 +5,8 @@ import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/views/home_view.dart';
 
+import 'package:intl/intl.dart';
+
 import 'companion_methods.dart';
 
 class HomeController extends ChangeNotifier {
@@ -36,7 +38,7 @@ class HomeController extends ChangeNotifier {
     int dayNum = int.parse(day);
     int monthNum = _monthsMap[month];
 
-    return DateTime.parse("$yearNum-$monthNum-$dayNum");
+    return DateFormat("yyyy-MM-dd").parse("$yearNum-$monthNum-$dayNum");
   }
 
   static bool isTablePopulated(ReportTable table) {

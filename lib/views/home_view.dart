@@ -77,12 +77,6 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
   }
 
-  void _onSwitched(bool isOn) {
-    setState(() {
-      _showDetails = isOn;
-    });
-  }
-
   void _onPressedSubmit() async {
     if (_name == null || _topic == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -127,8 +121,8 @@ class _HomeViewState extends State<HomeView> {
       thisReport.lessonId = thisLesson.id;
       thisReport.date = HomeController.convertStringToDateTime(
           dateSplit[0], dateSplit[1], dateSplit[2]);
-      thisReport.topic = _topicController.text.split("\n").toList();
-      thisReport.homework = _topicController.text.split("\n").toList();
+      thisReport.topic = _topic!.split("\n").toList();
+      thisReport.homework = _homework!.split("\n").toList();
 
       switch (counter) {
         case 3:
@@ -237,6 +231,7 @@ class _HomeViewState extends State<HomeView> {
                             name: "tTopic",
                             hint: "Topic",
                             size: 13,
+                            controller: _topicController,
                             onTextChanged: (text) {
                               _topic = text;
                               _currentFocus = 3;
@@ -248,6 +243,7 @@ class _HomeViewState extends State<HomeView> {
                             name: "tHomework",
                             hint: "Homework",
                             size: 13,
+                            controller: _homeworkController,
                             onTextChanged: (text) {
                               _homework = text;
                               _currentFocus = 4;

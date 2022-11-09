@@ -122,7 +122,7 @@ class _LessonViewState extends State<LessonView> {
                                               await showDialog(
                                                   context: context,
                                                   builder: (context) {
-                                                    return _editDialog(
+                                                    return EditDialog(
                                                         studentId:
                                                             _lessons[index]
                                                                 .studentId,
@@ -178,13 +178,13 @@ class _LessonViewState extends State<LessonView> {
 //==============================================================================
 //Edit Dialog (private)
 //==============================================================================
-class _editDialog extends StatefulWidget {
+class EditDialog extends StatefulWidget {
   final int studentId;
   final DateTime initialDate;
   final String initialTopic;
   final String? initialHomework;
 
-  const _editDialog(
+  const EditDialog(
       {super.key,
       required this.studentId,
       required this.initialDate,
@@ -192,10 +192,10 @@ class _editDialog extends StatefulWidget {
       required this.initialHomework});
 
   @override
-  State<_editDialog> createState() => __editDialogState();
+  State<EditDialog> createState() => _EditDialogState();
 }
 
-class __editDialogState extends State<_editDialog> {
+class _EditDialogState extends State<EditDialog> {
   DateTime? _selectedDate;
   String? _selectedTopic;
   String? _selectedHomework;

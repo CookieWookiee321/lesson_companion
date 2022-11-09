@@ -98,7 +98,7 @@ class Report {
     final _topic = PdfText();
     _topic.input(strTopics);
     PdfText _homework = PdfText();
-    if (homework != null) {
+    if (homework!.first != "") {
       _homework.input(strHomework!);
     }
     //tables
