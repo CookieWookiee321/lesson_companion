@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/services.dart';
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/styler.dart';

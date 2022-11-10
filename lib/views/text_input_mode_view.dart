@@ -272,7 +272,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                   !mapping.keys.contains("Homework"))) {
             final report = Report();
             await report.fromMap(mapping);
-            final pdfDoc = await report.create();
+            final pdfDoc = await report.createPdf();
             Navigator.push(context, MaterialPageRoute(
               builder: (context) {
                 return PdfPreviewPage(pdfDocument: pdfDoc);

@@ -2,13 +2,9 @@ import 'dart:io';
 
 import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/material.dart';
-import 'package:lesson_companion/models/dictionary/free_dictionary.dart';
-import 'package:lesson_companion/models/dictionary/look_up.dart';
 import 'package:lesson_companion/views/base_view.dart';
-import 'package:lesson_companion/views/text_input_mode_view.dart';
 
 import 'controllers/styler.dart';
-import 'views/home_view.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

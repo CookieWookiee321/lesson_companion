@@ -27,15 +27,12 @@ class Report {
 
   final objectSplitter = "===";
   final headingPrefix = '*';
+  final tableSubheading = '#';
   final linePrefix = "-";
 
   Report();
 
   Future<void> fromMap(Map<String, List<String>> mappings) async {
-    await _initReport(mappings);
-  }
-
-  Future<void> _initReport(Map<String, List<String>> mappings) async {
     studentId = await DataStorage.getStudentId(mappings["Name"]!.first);
     studentName = mappings["Name"]!.first;
     date = DateTime.parse(mappings["Date"]!.first);
@@ -78,7 +75,7 @@ class Report {
   //TODO: import old database data
 
   /// Creates and saves a report PDF based on the parent object.
-  Future<PdfDoc> create() async {
+  Future<PdfDoc> createPdf() async {
     // transform string vars into the right from to be printed
     final tempName = await DataStorage.getStudentName(studentId!);
     final strName = tempName!.contains("(")
@@ -98,7 +95,7 @@ class Report {
     final _topic = PdfText();
     _topic.input(strTopics);
     PdfText _homework = PdfText();
-    if (homework!.first != "") {
+    if (homework != null && homework!.first != "") {
       _homework.input(strHomework!);
     }
     //tables

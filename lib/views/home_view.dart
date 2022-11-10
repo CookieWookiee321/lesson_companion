@@ -32,7 +32,6 @@ class _HomeViewState extends State<HomeView> {
   String? _topic;
   String? _homework;
 
-  bool _inFocus = false;
   int? _currentFocus = null;
   double _traversalCap = 5;
 
@@ -122,7 +121,9 @@ class _HomeViewState extends State<HomeView> {
       thisReport.date = HomeController.convertStringToDateTime(
           dateSplit[0], dateSplit[1], dateSplit[2]);
       thisReport.topic = _topic!.split("\n").toList();
-      thisReport.homework = _homework!.split("\n").toList();
+      _homework != null
+          ? thisReport.homework = _homework!.split("\n").toList()
+          : null;
 
       switch (counter) {
         case 3:
@@ -149,7 +150,7 @@ class _HomeViewState extends State<HomeView> {
           break;
       }
 
-      final pdfDoc = await thisReport.create();
+      final pdfDoc = await thisReport.createPdf();
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return PdfPreviewPage(pdfDocument: pdfDoc);
       }));
@@ -177,111 +178,104 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Focus(
-      child: Scaffold(
-        body: FocusTraversalGroup(
-            child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_showDetails)
-              Card(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                              flex: 3,
-                              child: FocusTraversalOrder(
-                                  order: NumericFocusOrder(1),
-                                  child: TextFieldOutlined(
-                                    name: "tName",
-                                    hint: "Name",
-                                    size: 13.0,
-                                    controller: _nameController,
-                                    onTextChanged: (text) {
-                                      _name = text;
-                                      _currentFocus = 1;
-                                    },
-                                  ))),
-                          Expanded(
-                            flex: 2,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 0.0),
-                              child: FocusTraversalOrder(
-                                  order: NumericFocusOrder(2),
-                                  child: HomeTextField(
-                                      controller: _dateController,
-                                      hintText: "Date",
-                                      alignment: TextAlign.center,
-                                      edittable: false,
-                                      onTap: () async {
-                                        await _onTapDateField();
-                                      })),
-                            ),
-                          )
-                        ],
-                      ),
-                      FocusTraversalOrder(
-                          order: NumericFocusOrder(3),
-                          child: TextFieldOutlined(
-                            name: "tTopic",
-                            hint: "Topic",
-                            size: 13,
-                            controller: _topicController,
-                            onTextChanged: (text) {
-                              _topic = text;
-                              _currentFocus = 3;
-                            },
-                          )),
-                      FocusTraversalOrder(
-                          order: NumericFocusOrder(4),
-                          child: TextFieldOutlined(
-                            name: "tHomework",
-                            hint: "Homework",
-                            size: 13,
-                            controller: _homeworkController,
-                            onTextChanged: (text) {
-                              _homework = text;
-                              _currentFocus = 4;
-                            },
-                          )),
-                    ],
-                  ),
+    return Scaffold(
+      body: FocusTraversalGroup(
+          child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_showDetails)
+            Card(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                            flex: 3,
+                            child: FocusTraversalOrder(
+                                order: NumericFocusOrder(1),
+                                child: TextFieldOutlined(
+                                  name: "tName",
+                                  hint: "Name",
+                                  size: 13.0,
+                                  controller: _nameController,
+                                  onTextChanged: (text) {
+                                    _name = text;
+                                    _currentFocus = 1;
+                                  },
+                                ))),
+                        Expanded(
+                          flex: 2,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 0.0),
+                            child: FocusTraversalOrder(
+                                order: NumericFocusOrder(2),
+                                child: HomeTextField(
+                                    controller: _dateController,
+                                    hintText: "Date",
+                                    alignment: TextAlign.center,
+                                    edittable: false,
+                                    onTap: () async {
+                                      await _onTapDateField();
+                                    })),
+                          ),
+                        )
+                      ],
+                    ),
+                    FocusTraversalOrder(
+                        order: NumericFocusOrder(3),
+                        child: TextFieldOutlined(
+                          name: "tTopic",
+                          hint: "Topic",
+                          size: 13,
+                          controller: _topicController,
+                          onTextChanged: (text) {
+                            _topic = text;
+                            _currentFocus = 3;
+                          },
+                        )),
+                    FocusTraversalOrder(
+                        order: NumericFocusOrder(4),
+                        child: TextFieldOutlined(
+                          name: "tHomework",
+                          hint: "Homework",
+                          size: 13,
+                          controller: _homeworkController,
+                          onTextChanged: (text) {
+                            _homework = text;
+                            _currentFocus = 4;
+                          },
+                        )),
+                  ],
                 ),
               ),
-            Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Divider(
-                  color: Theme.of(context).colorScheme.primary,
-                )),
-            Expanded(
-              child: ListView(
-                children: [
-                  ..._tables.map((e) {
-                    return FocusTraversalOrder(
-                        order: NumericFocusOrder(_traversalCap++), child: e);
-                  })
-                ],
-              ),
             ),
-            ElevatedButton(
-              child: const Text("Submit"),
-              onPressed: () async => _onPressedSubmit(),
-            )
-          ],
-        )),
-        floatingActionButton: FloatingActionButton.small(
-            heroTag: null, child: Icon(Icons.more), onPressed: null),
-      ),
-      onFocusChange: (value) {
-        setState(() {
-          _inFocus = value;
-        });
-      },
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Divider(
+                color: Theme.of(context).colorScheme.primary,
+              )),
+          Expanded(
+            child: ListView(
+              children: [
+                ..._tables.map((e) {
+                  return FocusTraversalOrder(
+                      order: NumericFocusOrder(_traversalCap++), child: e);
+                })
+              ],
+            ),
+          ),
+          ElevatedButton(
+            child: const Text("Submit"),
+            onPressed: () async => _onPressedSubmit(),
+          )
+        ],
+      )),
+      floatingActionButton: FloatingActionButton.small(
+          heroTag: null, child: Icon(Icons.more), onPressed: null),
     );
   }
 }
@@ -345,18 +339,37 @@ class ReportTable extends StatefulWidget {
 
 class _ReportTableState extends State<ReportTable> {
   final List<int> _cellIndexes = [0, 1];
-  var _currentColumn = 0;
   var _currentRow = 0;
   final _currentCell = [0, 0];
-  bool _inFocus = false;
 
   void _updateCurrent(int rowIndex, int columnIndex) {
     setState(() {
       _currentRow = rowIndex;
-      _currentColumn = columnIndex;
       _currentCell[0] = rowIndex;
       _currentCell[1] = columnIndex;
     });
+  }
+
+  void _callbackPlus() {
+    setState(() {
+      final lhsIndex = _cellIndexes.last + 1;
+      final rhsIndex = _cellIndexes.last + 2;
+      _cellIndexes.add(lhsIndex);
+      _cellIndexes.add(rhsIndex);
+
+      widget.children.add(ReportTableRow(
+        cellIndexes: _cellIndexes,
+        model: ReportTableRowModel(),
+      ));
+    });
+  }
+
+  void _callbackMinus() {
+    if (widget.children.length > 1) {
+      setState(() {
+        widget.children.removeAt(widget.children.length - 1);
+      });
+    }
   }
 
   @override
@@ -370,88 +383,42 @@ class _ReportTableState extends State<ReportTable> {
 
   @override
   Widget build(BuildContext context) {
-    return Focus(
-      child: Card(
-        child: Container(
-          decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).colorScheme.tertiary),
-              borderRadius: const BorderRadius.all(Radius.circular(10))),
-          padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-          margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
-          clipBehavior: Clip.antiAlias,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(6, 0, 0, 0),
-                    child: Text(
-                      widget.title,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                ),
-                //PLUS BUTTON
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      final lhsIndex = _cellIndexes.last + 1;
-                      final rhsIndex = _cellIndexes.last + 2;
-                      _cellIndexes.add(lhsIndex);
-                      _cellIndexes.add(rhsIndex);
-
-                      widget.children.add(ReportTableRow(
-                        cellIndexes: _cellIndexes,
-                        onFocus: (row, column) {
-                          _updateCurrent(row, column);
-                        },
-                        model: ReportTableRowModel(),
-                      ));
-                    });
-                  },
-                  icon: Icon(
-                    Icons.plus_one_sharp,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                  iconSize: 15.0,
-                  splashRadius: 10.0,
-                  padding: const EdgeInsets.all(4.0),
-                ),
-                //MINUS BUTTON
-                IconButton(
-                  onPressed: () {
-                    if (widget.children.length > 1) {
-                      setState(() {
-                        widget.children.removeAt(_currentRow);
-                      });
-                    }
-                  },
-                  icon: Icon(
-                    Icons.exposure_minus_1_sharp,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                  iconSize: 15.0,
-                  splashRadius: 10.0,
-                  padding: const EdgeInsets.all(4.0),
-                ),
-
-                //PLUS BUTTON
-              ],
+    return Card(
+      child: Container(
+        decoration: BoxDecoration(
+            border: Border.all(color: Theme.of(context).colorScheme.tertiary),
+            borderRadius: const BorderRadius.all(Radius.circular(10))),
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
+        margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+        clipBehavior: Clip.antiAlias,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          //HEADING-----------------------------------------------------------
+          Container(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+              child: Text(
+                widget.title,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
-            FocusTraversalGroup(
-                child: Column(children: [
-              ...widget.children.map((e) {
-                return e;
-              })
-            ])),
-          ]),
-        ),
+            alignment: Alignment.centerLeft,
+          ),
+          //ROWS--------------------------------------------------------------
+          FocusTraversalGroup(
+              child: Column(children: [
+            ...widget.children.map((e) {
+              return e;
+            })
+          ])),
+          //Bottom Row-----------------------------------------------------------
+          ReportTableBottomRow(
+            cellIndexes: _cellIndexes,
+            children: widget.children,
+            setStateCallBackPlus: _callbackPlus,
+            setStateCallBackMinus: _callbackMinus,
+          )
+        ]),
       ),
-      onFocusChange: (hasFocus) {
-        setState(() {
-          _inFocus = hasFocus;
-        });
-      },
     );
   }
 }
@@ -542,6 +509,88 @@ class _ReportTableRowState extends State<ReportTableRow> {
           ],
         ),
       ),
+    );
+  }
+}
+
+//======================================================================
+//Report Table Bottom Row
+//======================================================================
+class ReportTableBottomRow extends StatefulWidget {
+  final List<int> cellIndexes;
+  final List<ReportTableRow> children;
+  final Function() setStateCallBackPlus;
+  final Function() setStateCallBackMinus;
+
+  const ReportTableBottomRow(
+      {super.key,
+      required this.cellIndexes,
+      required this.children,
+      required this.setStateCallBackPlus,
+      required this.setStateCallBackMinus});
+
+  @override
+  State<ReportTableBottomRow> createState() => _ReportTableBottomRowState();
+}
+
+class _ReportTableBottomRowState extends State<ReportTableBottomRow> {
+  final String _countTemplate = "Current Row Count";
+  String? _countStr;
+
+  @override
+  void initState() {
+    _countStr = "$_countTemplate: ${widget.children.length}";
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Expanded(
+            child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 6.0,
+                ),
+                child: Text(
+                  _countStr!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ))),
+        //PLUS BUTTON
+        IconButton(
+          icon: Icon(
+            Icons.plus_one_sharp,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          iconSize: 15.0,
+          splashRadius: 10.0,
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          onPressed: () {
+            widget.setStateCallBackPlus();
+            setState(() {
+              _countStr = "$_countTemplate: ${widget.children.length}";
+            });
+          },
+        ),
+        //MINUS BUTTON
+        IconButton(
+          icon: Icon(
+            Icons.exposure_minus_1_sharp,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          iconSize: 15.0,
+          splashRadius: 10.0,
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          onPressed: () {
+            widget.setStateCallBackMinus();
+            setState(() {
+              _countStr = "$_countTemplate: ${widget.children.length}";
+            });
+          },
+        ),
+      ],
     );
   }
 }
