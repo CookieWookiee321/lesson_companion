@@ -9,9 +9,9 @@ part of 'pdf_table_row.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
-const PdfTableRowSchema = Schema(
-  name: r'PdfTableRow',
-  id: 3124125583363875615,
+const PdfTableRowModelSchema = Schema(
+  name: r'PdfTableRowModel',
+  id: -6217203636723693350,
   properties: {
     r'lhs': PropertySchema(
       id: 0,
@@ -26,13 +26,13 @@ const PdfTableRowSchema = Schema(
       target: r'PdfText',
     )
   },
-  estimateSize: _pdfTableRowEstimateSize,
-  serialize: _pdfTableRowSerialize,
-  deserialize: _pdfTableRowDeserialize,
-  deserializeProp: _pdfTableRowDeserializeProp,
+  estimateSize: _pdfTableRowModelEstimateSize,
+  serialize: _pdfTableRowModelSerialize,
+  deserialize: _pdfTableRowModelDeserialize,
+  deserializeProp: _pdfTableRowModelDeserializeProp,
 );
 
-int _pdfTableRowEstimateSize(
+int _pdfTableRowModelEstimateSize(
   PdfTableRowModel object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -55,7 +55,7 @@ int _pdfTableRowEstimateSize(
   return bytesCount;
 }
 
-void _pdfTableRowSerialize(
+void _pdfTableRowModelSerialize(
   PdfTableRowModel object,
   IsarWriter writer,
   List<int> offsets,
@@ -75,7 +75,7 @@ void _pdfTableRowSerialize(
   );
 }
 
-PdfTableRowModel _pdfTableRowDeserialize(
+PdfTableRowModel _pdfTableRowModelDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
@@ -95,7 +95,7 @@ PdfTableRowModel _pdfTableRowDeserialize(
   return object;
 }
 
-P _pdfTableRowDeserializeProp<P>(
+P _pdfTableRowModelDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -119,7 +119,7 @@ P _pdfTableRowDeserializeProp<P>(
   }
 }
 
-extension PdfTableRowQueryFilter
+extension PdfTableRowModelQueryFilter
     on QueryBuilder<PdfTableRowModel, PdfTableRowModel, QFilterCondition> {
   QueryBuilder<PdfTableRowModel, PdfTableRowModel, QAfterFilterCondition>
       lhsIsNull() {
@@ -158,7 +158,7 @@ extension PdfTableRowQueryFilter
   }
 }
 
-extension PdfTableRowQueryObject
+extension PdfTableRowModelQueryObject
     on QueryBuilder<PdfTableRowModel, PdfTableRowModel, QFilterCondition> {
   QueryBuilder<PdfTableRowModel, PdfTableRowModel, QAfterFilterCondition> lhs(
       FilterQuery<PdfText> q) {

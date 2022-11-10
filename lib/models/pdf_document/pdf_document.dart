@@ -11,7 +11,7 @@ import 'package:pdf/widgets.dart';
 
 part 'pdf_document.g.dart';
 
-enum PdfTextType { question, base, sub, example, info }
+enum PdfTextType { question, base, sub, example, info, tableHeader }
 
 @collection
 class PdfDoc {
@@ -20,12 +20,9 @@ class PdfDoc {
   final PdfText date;
   final PdfText topic;
   final PdfText? homework;
-  final PdfTableModel table1;
-  final PdfTableModel? table2;
-  final PdfTableModel? table3;
+  final List<PdfTableModel>? tables;
 
-  PdfDoc(this.name, this.date, this.topic, this.homework, this.table1,
-      this.table2, this.table3);
+  PdfDoc(this.name, this.date, this.topic, this.homework, this.tables);
 
   /// Creates and saves a report PDF based on the parent object.
   Future<Uint8List> create() async {
@@ -52,11 +49,13 @@ class PdfDoc {
                 .load("lib/assets/IBMPlexSansKR-SemiBold.ttf"))));
     final _homework =
         homework != null ? await _newText(homework!, PdfSection.h2) : null;
-    final _table1 = await newTable(table: table1);
-    final _table2 =
-        table2!.heading != null ? await newTable(table: table2!) : null;
-    final _table3 =
-        table3!.heading != null ? await newTable(table: table3!) : null;
+
+    final List<Table> _tables = [];
+    if (tables != null && tables!.length > 0) {
+      tables!.forEach((element) async {
+        _tables.add(await newTable(table: element));
+      });
+    }
     final _footer = await _newText(footer, PdfSection.footer);
 
     //initial set up
@@ -86,9 +85,7 @@ class PdfDoc {
           ]),
         Padding(padding: const EdgeInsets.symmetric(vertical: 4.0)),
         // BODY
-        _table1,
-        if (table2!.heading != null) _table2!,
-        if (table3!.heading != null) _table3!,
+        ..._tables.map((table) => table),
         // FOOTER
         _footer
       ]);
@@ -146,7 +143,7 @@ class PdfDoc {
     final List<List<RichText>> output = [];
 
     for (final row in table.rows!) {
-      final lhs = (await _newText(row.lhs!, PdfSection.body));
+      final lhs = await _newText(row.lhs!, PdfSection.body);
       if (row.rhs != null) {
         final rhs = await _newText(row.rhs!, PdfSection.body);
         output.add([lhs, rhs]);

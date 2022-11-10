@@ -9,9 +9,9 @@ part of 'pdf_table.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
-const PdfTableSchema = Schema(
-  name: r'PdfTable',
-  id: -3078727781336404101,
+const PdfTableModelSchema = Schema(
+  name: r'PdfTableModel',
+  id: -9145776999551285537,
   properties: {
     r'heading': PropertySchema(
       id: 0,
@@ -23,16 +23,16 @@ const PdfTableSchema = Schema(
       id: 1,
       name: r'rows',
       type: IsarType.objectList,
-      target: r'PdfTableRow',
+      target: r'PdfTableRowModel',
     )
   },
-  estimateSize: _pdfTableEstimateSize,
-  serialize: _pdfTableSerialize,
-  deserialize: _pdfTableDeserialize,
-  deserializeProp: _pdfTableDeserializeProp,
+  estimateSize: _pdfTableModelEstimateSize,
+  serialize: _pdfTableModelSerialize,
+  deserialize: _pdfTableModelDeserialize,
+  deserializeProp: _pdfTableModelDeserializeProp,
 );
 
-int _pdfTableEstimateSize(
+int _pdfTableModelEstimateSize(
   PdfTableModel object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -54,7 +54,7 @@ int _pdfTableEstimateSize(
         for (var i = 0; i < list.length; i++) {
           final value = list[i];
           bytesCount +=
-              PdfTableRowSchema.estimateSize(value, offsets, allOffsets);
+              PdfTableRowModelSchema.estimateSize(value, offsets, allOffsets);
         }
       }
     }
@@ -62,7 +62,7 @@ int _pdfTableEstimateSize(
   return bytesCount;
 }
 
-void _pdfTableSerialize(
+void _pdfTableModelSerialize(
   PdfTableModel object,
   IsarWriter writer,
   List<int> offsets,
@@ -77,12 +77,12 @@ void _pdfTableSerialize(
   writer.writeObjectList<PdfTableRowModel>(
     offsets[1],
     allOffsets,
-    PdfTableRowSchema.serialize,
+    PdfTableRowModelSchema.serialize,
     object.rows,
   );
 }
 
-PdfTableModel _pdfTableDeserialize(
+PdfTableModel _pdfTableModelDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
@@ -96,14 +96,14 @@ PdfTableModel _pdfTableDeserialize(
   );
   object.rows = reader.readObjectList<PdfTableRowModel>(
     offsets[1],
-    PdfTableRowSchema.deserialize,
+    PdfTableRowModelSchema.deserialize,
     allOffsets,
     PdfTableRowModel(),
   );
   return object;
 }
 
-P _pdfTableDeserializeProp<P>(
+P _pdfTableModelDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -119,7 +119,7 @@ P _pdfTableDeserializeProp<P>(
     case 1:
       return (reader.readObjectList<PdfTableRowModel>(
         offset,
-        PdfTableRowSchema.deserialize,
+        PdfTableRowModelSchema.deserialize,
         allOffsets,
         PdfTableRowModel(),
       )) as P;
@@ -128,7 +128,7 @@ P _pdfTableDeserializeProp<P>(
   }
 }
 
-extension PdfTableQueryFilter
+extension PdfTableModelQueryFilter
     on QueryBuilder<PdfTableModel, PdfTableModel, QFilterCondition> {
   QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition>
       headingIsNull() {
@@ -256,7 +256,7 @@ extension PdfTableQueryFilter
   }
 }
 
-extension PdfTableQueryObject
+extension PdfTableModelQueryObject
     on QueryBuilder<PdfTableModel, PdfTableModel, QFilterCondition> {
   QueryBuilder<PdfTableModel, PdfTableModel, QAfterFilterCondition> heading(
       FilterQuery<PdfText> q) {

@@ -89,6 +89,7 @@ const _PdfSubstringsetTextTypeEnumValueMap = {
   'sub': 2,
   'example': 3,
   'info': 4,
+  'tableHeader': 5,
 };
 const _PdfSubstringsetTextTypeValueEnumMap = {
   0: PdfTextType.question,
@@ -96,6 +97,7 @@ const _PdfSubstringsetTextTypeValueEnumMap = {
   2: PdfTextType.sub,
   3: PdfTextType.example,
   4: PdfTextType.info,
+  5: PdfTextType.tableHeader,
 };
 
 extension PdfSubstringQueryFilter

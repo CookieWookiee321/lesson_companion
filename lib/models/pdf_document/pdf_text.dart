@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_document.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_substring.dart';
+
 part 'pdf_text.g.dart';
 
 @embedded
@@ -11,7 +12,7 @@ class PdfText {
     components.clear();
 
     var currentType = PdfTextType.base;
-    final markerOpeners = ["q", "e", "i"];
+    final markerOpeners = ["q", "e", "i", "#"];
     final sb = StringBuffer();
     final specialChars = ["\\", "[", "]"];
 
@@ -53,9 +54,15 @@ class PdfText {
               case "e":
                 currentType = PdfTextType.example;
                 break;
+              case "#":
+                currentType = PdfTextType.tableHeader;
+                break;
             }
           } else {
             if (currentType != PdfTextType.base) {
+              if (currentType == PdfTextType.tableHeader) {
+                sb.write(input[i]);
+              }
               if (currentType == PdfTextType.sub) {
                 sb.write(input[i]);
               } else {

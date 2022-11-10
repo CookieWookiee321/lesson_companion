@@ -124,7 +124,9 @@ List<IsarLinkBase<dynamic>> _lessonGetLinks(Lesson object) {
   return [];
 }
 
-void _lessonAttach(IsarCollection<dynamic> col, Id id, Lesson object) {}
+void _lessonAttach(IsarCollection<dynamic> col, Id id, Lesson object) {
+  object.id = id;
+}
 
 extension LessonQueryWhereSort on QueryBuilder<Lesson, Lesson, QWhere> {
   QueryBuilder<Lesson, Lesson, QAfterWhere> anyId() {

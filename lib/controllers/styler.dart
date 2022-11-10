@@ -128,6 +128,12 @@ class StylerMethods {
         }
       case PdfSection.body:
         switch (type) {
+          case PdfTextType.tableHeader:
+            return pdf_widj.TextStyle(
+                color: PdfColors.blue800,
+                fontSize: 15.0,
+                font: pdf_widj.Font.ttf(await rootBundle
+                    .load("lib/assets/IBMPlexSansKR-SemiBold.ttf")));
           case PdfTextType.question:
             return pdf_widj.TextStyle(
                 color: PdfColors.blue600,

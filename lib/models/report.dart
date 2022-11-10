@@ -18,12 +18,7 @@ class Report {
   DateTime? date;
   List<String>? topic;
   List<String>? homework;
-  String? tableOneName;
-  List<PdfTableRowModel>? tableOneItems;
-  String? tableTwoName;
-  List<PdfTableRowModel>? tableTwoItems;
-  String? tableThreeName;
-  List<PdfTableRowModel>? tableThreeItems;
+  List<PdfTableModel>? tables;
 
   final objectSplitter = "===";
   final headingPrefix = '*';
@@ -38,9 +33,9 @@ class Report {
     date = DateTime.parse(mappings["Date"]!.first);
     topic = mappings["Topic"];
     homework = mappings["Homework"];
+    tables = [];
 
     // Skip over pre-defined heading keywords.
-    var counter = 1;
     if (mappings.length > 3) {
       for (var key in mappings.keys) {
         if (key == "Name" ||
@@ -50,23 +45,17 @@ class Report {
           continue;
         }
 
-        // Process only user-defined headings.
-        switch (counter) {
-          case 1:
-            tableOneName = key;
-            tableOneItems = cnvtStringToTableRows(mappings[key]!);
-            break;
-          case 2:
-            tableTwoName = key;
-            tableTwoItems = cnvtStringToTableRows(mappings[key]!);
-            break;
-          case 3:
-            tableThreeName = key;
-            tableThreeItems = cnvtStringToTableRows(mappings[key]!);
-            break;
-        }
+        // Process the user-defined headings
+        final name = PdfText();
+        name.input(key);
 
-        counter++;
+        final items = cnvtStringToTableRows(mappings[key]!);
+
+        final thisTable = PdfTableModel();
+        thisTable.heading = name;
+        thisTable.rows = items;
+
+        tables!.add(thisTable);
       }
     }
   }
@@ -98,39 +87,13 @@ class Report {
     if (homework != null && homework!.first != "") {
       _homework.input(strHomework!);
     }
-    //tables
-    final _tableName1 = PdfText();
-    _tableName1.input(tableOneName!);
-    final _table1 = PdfTableModel();
-    _table1.heading = _tableName1;
-    _table1.rows = tableOneItems!;
-
-    PdfText _tableName2 = PdfText();
-    PdfTableModel _table2 = PdfTableModel();
-    if (tableTwoName != null) {
-      _tableName2.input(tableTwoName!);
-
-      _table2.heading = _tableName2;
-      _table2.rows = tableTwoItems!;
-    }
-
-    PdfText _tableName3 = PdfText();
-    PdfTableModel _table3 = PdfTableModel();
-    if (tableThreeName != null) {
-      _tableName3.input(tableThreeName!);
-
-      _table3.heading = _tableName3;
-      _table3.rows = tableThreeItems!;
-    }
 
     final pdf = PdfDoc(
       _name,
       _date,
       _topic,
       _homework,
-      _table1,
-      _table2,
-      _table3,
+      tables,
     );
     return pdf;
   }
@@ -219,23 +182,6 @@ class Report {
     }
 
     return mappings;
-  }
-
-  Map<String, dynamic> fromObjToMap() {
-    return {
-      "reportId": id,
-      "studentId": studentId,
-      "lessonId": lessonId,
-      "date": date,
-      "topic": topic,
-      "homework": homework,
-      "tableOneName": tableOneName,
-      "tableOneItems": tableOneItems,
-      "tableTwoName": tableTwoName,
-      "tableTwoItems": tableTwoItems,
-      "tableThreeName": tableThreeName,
-      "tableThreeItems": tableThreeItems
-    };
   }
 }
 

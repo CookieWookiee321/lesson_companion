@@ -35,26 +35,14 @@ const PdfDocSchema = CollectionSchema(
       type: IsarType.object,
       target: r'PdfText',
     ),
-    r'table1': PropertySchema(
+    r'tables': PropertySchema(
       id: 3,
-      name: r'table1',
-      type: IsarType.object,
-      target: r'PdfTable',
-    ),
-    r'table2': PropertySchema(
-      id: 4,
-      name: r'table2',
-      type: IsarType.object,
-      target: r'PdfTable',
-    ),
-    r'table3': PropertySchema(
-      id: 5,
-      name: r'table3',
-      type: IsarType.object,
-      target: r'PdfTable',
+      name: r'tables',
+      type: IsarType.objectList,
+      target: r'PdfTableModel',
     ),
     r'topic': PropertySchema(
-      id: 6,
+      id: 4,
       name: r'topic',
       type: IsarType.object,
       target: r'PdfText',
@@ -70,8 +58,8 @@ const PdfDocSchema = CollectionSchema(
   embeddedSchemas: {
     r'PdfText': PdfTextSchema,
     r'PdfSubstring': PdfSubstringSchema,
-    r'PdfTable': PdfTableSchema,
-    r'PdfTableRow': PdfTableRowSchema
+    r'PdfTableModel': PdfTableModelSchema,
+    r'PdfTableRowModel': PdfTableRowModelSchema
   },
   getId: _pdfDocGetId,
   getLinks: _pdfDocGetLinks,
@@ -96,23 +84,18 @@ int _pdfDocEstimateSize(
   }
   bytesCount += 3 +
       PdfTextSchema.estimateSize(object.name, allOffsets[PdfText]!, allOffsets);
-  bytesCount += 3 +
-      PdfTableSchema.estimateSize(
-          object.table1, allOffsets[PdfTableModel]!, allOffsets);
   {
-    final value = object.table2;
-    if (value != null) {
-      bytesCount += 3 +
-          PdfTableSchema.estimateSize(
-              value, allOffsets[PdfTableModel]!, allOffsets);
-    }
-  }
-  {
-    final value = object.table3;
-    if (value != null) {
-      bytesCount += 3 +
-          PdfTableSchema.estimateSize(
-              value, allOffsets[PdfTableModel]!, allOffsets);
+    final list = object.tables;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        final offsets = allOffsets[PdfTableModel]!;
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount +=
+              PdfTableModelSchema.estimateSize(value, offsets, allOffsets);
+        }
+      }
     }
   }
   bytesCount += 3 +
@@ -145,26 +128,14 @@ void _pdfDocSerialize(
     PdfTextSchema.serialize,
     object.name,
   );
-  writer.writeObject<PdfTableModel>(
+  writer.writeObjectList<PdfTableModel>(
     offsets[3],
     allOffsets,
-    PdfTableSchema.serialize,
-    object.table1,
-  );
-  writer.writeObject<PdfTableModel>(
-    offsets[4],
-    allOffsets,
-    PdfTableSchema.serialize,
-    object.table2,
-  );
-  writer.writeObject<PdfTableModel>(
-    offsets[5],
-    allOffsets,
-    PdfTableSchema.serialize,
-    object.table3,
+    PdfTableModelSchema.serialize,
+    object.tables,
   );
   writer.writeObject<PdfText>(
-    offsets[6],
+    offsets[4],
     allOffsets,
     PdfTextSchema.serialize,
     object.topic,
@@ -191,7 +162,7 @@ PdfDoc _pdfDocDeserialize(
         ) ??
         PdfText(),
     reader.readObjectOrNull<PdfText>(
-          offsets[6],
+          offsets[4],
           PdfTextSchema.deserialize,
           allOffsets,
         ) ??
@@ -201,21 +172,11 @@ PdfDoc _pdfDocDeserialize(
       PdfTextSchema.deserialize,
       allOffsets,
     ),
-    reader.readObjectOrNull<PdfTableModel>(
-          offsets[3],
-          PdfTableSchema.deserialize,
-          allOffsets,
-        ) ??
-        PdfTableModel(),
-    reader.readObjectOrNull<PdfTableModel>(
-      offsets[4],
-      PdfTableSchema.deserialize,
+    reader.readObjectList<PdfTableModel>(
+      offsets[3],
+      PdfTableModelSchema.deserialize,
       allOffsets,
-    ),
-    reader.readObjectOrNull<PdfTableModel>(
-      offsets[5],
-      PdfTableSchema.deserialize,
-      allOffsets,
+      PdfTableModel(),
     ),
   );
   return object;
@@ -249,25 +210,13 @@ P _pdfDocDeserializeProp<P>(
           ) ??
           PdfText()) as P;
     case 3:
-      return (reader.readObjectOrNull<PdfTableModel>(
-            offset,
-            PdfTableSchema.deserialize,
-            allOffsets,
-          ) ??
-          PdfTableModel()) as P;
+      return (reader.readObjectList<PdfTableModel>(
+        offset,
+        PdfTableModelSchema.deserialize,
+        allOffsets,
+        PdfTableModel(),
+      )) as P;
     case 4:
-      return (reader.readObjectOrNull<PdfTableModel>(
-        offset,
-        PdfTableSchema.deserialize,
-        allOffsets,
-      )) as P;
-    case 5:
-      return (reader.readObjectOrNull<PdfTableModel>(
-        offset,
-        PdfTableSchema.deserialize,
-        allOffsets,
-      )) as P;
-    case 6:
       return (reader.readObjectOrNull<PdfText>(
             offset,
             PdfTextSchema.deserialize,
@@ -433,35 +382,103 @@ extension PdfDocQueryFilter on QueryBuilder<PdfDoc, PdfDoc, QFilterCondition> {
     });
   }
 
-  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> table2IsNull() {
+  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> tablesIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'table2',
+        property: r'tables',
       ));
     });
   }
 
-  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> table2IsNotNull() {
+  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> tablesIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'table2',
+        property: r'tables',
       ));
     });
   }
 
-  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> table3IsNull() {
+  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> tablesLengthEqualTo(
+      int length) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'table3',
-      ));
+      return query.listLength(
+        r'tables',
+        length,
+        true,
+        length,
+        true,
+      );
     });
   }
 
-  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> table3IsNotNull() {
+  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> tablesIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'table3',
-      ));
+      return query.listLength(
+        r'tables',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> tablesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tables',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> tablesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tables',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> tablesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tables',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> tablesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tables',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 }
@@ -488,24 +505,10 @@ extension PdfDocQueryObject on QueryBuilder<PdfDoc, PdfDoc, QFilterCondition> {
     });
   }
 
-  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> table1(
+  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> tablesElement(
       FilterQuery<PdfTableModel> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'table1');
-    });
-  }
-
-  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> table2(
-      FilterQuery<PdfTableModel> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'table2');
-    });
-  }
-
-  QueryBuilder<PdfDoc, PdfDoc, QAfterFilterCondition> table3(
-      FilterQuery<PdfTableModel> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'table3');
+      return query.object(q, r'tables');
     });
   }
 
@@ -562,21 +565,10 @@ extension PdfDocQueryProperty on QueryBuilder<PdfDoc, PdfDoc, QQueryProperty> {
     });
   }
 
-  QueryBuilder<PdfDoc, PdfTableModel, QQueryOperations> table1Property() {
+  QueryBuilder<PdfDoc, List<PdfTableModel>?, QQueryOperations>
+      tablesProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'table1');
-    });
-  }
-
-  QueryBuilder<PdfDoc, PdfTableModel?, QQueryOperations> table2Property() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'table2');
-    });
-  }
-
-  QueryBuilder<PdfDoc, PdfTableModel?, QQueryOperations> table3Property() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'table3');
+      return query.addPropertyName(r'tables');
     });
   }
 

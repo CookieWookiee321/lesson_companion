@@ -7,6 +7,8 @@ import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/controllers/home_controller.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
+import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
+import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/models/views/home_view_models.dart';
@@ -125,29 +127,16 @@ class _HomeViewState extends State<HomeView> {
           ? thisReport.homework = _homework!.split("\n").toList()
           : null;
 
-      switch (counter) {
-        case 3:
-          thisReport.tableOneName = _tables[0].title;
-          thisReport.tableOneItems = HomeController.modelTableData(_tables[0]);
+      for (final t in _tables) {
+        final thisTable = PdfTableModel();
 
-          thisReport.tableTwoName = _tables[1].title;
-          thisReport.tableTwoItems = HomeController.modelTableData(_tables[1]);
+        final heading = PdfText();
+        heading.input(t.title);
+        thisTable.heading = heading;
 
-          thisReport.tableThreeName = _tables[2].title;
-          thisReport.tableThreeItems =
-              HomeController.modelTableData(_tables[2]);
-          break;
-        case 2:
-          thisReport.tableOneName = _tables[0].title;
-          thisReport.tableOneItems = HomeController.modelTableData(_tables[0]);
+        thisTable.rows = HomeController.modelTableData(t); //t.children;
 
-          thisReport.tableTwoName = _tables[1].title;
-          thisReport.tableTwoItems = HomeController.modelTableData(_tables[1]);
-          break;
-        default:
-          thisReport.tableOneName = _tables[0].title;
-          thisReport.tableOneItems = HomeController.modelTableData(_tables[0]);
-          break;
+        thisReport.tables!.add(thisTable);
       }
 
       final pdfDoc = await thisReport.createPdf();
