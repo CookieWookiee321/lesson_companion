@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/material.dart';
+import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/views/base_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'controllers/styler.dart';
 
@@ -15,7 +17,22 @@ Future<void> main() async {
     DesktopWindow.setWindowSize(const Size(500, 700));
   }
 
+  await initialSettings();
+
   runApp(const MyApp());
+}
+
+Future<void> initialSettings() async {
+  final checker = await DataStorage.getSetting(SharedPrefOption.darkMode);
+
+  if (checker != null) {
+    return;
+  } else {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        "footer", "Customise your footer in the options menu!");
+    await prefs.setBool("darkMode", false);
+  }
 }
 
 class MyApp extends StatelessWidget {

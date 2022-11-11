@@ -186,7 +186,6 @@ class _HomeViewState extends State<HomeView> {
                             child: FocusTraversalOrder(
                                 order: NumericFocusOrder(1),
                                 child: TextFieldOutlined(
-                                  name: "tName",
                                   hint: "Name",
                                   size: 13.0,
                                   controller: _nameController,
@@ -217,7 +216,6 @@ class _HomeViewState extends State<HomeView> {
                     FocusTraversalOrder(
                         order: NumericFocusOrder(3),
                         child: TextFieldOutlined(
-                          name: "tTopic",
                           hint: "Topic",
                           size: 13,
                           controller: _topicController,
@@ -229,7 +227,6 @@ class _HomeViewState extends State<HomeView> {
                     FocusTraversalOrder(
                         order: NumericFocusOrder(4),
                         child: TextFieldOutlined(
-                          name: "tHomework",
                           hint: "Homework",
                           size: 13,
                           controller: _homeworkController,
@@ -327,6 +324,7 @@ class ReportTable extends StatefulWidget {
 }
 
 class _ReportTableState extends State<ReportTable> {
+  late String _heading;
   final List<int> _cellIndexes = [0, 1];
   var _currentRow = 0;
   final _currentCell = [0, 0];
@@ -361,8 +359,34 @@ class _ReportTableState extends State<ReportTable> {
     }
   }
 
+  AlertDialog _titleChangeDialog() {
+    return AlertDialog(
+      title: Text("Table Header"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextFieldOutlined(
+            initialText: _heading,
+            onTextChanged: (text) {
+              setState(() {
+                _heading = text;
+              });
+            },
+          ),
+          OutlinedButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.pop(context);
+              })
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
+    _heading = widget.title;
+
     widget.children.add(ReportTableRow(
       model: ReportTableRowModel(),
       cellIndexes: [0, 1],
@@ -385,9 +409,22 @@ class _ReportTableState extends State<ReportTable> {
           Container(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
-              child: Text(
-                widget.title,
-                style: Theme.of(context).textTheme.bodySmall,
+              child: GestureDetector(
+                child: Text(
+                  _heading,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium!
+                      .copyWith(color: Colors.grey),
+                ),
+                onDoubleTap: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return _titleChangeDialog();
+                    },
+                  );
+                },
               ),
             ),
             alignment: Alignment.centerLeft,

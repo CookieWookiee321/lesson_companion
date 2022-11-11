@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class TextFieldOutlined extends StatefulWidget {
   const TextFieldOutlined(
       {Key? key,
-      required this.name,
+      this.initialText = "",
       this.controller,
       this.hint,
       this.size,
@@ -14,7 +14,9 @@ class TextFieldOutlined extends StatefulWidget {
       this.onTextChanged})
       : super(key: key);
 
-  final String name;
+  //TODO: Must assert no init value with controller
+
+  final String initialText;
   final TextEditingController? controller;
   final String? hint;
   final double? size;
@@ -26,6 +28,18 @@ class TextFieldOutlined extends StatefulWidget {
 }
 
 class _TextFieldOutlinedState extends State<TextFieldOutlined> {
+  TextEditingController? _controller;
+
+  @override
+  void initState() {
+    if (widget.controller != null) {
+      _controller = widget.controller;
+    } else {
+      _controller = TextEditingController(text: widget.initialText);
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -43,6 +57,7 @@ class _TextFieldOutlinedState extends State<TextFieldOutlined> {
         style: TextStyle(fontSize: widget.size),
         maxLines: null,
         onChanged: widget.onTextChanged,
+        controller: _controller,
       ),
     );
   }

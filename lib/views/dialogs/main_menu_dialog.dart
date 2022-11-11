@@ -1,4 +1,9 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/container.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
+import 'package:lesson_companion/models/data_storage.dart';
+import 'package:lesson_companion/views/companion_widgets.dart';
 
 final _template =
     """>Lines like this will not be processed, so please replace them with your own information.
@@ -65,3 +70,117 @@ ${CompanionMethods.getShortDate(DateTime.now())}
 * Corrections
 >This section has no special features, but is just included for general purposes as a default.
 ===""";
+
+class MenuMainDialog extends StatefulWidget {
+  const MenuMainDialog({super.key});
+
+  @override
+  State<MenuMainDialog> createState() => _MenuMainDialogState();
+}
+
+class _MenuMainDialogState extends State<MenuMainDialog> {
+  ///Menu names include [Report Options]
+  Future<void> _go(BuildContext context, String menuName) async {
+    switch (menuName) {
+      case "Report Options":
+        await showDialog(
+            context: context,
+            builder: ((context) {
+              return AlertDialog(
+                title: Text("Report Options"),
+                content: Column(
+                  children: [
+                    OutlinedButton(
+                      child: Text("Report table defaults"),
+                      onPressed: () async {
+                        await showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                  title: Text("Report table defaults"),
+                                  content: Table(
+                                    children: [
+                                      TableRow(children: [
+                                        Text(
+                                            "Table Name Defaults:\nEnter one per line"),
+                                        //TODO: inital text must be retrieved
+                                        //TextFieldOutlined()
+                                      ])
+                                    ],
+                                  ));
+                            });
+                      },
+                    )
+                  ],
+                ),
+              );
+            }));
+        break;
+      case "Appearance Options":
+        await showDialog(
+            context: context,
+            builder: ((context) {
+              return AlertDialog(
+                title: Text("Appearance Options"),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text("Dark Mode")),
+                        FutureBuilder(
+                          future:
+                              DataStorage.getSetting(SharedPrefOption.darkMode),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              return Switch(
+                                  value: snapshot.data,
+                                  onChanged: (value) async {
+                                    await DataStorage.saveSetting(
+                                        SharedPrefOption.darkMode, value);
+                                    setState(() {});
+                                  });
+                            } else {
+                              return CircularProgressIndicator();
+                            }
+                          },
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }));
+        break;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("Main Menu"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          OutlinedButton(
+            child: Text("Appearance Options"),
+            onPressed: () async => await _go(context, "Appearance Options"),
+          ),
+          Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
+          OutlinedButton(
+            child: Text("Report Options"),
+            onPressed: () async {
+              await _go(context, "Report Options");
+              setState(() {});
+            },
+          )
+        ],
+      ),
+    );
+  }
+}

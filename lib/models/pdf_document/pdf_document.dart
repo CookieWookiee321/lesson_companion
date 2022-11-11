@@ -27,9 +27,7 @@ class PdfDoc {
   /// Creates and saves a report PDF based on the parent object.
   Future<Uint8List> create() async {
     final footer = PdfText();
-    final temp1 = await DataStorage.getSetting("footer");
-    final temp2 = temp1 == "[Setting not found]" ? "" : temp1;
-    footer.input(temp2);
+    footer.input(await DataStorage.getSetting(SharedPrefOption.footer));
 
     // model the sections of the PDF to get styled objects
     final _name = await _newText(name, PdfSection.h1);
@@ -52,44 +50,49 @@ class PdfDoc {
 
     final List<Table> _tables = [];
     if (tables != null && tables!.length > 0) {
-      tables!.forEach((element) async {
-        _tables.add(await newTable(table: element));
-      });
+      for (int i = 0; i < tables!.length; i++) {
+        await newTable(table: tables![i]).then((value) => _tables.add(value));
+      }
     }
     final _footer = await _newText(footer, PdfSection.footer);
 
     //initial set up
 
     final pdf = Document();
-    pdf.addPage(Page(build: ((context) {
-      return Column(children: [
-        // H1
-        Row(children: [
-          Expanded(child: _name),
-          Expanded(
-              child: Container(alignment: Alignment.centerRight, child: _date))
-        ]),
-        // H2
-        Row(children: [
-          Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: _topicHeader),
-          Expanded(child: _topic)
-        ]),
-        if (homework!.components.isNotEmpty)
-          Row(children: [
-            Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                child: _homeworkHeader),
-            Expanded(child: _homework!)
-          ]),
-        Padding(padding: const EdgeInsets.symmetric(vertical: 4.0)),
-        // BODY
-        ..._tables.map((table) => table),
-        // FOOTER
-        _footer
-      ]);
-    })));
+    pdf.addPage(MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        build: ((context) {
+          return [
+            // H1-------------------------------------------------------------------
+            Row(children: [
+              Expanded(child: _name),
+              Expanded(
+                  child:
+                      Container(alignment: Alignment.centerRight, child: _date))
+            ]),
+            // H2-------------------------------------------------------------------
+            Row(children: [
+              Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: _topicHeader),
+              Expanded(child: _topic)
+            ]),
+            if (homework!.components.isNotEmpty)
+              Row(children: [
+                Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    child: _homeworkHeader),
+                Expanded(child: _homework!)
+              ]),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 4.0)),
+            // BODY-----------------------------------------------------------------
+            ..._tables.map((e) {
+              return e;
+            }),
+            // FOOTER---------------------------------------------------------------
+            _footer
+          ];
+        })));
 
     return await pdf.save();
   }

@@ -80,9 +80,26 @@ class DataStorage {
     return lesson != null ? lesson.id : null;
   }
 
-  static Future<String> getSetting(String key) async {
+  static Future<dynamic>? getSetting(SharedPrefOption option) async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(key) ?? "[Setting not found]";
+
+    switch (option) {
+      case SharedPrefOption.darkMode:
+        return prefs.getBool("darkMode");
+      case SharedPrefOption.footer:
+        return prefs.getString("footer");
+    }
+  }
+
+  static Future<Map<String, dynamic>> getAllSettings() async {
+    final Map<String, dynamic> output = {};
+    final prefs = await SharedPreferences.getInstance();
+
+    for (final key in prefs.getKeys()) {
+      output[key] = prefs.get(key);
+    }
+
+    return output;
   }
 
   static Future<List<Lesson>> getAllLessonsOfStudent(String name) async {
@@ -117,9 +134,20 @@ class DataStorage {
     });
   }
 
-  static void saveSetting(String key, String value) async {
+  static Future<void> saveSetting(SharedPrefOption key, dynamic value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(key, value);
+
+    final proper;
+    switch (key) {
+      case SharedPrefOption.darkMode:
+        proper = value as bool;
+        await prefs.setBool("darkMode", proper);
+        break;
+      case SharedPrefOption.footer:
+        proper = value as String;
+        await prefs.setString("footer", proper);
+        break;
+    }
   }
 
   //============================================================================
@@ -165,3 +193,5 @@ class DataStorage {
   //Delete----------------------------------------------------------------------
   //============================================================================
 }
+
+enum SharedPrefOption { darkMode, footer }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lesson_companion/views/dialogs/main_menu_dialog.dart';
 import 'package:lesson_companion/views/home_view.dart';
 import 'package:lesson_companion/views/lesson_list_view.dart';
 import 'package:lesson_companion/views/student_list_view.dart';
@@ -38,8 +39,16 @@ class _BaseViewState extends State<BaseView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Lesson Companion"),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        //backgroundColor: Theme.of(context).colorScheme.secondary,
+        foregroundColor: Theme.of(context).colorScheme.primary,
+        actions: [
+          TextButton(
+              onPressed: () {
+                showDialog(
+                    context: context, builder: (context) => MenuMainDialog());
+              },
+              child: Text("Options"))
+        ],
       ),
       body: IndexedStack(
         index: _selectedIndex,
