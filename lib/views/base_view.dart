@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/views/dialogs/main_menu_dialog.dart';
 import 'package:lesson_companion/views/home_view.dart';
-import 'package:lesson_companion/views/lesson_list_view.dart';
-import 'package:lesson_companion/views/student_list_view.dart';
+import 'package:lesson_companion/views/lesson_view.dart';
+import 'package:lesson_companion/views/student_view.dart';
 import 'package:lesson_companion/views/text_input_mode_view.dart';
 
 class BaseView extends StatefulWidget {
@@ -25,7 +25,7 @@ class _BaseViewState extends State<BaseView> {
     HomeView(),
     TextInputModeView(),
     StudentView(),
-    LessonView(),
+    LessonHistoryView(),
     HomeView()
   ];
 

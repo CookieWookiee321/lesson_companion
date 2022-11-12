@@ -5,11 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum LCObjectType { student, lesson, report }
 
+enum SharedPrefOption { darkMode, footer }
+
 class DataStorage {
   //============================================================================
   //SELECT----------------------------------------------------------------------
   //============================================================================
-
   static Future<Student?> getStudentById(int id) async {
     final isar = Isar.getInstance("student_db") ??
         await Isar.open([StudentSchema], name: "student_db");
@@ -51,6 +52,14 @@ class DataStorage {
     });
 
     return output;
+  }
+
+  static Future<int> getLessonCountOfStudent(int studentId) async {
+    final isar = Isar.getInstance("lesson_db") ??
+        await Isar.open([LessonSchema], name: "lesson_db");
+    final lessons =
+        await isar.lessons.filter().studentIdEqualTo(studentId).findAll();
+    return lessons.length;
   }
 
   /// Attempts to retrieve the Student ID from a name.
@@ -192,6 +201,48 @@ class DataStorage {
   //============================================================================
   //Delete----------------------------------------------------------------------
   //============================================================================
-}
+  static Future<void> deleteChildlessStudents() async {
+    final isarLessons = Isar.getInstance("lesson_db") ??
+        await Isar.open([LessonSchema], name: "lesson_db");
+    final isarStudents = Isar.getInstance("student_db") ??
+        await Isar.open([StudentSchema], name: "student_db");
 
-enum SharedPrefOption { darkMode, footer }
+    //delete students with 0 lessons
+    final allStudent = await isarStudents.students.where().findAll();
+    final allIds = allStudent.map((e) => e.id).toList();
+    for (final id in allIds) {
+      final lessonsById =
+          await isarLessons.lessons.filter().studentIdEqualTo(id).findAll();
+
+      if (lessonsById.isEmpty) {
+        await isarStudents.writeTxn(() async {
+          isarStudents.students.delete(id);
+        });
+      }
+    }
+  }
+
+  static Future<void> deleteLessonById(int lessonId) async {
+    final isar = Isar.getInstance("lesson_db") ??
+        await Isar.open([LessonSchema], name: "lesson_db");
+    await isar.writeTxn(() async {
+      await isar.lessons.delete(lessonId);
+    });
+
+    //delete students with 0 lessons
+    deleteChildlessStudents();
+  }
+
+  static Future<void> deleteLessonByDetails(
+      int studentId, DateTime date) async {
+    final isar = Isar.getInstance("lesson_db") ??
+        await Isar.open([LessonSchema], name: "lesson_db");
+    final lesson = await isar.lessons
+        .filter()
+        .dateEqualTo(date)
+        .and()
+        .studentIdEqualTo(studentId)
+        .findFirst();
+    await deleteLessonById(lesson!.id);
+  }
+}

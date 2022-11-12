@@ -88,31 +88,8 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
             builder: ((context) {
               return AlertDialog(
                 title: Text("Report Options"),
-                content: Column(
-                  children: [
-                    OutlinedButton(
-                      child: Text("Report table defaults"),
-                      onPressed: () async {
-                        await showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                  title: Text("Report table defaults"),
-                                  content: Table(
-                                    children: [
-                                      TableRow(children: [
-                                        Text(
-                                            "Table Name Defaults:\nEnter one per line"),
-                                        //TODO: inital text must be retrieved
-                                        //TextFieldOutlined()
-                                      ])
-                                    ],
-                                  ));
-                            });
-                      },
-                    )
-                  ],
-                ),
+                scrollable: true,
+                content: _reportOptionMenu(),
               );
             }));
         break;
@@ -153,6 +130,67 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
             }));
         break;
     }
+  }
+
+  Column _reportOptionMenu() {
+    return Column(
+      children: [
+        _optionCard(
+            "Table Name Defaults:",
+            TextFieldOutlined(
+              initialText: "New Language\nPronunciation\nCorrections",
+              size: 13,
+            )),
+        _optionCard(
+            "Report Footer:",
+            FutureBuilder(
+              future: DataStorage.getSetting(SharedPrefOption.footer),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.hasData) {
+                    return TextFieldOutlined(
+                      initialText: snapshot.data as String,
+                      size: 13,
+                      readOnly: false,
+                      onTextChanged: (text) async {
+                        await DataStorage.saveSetting(
+                            SharedPrefOption.footer, text);
+                      },
+                    );
+                  } else {
+                    return TextFieldOutlined(
+                      initialText: "Could not load saved footer",
+                      size: 13,
+                      readOnly: true,
+                    );
+                  }
+                }
+                return CircularProgressIndicator();
+              },
+            )),
+      ],
+    );
+  }
+
+  Card _optionCard(String heading, Widget option) {
+    return Card(
+        child: Padding(
+            child: Column(
+              children: [
+                Container(
+                  child: Text(
+                    heading,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  decoration: BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Theme.of(context).colorScheme.secondary))),
+                ),
+                option
+              ],
+            ),
+            padding: EdgeInsets.all(4.0)));
   }
 
   @override

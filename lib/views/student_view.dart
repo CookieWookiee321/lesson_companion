@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/data_storage.dart';
+import 'package:lesson_companion/models/student.dart';
 
 //==============================================================================
 //Student View
@@ -34,16 +35,21 @@ class StudentListView extends StatefulWidget {
 }
 
 class _StudentListViewState extends State<StudentListView> {
-  Map<String, bool> _studentMap = {};
+  List<Student>? _students;
+  Map<String, int>? _namesAndCountMap;
+
   final _scrollController = ScrollController(keepScrollOffset: true);
 
   Future<void> _getStudentDetails() async {
-    final students = await DataStorage.getAllStudents();
+    _students = await DataStorage.getAllStudents();
 
-    if (_studentMap.isNotEmpty) _studentMap.clear();
+    if (_namesAndCountMap == null) {
+      _namesAndCountMap = {};
+    }
 
-    for (final s in students) {
-      _studentMap[s.name!] = s.active!;
+    for (final s in _students!) {
+      _namesAndCountMap![s.name!] =
+          await DataStorage.getLessonCountOfStudent(s.id);
     }
   }
 
@@ -64,31 +70,19 @@ class _StudentListViewState extends State<StudentListView> {
                 borderRadius: const BorderRadius.all(Radius.circular(8))),
             margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
             padding: const EdgeInsets.all(6),
-            child: GestureDetector(
-              child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: _studentMap.length,
-                  itemBuilder: (context, index) {
-                    return CheckboxListTile(
-                      value: _studentMap.values.elementAt(index) ? true : false,
-                      title: Text(_studentMap.keys.elementAt(index)),
-                      onChanged: (isChecked) async {
-                        final name = _studentMap.keys.elementAt(index);
-                        final student =
-                            await DataStorage.getStudentByName(name);
-                        student!.active = isChecked;
-                        await DataStorage.saveStudent(student);
-
-                        setState(() {
-                          _studentMap[name] == isChecked;
-                        });
-                      },
-                    );
-                  }),
-              onLongPress: () {
-                //TODO: add menu
-              },
-            ),
+            child: ListView.builder(
+                controller: _scrollController,
+                itemCount: _namesAndCountMap!.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(_namesAndCountMap!.keys.elementAt(index)),
+                    subtitle: Text(
+                        "Total Lessons: ${_namesAndCountMap!.values.elementAt(index)}"),
+                    onLongPress: () {
+                      //TODO: add menu
+                    },
+                  );
+                }),
           );
         }
         //TODO: handle error connection state

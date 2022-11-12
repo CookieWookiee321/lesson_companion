@@ -11,6 +11,7 @@ class TextFieldOutlined extends StatefulWidget {
       this.hint,
       this.size,
       this.padded,
+      this.readOnly = false,
       this.onTextChanged})
       : super(key: key);
 
@@ -21,6 +22,7 @@ class TextFieldOutlined extends StatefulWidget {
   final String? hint;
   final double? size;
   final bool? padded;
+  final bool readOnly;
   final Function(String text)? onTextChanged;
 
   @override

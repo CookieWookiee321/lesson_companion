@@ -21,6 +21,9 @@ dependencies:
   flutter_speed_dial: ^6.2.0
   code_text_field: ^1.0.2
   intl: ^0.17.0
+  azlistview: ^2.0.0
+  sticky_headers: ^0.3.0+2
+  alphabet_scroll_view: ^0.3.2
 
 
 dev_dependencies:

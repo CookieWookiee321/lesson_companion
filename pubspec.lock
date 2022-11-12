@@ -9,6 +9,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "50.0.0"
+  alphabet_scroll_view:
+    dependency: "direct main"
+    description:
+      name: alphabet_scroll_view
+      sha256: f8192b043bcae855566ed471c4bc61c98bec761fb5091ed79d4bdbfcc5846e3b
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.2"
   analyzer:
     dependency: transitive
     description:
@@ -41,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.10.0"
+  azlistview:
+    dependency: "direct main"
+    description:
+      name: azlistview
+      sha256: "93e865f11777a271b439f0d6b00799c0797e9daeec2e082a2e01373809c4b90d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   barcode:
     dependency: transitive
     description:
@@ -603,6 +619,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  scrollable_positioned_list:
+    dependency: transitive
+    description:
+      name: scrollable_positioned_list
+      sha256: "9566352ab9ba05794ee6c8864f154afba5d36c5637d0e3e32c615ba4ceb92772"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.3"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -712,6 +736,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.11.0"
+  sticky_headers:
+    dependency: "direct main"
+    description:
+      name: sticky_headers
+      sha256: "9b3dd2cb0fd6a7038170af3261f855660cbb241cb56c501452cb8deed7023ede"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0+2"
   stream_channel:
     dependency: transitive
     description:
