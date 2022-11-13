@@ -49,17 +49,16 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
   fonts:
     - family: Andika
       fonts:
-        - asset: lib/assests/Andika-Regular.ttf
-        - asset: lib/assests/Andika-Italic.ttf
+        - asset: lib/assets/Andika-Regular.ttf
+        - asset: lib/assets/Andika-Italic.ttf
           style: italic
-        - asset: lib/assests/Andika-Bold.ttf
+        - asset: lib/assets/Andika-Bold.ttf
           weight: 700
-        - asset: lib/assests/Andika-BoldItalic.ttf
-          weight: 400
+        - asset: lib/assets/Andika-BoldItalic.ttf
+          weight: 500
     - family: IBMPlexSansKR
       fonts:
         - asset: lib/assets/IBMPlexSansKR-Regular.ttf

@@ -25,10 +25,12 @@ class PdfDoc {
   /// Creates and saves a report PDF based on the parent object.
   Future<Uint8List> create() async {
     final footer = PdfText();
-    //TODO:footer.input(await DataStorage.getSetting(SharedPrefOption.footer));
+    footer.process(await DataStorage.getSetting(SharedPrefOption.footer));
 
     // model the sections of the PDF to get styled objects
-    final _name = await _newText(name, PdfSection.h1);
+    final _name =
+        await StylerMethods.styleText(section: PdfSection.h1, pdfText: name);
+    // final _name = await _newText(name, PdfSection.h1);
     final _date = await _newText(date, PdfSection.h1);
     final _topicHeader = Text("Topic:",
         style: TextStyle(
@@ -144,9 +146,15 @@ class PdfDoc {
     final List<List<RichText>> output = [];
 
     for (final row in table.rows!) {
-      final lhs = await _newText(row.lhs!, PdfSection.body);
+      final lhs;
+      final rhs;
+
+      lhs = await StylerMethods.styleText(
+          section: PdfSection.body, pdfText: row.lhs!);
+
       if (row.rhs != null) {
-        final rhs = await _newText(row.rhs!, PdfSection.body);
+        rhs = await StylerMethods.styleText(
+            section: PdfSection.body, pdfText: row.rhs!);
         output.add([lhs, rhs]);
       } else {
         output.add([lhs]);
@@ -158,7 +166,7 @@ class PdfDoc {
 
   Future<RichText> _newText(PdfText pdfText, PdfSection pdfSection) async {
     List<TextSpan> outputComponents = [];
-//TODO
+
     // for (final substring in pdfText.components) {
     //   outputComponents.add(TextSpan(
     //       text: substring.setText,

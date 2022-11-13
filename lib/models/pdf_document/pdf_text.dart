@@ -121,84 +121,101 @@ class PdfText {
     String _textUpTo;
     ColorOption _colour = ColorOption.regular;
 
-    while (text.contains('[') && text.contains(']')) {
-      _indexBracketStart = text.indexOf('[');
-      _indexBracketEnd = text.indexOf(']');
-      _textUpTo = text.substring(0, _indexBracketStart);
-      _indexMarkerStart;
+    if (text.contains('[') && text.contains(']')) {
+      while (text.contains('[') && text.contains(']')) {
+        _colour = ColorOption.regular;
+        _indexBracketStart = text.indexOf('[');
+        _indexBracketEnd = text.indexOf(']');
+        _textUpTo = text.substring(0, _indexBracketStart);
+        _indexMarkerStart;
 
-      //get the start of the marker substring
+        //get the start of the marker substring
 
-      //the markdown text begins the line, and is simple
-      if (_textUpTo.length == 0) {
+        //the markdown text begins the line, and is simple
+        if (_textUpTo.length == 0) {
+          final x = PdfSubstring();
+          x.text = text.substring(_indexBracketStart, _indexBracketEnd);
+          x.color = ColorOption.gray;
+
+          components.add(x);
+
+          text = text.substring(_indexBracketEnd, text.length);
+          continue;
+        }
+
+        //isolate the markdown substring
+        for (int i = _textUpTo.length; i >= 0; i--) {
+          if (_textUpTo[i] == " ") {
+            _indexMarkerStart = i + 1;
+            break;
+          }
+        }
+
+        //identify what the markers indicate
+        final markdownSubstring =
+            text.substring(_indexMarkerStart!, _indexBracketStart);
+        _colour = ColorOption.regular;
+        bool isBold = false;
+        bool isItalic = false;
+        bool isUnderlined = false;
+        bool afterPeriod = false;
+
+        for (int i = 0; i < markdownSubstring.length; i++) {
+          if (!afterPeriod) {
+            //handle colours
+            switch (text[i]) {
+              case "p":
+                _colour = ColorOption.purple;
+                break;
+              case "g":
+                _colour = ColorOption.green;
+                break;
+              case "o":
+                _colour = ColorOption.orange;
+                break;
+              default:
+                if (text[i] == "b" || text[i] == "g" || text[i] == "o") {
+                  i--;
+                } else {
+                  throw Exception(
+                      "Unexpected colour marker caught in a markdown substring");
+                }
+                break;
+            }
+            afterPeriod = true;
+          } else {
+            //handle styling
+            switch (text[i]) {
+              case "b":
+                isBold = true;
+                break;
+              case "i":
+                isItalic = true;
+                break;
+              case "u":
+                isUnderlined = true;
+                break;
+              default:
+                throw Exception(
+                    "Unexpected style marker caught in a markdown substring");
+            }
+          }
+        }
+
         final x = PdfSubstring();
         x.text = text.substring(_indexBracketStart, _indexBracketEnd);
-        x.color = ColorOption.gray;
+        x.color = _colour;
+        x.bold = isBold;
+        x.italic = isItalic;
+        x.underlined = isUnderlined;
 
         components.add(x);
-
-        text = text.substring(_indexBracketEnd, text.length);
-        continue;
       }
-
-      //isolate the markdown substring
-      for (int i = _textUpTo.length; i >= 0; i--) {
-        if (_textUpTo[i] == " ") {
-          _indexMarkerStart = i + 1;
-          break;
-        }
-      }
-
-      //identify what the markers indicate
-      final markdownSubstring =
-          text.substring(_indexMarkerStart!, _indexBracketStart);
-      ColorOption colour = ColorOption.regular;
-      bool isBold = false;
-      bool isItalic = false;
-      bool isUnderlined = false;
-      bool afterPeriod = false;
-
-      for (int i = 0; i < markdownSubstring.length; i++) {
-        if (!afterPeriod) {
-          //handle colours
-          switch (text[i]) {
-            case "p":
-              colour = ColorOption.purple;
-              break;
-            case "g":
-              colour = ColorOption.green;
-              break;
-            case "o":
-              colour = ColorOption.orange;
-              break;
-            default:
-              if (text[i] == "b" || text[i] == "g" || text[i] == "o") {
-                i--;
-              } else {
-                throw Exception(
-                    "Unexpected colour marker caught in a markdown substring");
-              }
-              break;
-          }
-          afterPeriod = true;
-        } else {
-          //handle styling
-          switch (text[i]) {
-            case "b":
-              isBold = true;
-              break;
-            case "i":
-              isItalic = true;
-              break;
-            case "u":
-              isUnderlined = true;
-              break;
-            default:
-              throw Exception(
-                  "Unexpected style marker caught in a markdown substring");
-          }
-        }
-      }
+    } else {
+      final pdfText = PdfSubstring();
+      pdfText.text = text;
+      pdfText.color = _colour;
+      components.add(pdfText);
     }
   }
 

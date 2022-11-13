@@ -62,6 +62,97 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   final _textController = TextEditingController();
   bool _inFocus = false;
 
+  void _onPressedSubmit() async {
+    _textController.text = _autoFormatAll(_textController.text);
+    String text = _textController.text;
+    if (TextInputModeMethods.checkNeededHeadings(text)) {
+      try {
+        while (text.contains("===")) {
+          final stoppingPoint = text.indexOf("===");
+          final singleEntry = text.substring(0, stoppingPoint);
+          text = text.substring(stoppingPoint + 3, text.length);
+
+          final mapping = _mapTextInput(singleEntry);
+
+          //check if Student exists
+          final student = Student();
+          final studentId;
+          if (!await DataStorage.checkStudentExistsByName(
+              mapping["Name"]!.first)) {
+            //if not, create new Hive entry
+            student.name = mapping["Name"]!.first;
+            student.active = true;
+            await DataStorage.saveStudent(student);
+          }
+          studentId = await DataStorage.getStudentId(mapping["Name"]!.first);
+
+          if (student.name != null) {
+            student.id = studentId!;
+          } else {
+            student.name = mapping["Name"]!.first;
+            student.active = true;
+            student.id = studentId!;
+          }
+
+          //format the Date string
+          if (mapping["Date"]!.first.toString().contains('/')) {
+            mapping["Date"]!.first =
+                mapping["Date"]!.first.replaceAll('/', '-');
+          }
+          if (mapping["Date"]!.first.toString().split('-')[2].length == 1) {
+            final tempList = mapping["Date"]!.first.toString().split('-');
+            final tempDay = "0${tempList[2]}";
+            mapping["Date"]!.first = "${tempList[0]}-${tempList[1]}-$tempDay";
+          }
+
+          final date;
+          final topic;
+          final homework;
+
+          date = DateTime.parse(mapping["Date"]!.first);
+          topic = mapping["Topic"]!;
+          homework = mapping["Homework"];
+          //Submit Lesson
+          var lesson = Lesson(
+              studentId: studentId!,
+              date: date!,
+              topic: CompanionMethods.convertListToString(topic!),
+              homework: homework != null
+                  ? CompanionMethods.convertListToString(homework!)
+                  : "");
+          //check if Lesson exists
+          if (!await DataStorage.checkLessonExists(studentId!, date!)) {
+            //if not, create new entry
+            await DataStorage.saveLesson(lesson);
+            print(
+                "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}");
+          }
+
+          if (mapping.keys.length > 4 ||
+              (mapping.keys.length == 4 &&
+                  !mapping.keys.contains("Homework"))) {
+            final report = Report();
+            await report.fromMap(mapping);
+            final pdfDoc = await report.createPdf();
+            Navigator.push(context, MaterialPageRoute(
+              builder: (context) {
+                return PdfPreviewPage(pdfDocument: pdfDoc);
+              },
+            ));
+          }
+        }
+      } on InputException {
+        final we = InputException("Name, Date, and Topic are required fields");
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(we.cause)));
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              "Failed to submit lesson.\nThere is a problem with the text format.")));
+    }
+  }
+
   String _autoFormatAll(String input) {
     final sb = StringBuffer();
     const stoppingPoint = "===";
@@ -194,97 +285,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
 
     return mappings;
-  }
-
-  void _onPressedSubmit() async {
-    _textController.text = _autoFormatAll(_textController.text);
-    String text = _textController.text;
-    if (TextInputModeMethods.checkNeededHeadings(text)) {
-      try {
-        while (text.contains("===")) {
-          final stoppingPoint = text.indexOf("===");
-          final singleEntry = text.substring(0, stoppingPoint);
-          text = text.substring(stoppingPoint + 3, text.length);
-
-          final mapping = _mapTextInput(singleEntry);
-
-          //check if Student exists
-          final student = Student();
-          final studentId;
-          if (!await DataStorage.checkStudentExistsByName(
-              mapping["Name"]!.first)) {
-            //if not, create new Hive entry
-            student.name = mapping["Name"]!.first;
-            student.active = true;
-            await DataStorage.saveStudent(student);
-          }
-          studentId = await DataStorage.getStudentId(mapping["Name"]!.first);
-
-          if (student.name != null) {
-            student.id = studentId!;
-          } else {
-            student.name = mapping["Name"]!.first;
-            student.active = true;
-            student.id = studentId!;
-          }
-
-          //format the Date string
-          if (mapping["Date"]!.first.toString().contains('/')) {
-            mapping["Date"]!.first =
-                mapping["Date"]!.first.replaceAll('/', '-');
-          }
-          if (mapping["Date"]!.first.toString().split('-')[2].length == 1) {
-            final tempList = mapping["Date"]!.first.toString().split('-');
-            final tempDay = "0${tempList[2]}";
-            mapping["Date"]!.first = "${tempList[0]}-${tempList[1]}-$tempDay";
-          }
-
-          final date;
-          final topic;
-          final homework;
-
-          date = DateTime.parse(mapping["Date"]!.first);
-          topic = mapping["Topic"]!;
-          homework = mapping["Homework"];
-          //Submit Lesson
-          var lesson = Lesson(
-              studentId: studentId!,
-              date: date!,
-              topic: CompanionMethods.convertListToString(topic!),
-              homework: homework != null
-                  ? CompanionMethods.convertListToString(homework!)
-                  : "");
-          //check if Lesson exists
-          if (!await DataStorage.checkLessonExists(studentId!, date!)) {
-            //if not, create new entry
-            await DataStorage.saveLesson(lesson);
-            print(
-                "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}");
-          }
-
-          if (mapping.keys.length > 4 ||
-              (mapping.keys.length == 4 &&
-                  !mapping.keys.contains("Homework"))) {
-            final report = Report();
-            await report.fromMap(mapping);
-            final pdfDoc = await report.createPdf();
-            Navigator.push(context, MaterialPageRoute(
-              builder: (context) {
-                return PdfPreviewPage(pdfDocument: pdfDoc);
-              },
-            ));
-          }
-        }
-      } on InputException {
-        final we = InputException("Name, Date, and Topic are required fields");
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(we.cause)));
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              "Failed to submit lesson.\nThere is a problem with the text format.")));
-    }
   }
 
   @override
