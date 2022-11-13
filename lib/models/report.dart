@@ -47,7 +47,7 @@ class Report {
 
         // Process the user-defined headings
         final name = PdfText();
-        name.input(key);
+        name.process(key);
 
         final items = cnvtStringToTableRows(mappings[key]!);
 
@@ -78,14 +78,14 @@ class Report {
 
     //header
     final _name = PdfText();
-    _name.input(strName);
+    _name.process(strName);
     final _date = PdfText();
-    _date.input(strDate);
+    _date.process(strDate);
     final _topic = PdfText();
-    _topic.input(strTopics);
+    _topic.process(strTopics);
     PdfText _homework = PdfText();
     if (homework != null && homework!.first != "") {
-      _homework.input(strHomework!);
+      _homework.process(strHomework!);
     }
 
     final pdf = PdfDoc(
@@ -113,15 +113,15 @@ class Report {
       if (row.contains("||")) {
         final split = row.split("||");
 
-        lhs.input(split[0].trim());
-        rhs.input(split[1].trim());
+        lhs.process(split[0].trim());
+        rhs.process(split[1].trim());
 
         thisRow.lhs = lhs;
         thisRow.rhs = rhs;
 
         output.add(thisRow);
       } else {
-        lhs.input(row.trim());
+        lhs.process(row.trim());
         thisRow.lhs = lhs;
         output.add(thisRow);
       }

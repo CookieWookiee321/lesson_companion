@@ -11,8 +11,6 @@ import 'package:pdf/widgets.dart';
 
 part 'pdf_document.g.dart';
 
-enum PdfTextType { question, base, sub, example, info, tableHeader }
-
 @collection
 class PdfDoc {
   final Id id = Isar.autoIncrement;
@@ -27,7 +25,7 @@ class PdfDoc {
   /// Creates and saves a report PDF based on the parent object.
   Future<Uint8List> create() async {
     final footer = PdfText();
-    footer.input(await DataStorage.getSetting(SharedPrefOption.footer));
+    //TODO:footer.input(await DataStorage.getSetting(SharedPrefOption.footer));
 
     // model the sections of the PDF to get styled objects
     final _name = await _newText(name, PdfSection.h1);
@@ -160,13 +158,13 @@ class PdfDoc {
 
   Future<RichText> _newText(PdfText pdfText, PdfSection pdfSection) async {
     List<TextSpan> outputComponents = [];
-
-    for (final substring in pdfText.components) {
-      outputComponents.add(TextSpan(
-          text: substring.setText,
-          style: await StylerMethods.getTextStyle(
-              pdfSection, substring.setTextType)));
-    }
+//TODO
+    // for (final substring in pdfText.components) {
+    //   outputComponents.add(TextSpan(
+    //       text: substring.setText,
+    //       style: await StylerMethods.getTextStyle(
+    //           pdfSection, substring.setTextType)));
+    // }
 
     return RichText(text: TextSpan(children: outputComponents), softWrap: true);
   }

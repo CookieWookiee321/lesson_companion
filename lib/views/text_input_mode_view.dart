@@ -88,6 +88,56 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     return sb.toString();
   }
 
+  void _lookUpWords() async {
+    List<LookUp> results = [];
+    _textController.text = _autoFormatAll(_textController.text);
+    final indexStart = _textController.text.indexOf("* New Language");
+    final chunk = _textController.text.substring(
+        indexStart, _textController.text.indexOf("*", indexStart + 1));
+    final terms = chunk.split("\n-");
+
+    //skip the first term as it is just the heading
+    for (int i = 1; i < terms.length; i++) {
+      if (terms[i].trim().length == 0) continue;
+
+      final thisTerm;
+
+      if (terms[i].contains("||")) {
+        thisTerm = terms[i].trim().substring(0, terms[i].trim().indexOf("||"));
+      } else {
+        thisTerm = terms[i].trim();
+      }
+
+      final url = "https://api.dictionaryapi.dev/api/v2/entries/en/${thisTerm}";
+      final dictionary = await FreeDictionary.fetchJson(url);
+
+      if (dictionary != null) {
+        results.add(LookUp(dictionary));
+      }
+    }
+
+    if (results.isNotEmpty) {
+      await showDialog(
+          context: context,
+          builder: ((context) {
+            return AlertDialog(
+              title: Text("Dictionary Results"),
+              content: SingleChildScrollView(
+                child: Column(children: [
+                  ...results.map((term) {
+                    return term.details.isNotEmpty
+                        ? LookUpCard(
+                            details: term,
+                          )
+                        : Container();
+                  })
+                ]),
+              ),
+            );
+          }));
+    }
+  }
+
   Map<String, List<String>> _mapTextInput(String text) {
     String currentHeading = "";
     final headingPrefix = "*";
@@ -316,62 +366,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                       _textController.text = _template;
                     });
                   }),
-              SpeedDialChild(
-                label: "Dictionary look-up",
-                onTap: () async {
-                  List<LookUp> results = [];
-                  _textController.text = _autoFormatAll(_textController.text);
-                  final indexStart =
-                      _textController.text.indexOf("* New Language");
-                  final chunk = _textController.text.substring(indexStart,
-                      _textController.text.indexOf("*", indexStart + 1));
-                  final terms = chunk.split("\n-");
-
-                  //skip the first term as it is just the heading
-                  for (int i = 1; i < terms.length; i++) {
-                    if (terms[i].trim().length == 0) continue;
-
-                    final thisTerm;
-
-                    if (terms[i].contains("||")) {
-                      thisTerm = terms[i]
-                          .trim()
-                          .substring(0, terms[i].trim().indexOf("||"));
-                    } else {
-                      thisTerm = terms[i].trim();
-                    }
-
-                    final url =
-                        "https://api.dictionaryapi.dev/api/v2/entries/en/${thisTerm}";
-                    final dictionary = await FreeDictionary.fetchJson(url);
-
-                    if (dictionary != null) {
-                      results.add(LookUp(dictionary));
-                    }
-                  }
-
-                  if (results.isNotEmpty) {
-                    await showDialog(
-                        context: context,
-                        builder: ((context) {
-                          return AlertDialog(
-                            title: Text("Dictionary Results"),
-                            content: SingleChildScrollView(
-                              child: Column(children: [
-                                ...results.map((term) {
-                                  return term.details.isNotEmpty
-                                      ? LookUpCard(
-                                          details: term,
-                                        )
-                                      : Container();
-                                })
-                              ]),
-                            ),
-                          );
-                        }));
-                  }
-                },
-              ),
+              SpeedDialChild(label: "Dictionary Look-Up", onTap: _lookUpWords),
               SpeedDialChild(
                   label: "Format report",
                   onTap: () {
@@ -432,6 +427,12 @@ class _LookUpCardState extends State<LookUpCard> {
 
     return output;
   }
+
+  // String _getExampleFieldValue() {
+  //   if (_definition == null) return "";
+  //   if (_example == null) return "";
+  //   if
+  // }
 
   @override
   Widget build(BuildContext context) {

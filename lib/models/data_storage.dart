@@ -222,6 +222,15 @@ class DataStorage {
     }
   }
 
+  static Future<void> deleteStudent(int id) async {
+    final isar = Isar.getInstance("student_db") ??
+        await Isar.open([StudentSchema], name: "student_db");
+
+    await isar.writeTxn(() async {
+      isar.students.delete(id);
+    });
+  }
+
   static Future<void> deleteLessonById(int lessonId) async {
     final isar = Isar.getInstance("lesson_db") ??
         await Isar.open([LessonSchema], name: "lesson_db");

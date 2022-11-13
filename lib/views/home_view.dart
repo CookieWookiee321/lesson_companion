@@ -131,7 +131,7 @@ class _HomeViewState extends State<HomeView> {
         final thisTable = PdfTableModel();
 
         final heading = PdfText();
-        heading.input(t.title);
+        heading.process(t.title);
         thisTable.heading = heading;
 
         thisTable.rows = HomeController.modelTableData(t); //t.children;

@@ -69,12 +69,12 @@ class HomeController extends ChangeNotifier {
 
       if (row.model.lhs != null) {
         final thisLhs = PdfText();
-        thisLhs.input(row.model.lhs!);
+        thisLhs.process(row.model.lhs!);
         thisRow.lhs = thisLhs;
 
         if (row.model.rhs != null) {
           final thisRhs = PdfText();
-          thisRhs.input(row.model.rhs!);
+          thisRhs.process(row.model.rhs!);
           thisRow.rhs = thisRhs;
         }
 

@@ -24,7 +24,7 @@ class _BaseViewState extends State<BaseView> {
   static const List<Widget> _pages = [
     HomeView(),
     TextInputModeView(),
-    StudentView(),
+    StudentsView(),
     LessonHistoryView(),
     HomeView()
   ];

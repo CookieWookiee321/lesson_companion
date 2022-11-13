@@ -1,26 +1,14 @@
 import 'package:isar/isar.dart';
-import 'package:lesson_companion/models/pdf_document/pdf_document.dart';
+import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 
 part 'pdf_substring.g.dart';
 
 @embedded
 class PdfSubstring {
-  late String _text;
+  late String text;
   @enumerated
-  late PdfTextType _textType;
-
-  String get setText => _text;
-
-  set setText(String value) {
-    _text = value;
-  }
-
-  @enumerated
-  PdfTextType get setTextType => _textType;
-
-  // ignore: invalid_annotation_target
-  @enumerated
-  set setTextType(PdfTextType value) {
-    _textType = value;
-  }
+  late ColorOption color;
+  late bool bold = false;
+  late bool italic = false;
+  late bool underlined = false;
 }
