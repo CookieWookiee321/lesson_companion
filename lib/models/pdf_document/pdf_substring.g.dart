@@ -121,7 +121,7 @@ const _PdfSubstringcolorValueEnumMap = {
   1: ColorOption.orange,
   2: ColorOption.green,
   3: ColorOption.regular,
-  4: ColorOption.gray,
+  4: ColorOption.silver,
 };
 
 extension PdfSubstringQueryFilter

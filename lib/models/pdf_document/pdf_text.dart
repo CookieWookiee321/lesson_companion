@@ -3,139 +3,115 @@ import 'package:lesson_companion/models/pdf_document/pdf_substring.dart';
 
 part 'pdf_text.g.dart';
 
-enum ColorOption { purple, orange, green, regular, gray }
+final markerCombinations = [
+  'p',
+  'o',
+  'g',
+  's',
+  'bi',
+  'bu',
+  'ib',
+  'iu',
+  'ub',
+  'ui',
+  'biu',
+  'bui',
+  'ibu',
+  'iub',
+  'ubi',
+  'uib',
+  'g.b',
+  'g.i',
+  'g.u',
+  'p.b',
+  'p.i',
+  'p.u',
+  'o.b',
+  'o.i',
+  'o.u',
+  's.b',
+  's.i',
+  's.u',
+  'g.bi',
+  'g.bu',
+  'g.ib',
+  'g.iu',
+  'g.ub',
+  'g.ui',
+  'p.bi',
+  'p.bu',
+  'p.ib',
+  'p.iu',
+  'p.ub',
+  'p.ui',
+  'o.bi',
+  'o.bu',
+  'o.ib',
+  'o.iu',
+  'o.ub',
+  'o.ui',
+  's.bi',
+  's.bu',
+  's.ib',
+  's.iu',
+  's.ub',
+  's.ui',
+  'g.biu',
+  'g.bui',
+  'g.ibu',
+  'g.iub',
+  'g.ubi',
+  'g.uib',
+  'p.biu',
+  'p.bui',
+  'p.ibu',
+  'p.iub',
+  'p.ubi',
+  'p.uib',
+  'o.biu',
+  'o.bui',
+  'o.ibu',
+  'o.iub',
+  'o.ubi',
+  'o.uib',
+  's.biu',
+  's.bui',
+  's.ibu',
+  's.iub',
+  's.ubi',
+  's.uib'
+];
+
+enum ColorOption { purple, orange, green, regular, silver }
 
 @embedded
 class PdfText {
   List<PdfSubstring> components = [];
-
-  // void input(String input) {
-  //   components.clear();
-
-  //   var currentType = StyleOptions.regular;
-  //   final markerOpeners = ["q", "e", "i", "#"];
-  //   final sb = StringBuffer();
-  //   final specialChars = ["\\", "[", "]"];
-
-  //   input = input.replaceAll('//', '\n');
-
-  //   //start looping through characters
-  //   for (int i = 0; i < input.length; i++) {
-  //     //build the substring until...
-  //     if (!specialChars.contains(input[i])) {
-  //       sb.write(input[i]);
-  //     } else {
-  //       if (input[i] == "\\") {
-  //         //determine if this is starting text markdown, or completing it
-  //         if (sb.length != 0 &&
-  //             markerOpeners.contains(sb.toString()[sb.length - 1])) {
-  //           // open a new markdown substring, based on the character preceding the opening '\'
-  //           final marker = sb.toString()[sb.length - 1];
-
-  //           final temp = sb.toString().substring(0, sb.length - 1);
-  //           sb.clear();
-  //           sb.write(temp);
-
-  //           if (sb.isNotEmpty) {
-  //             final sub = PdfSubstring();
-  //             sub.setText = sb.toString();
-  //             sub.setTextType = currentType;
-
-  //             components.add(sub);
-  //             sb.clear();
-  //           }
-
-  //           switch (marker) {
-  //             case "q":
-  //               currentType = StyleOptions.question;
-  //               break;
-  //             case "i":
-  //               currentType = StyleOptions.info;
-  //               break;
-  //             case "e":
-  //               currentType = StyleOptions.example;
-  //               break;
-  //             case "#":
-  //               currentType = StyleOptions.tableHeader;
-  //               break;
-  //           }
-  //         } else {
-  //           if (currentType != StyleOptions.regular) {
-  //             if (currentType == StyleOptions.tableHeader) {
-  //               sb.write(input[i]);
-  //             }
-  //             if (currentType == StyleOptions.sub) {
-  //               sb.write(input[i]);
-  //             } else {
-  //               if (sb.isNotEmpty) {
-  //                 final sub = PdfSubstring();
-  //                 sub.setText = sb.toString();
-  //                 sub.setTextType = currentType;
-
-  //                 components.add(sub);
-  //                 sb.clear();
-  //               }
-
-  //               currentType = StyleOptions.regular;
-  //             }
-  //           }
-  //         }
-  //       } else if (input[i] == "[") {
-  //         // begin new subtext substring
-  //         if (sb.isNotEmpty) {
-  //           final sub = PdfSubstring();
-  //           sub.setText = sb.toString();
-  //           sub.setTextType = currentType;
-
-  //           components.add(sub);
-  //           sb.clear();
-  //         }
-  //         currentType = StyleOptions.sub;
-  //       } else if (input[i] == "]") {
-  //         // close subtext substring
-  //         if (sb.isNotEmpty) {
-  //           final sub = PdfSubstring();
-  //           sub.setText = sb.toString();
-  //           sub.setTextType = currentType;
-
-  //           components.add(sub);
-  //           sb.clear();
-  //         }
-  //         currentType = StyleOptions.regular;
-  //       }
-  //     }
-  //   }
-
-  //   final sub = PdfSubstring();
-  //   sub.setText = sb.toString();
-  //   sub.setTextType = currentType;
-
-  //   components.add(sub);
-  // }
 
   void process(String input) {
     String text = input;
     int _indexBracketStart;
     int _indexBracketEnd;
     int? _indexMarkerStart;
-    String _textUpTo;
+    String _textUpToBracket;
     ColorOption _colour = ColorOption.regular;
+
+    //handle new lines
+    text = text.replaceAll("//", "\n");
 
     if (text.contains('[') && text.contains(']')) {
       while (text.contains('[') && text.contains(']')) {
         _colour = ColorOption.regular;
         _indexBracketStart = text.indexOf('[');
         _indexBracketEnd = text.indexOf(']');
-        _textUpTo = text.substring(0, _indexBracketStart);
+        _textUpToBracket = text.substring(0, _indexBracketStart);
         _indexMarkerStart;
 
-        //get the start of the marker substring
-
         //the markdown text begins the line, and is simple
-        if (_textUpTo.length == 0) {
+        if (_textUpToBracket.length == 0) {
           final x = PdfSubstring();
           x.text = text.substring(_indexBracketStart, _indexBracketEnd);
-          x.color = ColorOption.gray;
+          x.color = ColorOption.silver;
 
           components.add(x);
 
@@ -144,8 +120,10 @@ class PdfText {
         }
 
         //isolate the markdown substring
-        for (int i = _textUpTo.length; i >= 0; i--) {
-          if (_textUpTo[i] == " ") {
+        for (int i = _textUpToBracket.length - 1; i >= 0; i--) {
+          if (_textUpToBracket[i] == " " ||
+              _textUpToBracket[i] == "\n" ||
+              _textUpToBracket[i] == "\t") {
             _indexMarkerStart = i + 1;
             break;
           }
@@ -154,6 +132,7 @@ class PdfText {
         //identify what the markers indicate
         final markdownSubstring =
             text.substring(_indexMarkerStart!, _indexBracketStart);
+
         _colour = ColorOption.regular;
         bool isBold = false;
         bool isItalic = false;
@@ -161,9 +140,11 @@ class PdfText {
         bool afterPeriod = false;
 
         for (int i = 0; i < markdownSubstring.length; i++) {
+          if (markdownSubstring[i] == ".") continue;
+
           if (!afterPeriod) {
             //handle colours
-            switch (text[i]) {
+            switch (markdownSubstring[i]) {
               case "p":
                 _colour = ColorOption.purple;
                 break;
@@ -172,6 +153,9 @@ class PdfText {
                 break;
               case "o":
                 _colour = ColorOption.orange;
+                break;
+              case "s":
+                _colour = ColorOption.silver;
                 break;
               default:
                 if (text[i] == "b" || text[i] == "g" || text[i] == "o") {
@@ -185,7 +169,7 @@ class PdfText {
             afterPeriod = true;
           } else {
             //handle styling
-            switch (text[i]) {
+            switch (markdownSubstring[i]) {
               case "b":
                 isBold = true;
                 break;
@@ -202,14 +186,31 @@ class PdfText {
           }
         }
 
-        final x = PdfSubstring();
-        x.text = text.substring(_indexBracketStart, _indexBracketEnd);
-        x.color = _colour;
-        x.bold = isBold;
-        x.italic = isItalic;
-        x.underlined = isUnderlined;
+        final textBefore;
+        // check if any text preceeded the markdown
+        if (_indexMarkerStart != 0 &&
+            text.substring(0, _indexBracketStart) != markdownSubstring) {
+          textBefore = text.substring(0, _indexMarkerStart);
 
-        components.add(x);
+          //assign PdfSubstring obj for regular text
+          final pdfSubPreceeding = PdfSubstring();
+          pdfSubPreceeding.text = textBefore;
+          pdfSubPreceeding.color = ColorOption.regular;
+          components.add(pdfSubPreceeding);
+        }
+
+        //assign PdfSubstring obj for markdown
+        final pdfSubMarkdown = PdfSubstring();
+        pdfSubMarkdown.text =
+            text.substring(_indexBracketStart + 1, _indexBracketEnd);
+        pdfSubMarkdown.color = _colour;
+        pdfSubMarkdown.bold = isBold;
+        pdfSubMarkdown.italic = isItalic;
+        pdfSubMarkdown.underlined = isUnderlined;
+        components.add(pdfSubMarkdown);
+
+        //set the main text str for the next iteration
+        text = text.substring(_indexBracketEnd + 1, text.length);
       }
     } else {
       final pdfText = PdfSubstring();

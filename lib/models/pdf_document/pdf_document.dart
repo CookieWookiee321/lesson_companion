@@ -31,22 +31,29 @@ class PdfDoc {
     final _name =
         await StylerMethods.styleText(section: PdfSection.h1, pdfText: name);
     // final _name = await _newText(name, PdfSection.h1);
-    final _date = await _newText(date, PdfSection.h1);
+
+    final _date =
+        await StylerMethods.styleText(section: PdfSection.h1, pdfText: date);
+
     final _topicHeader = Text("Topic:",
         style: TextStyle(
             color: PdfColors.blueGrey700,
             fontSize: 13.0,
             font: Font.ttf(await rootBundle
                 .load("lib/assets/IBMPlexSansKR-SemiBold.ttf"))));
-    final _topic = await _newText(topic, PdfSection.h2);
+    final _topic =
+        await StylerMethods.styleText(section: PdfSection.h2, pdfText: topic);
+
     final _homeworkHeader = Text("Homework:",
         style: TextStyle(
             color: PdfColors.blueGrey700,
             fontSize: 13.0,
             font: Font.ttf(await rootBundle
                 .load("lib/assets/IBMPlexSansKR-SemiBold.ttf"))));
-    final _homework =
-        homework != null ? await _newText(homework!, PdfSection.h2) : null;
+    final _homework = homework != null
+        ? await StylerMethods.styleText(
+            section: PdfSection.h2, pdfText: homework!)
+        : null;
 
     final List<Table> _tables = [];
     if (tables != null && tables!.length > 0) {
@@ -54,7 +61,14 @@ class PdfDoc {
         await newTable(table: tables![i]).then((value) => _tables.add(value));
       }
     }
-    final _footer = await _newText(footer, PdfSection.footer);
+
+    final _footer = Text(footer.toString(),
+        style: TextStyle(
+            color: PdfColors.blueGrey700,
+            fontSize: 10.0,
+            fontStyle: FontStyle.italic,
+            font: Font.ttf(await rootBundle
+                .load("lib/assets/IBMPlexSansKR-SemiBold.ttf"))));
 
     //initial set up
 
@@ -102,7 +116,8 @@ class PdfDoc {
   //============================================================================
   ///Takes a heading and a map of LHS and RHS values to build a table with
   Future<Table> newTable({required PdfTableModel table}) async {
-    final _heading = await _newText(table.heading!, PdfSection.h3);
+    final _heading = await StylerMethods.styleText(
+        section: PdfSection.h3, pdfText: table.heading!);
     final _rows = await styleTableRows(table);
 
     return Table(children: [
@@ -162,18 +177,5 @@ class PdfDoc {
     }
 
     return output;
-  }
-
-  Future<RichText> _newText(PdfText pdfText, PdfSection pdfSection) async {
-    List<TextSpan> outputComponents = [];
-
-    // for (final substring in pdfText.components) {
-    //   outputComponents.add(TextSpan(
-    //       text: substring.setText,
-    //       style: await StylerMethods.getTextStyle(
-    //           pdfSection, substring.setTextType)));
-    // }
-
-    return RichText(text: TextSpan(children: outputComponents), softWrap: true);
   }
 }

@@ -87,8 +87,8 @@ class StylerMethods {
       bool isUnderlined = false}) async {
     final List<pdf_widj.TextSpan> inlineSpan = [];
     final pdf_widj.RichText output;
-    final baseHeight;
-    final subHeight;
+    final double baseHeight;
+    final double subHeight;
 
     switch (section) {
       case PdfSection.h1:
@@ -116,7 +116,7 @@ class StylerMethods {
     for (final x in pdfText.components) {
       pdf_widj.TextSpan outputSpan;
 
-      final thisColor;
+      PdfColor thisColor;
       switch (x.color) {
         case ColorOption.purple:
           thisColor = PdfColors.purple600;
@@ -130,7 +130,7 @@ class StylerMethods {
         case ColorOption.regular:
           thisColor = PdfColors.black;
           break;
-        case ColorOption.gray:
+        case ColorOption.silver:
           thisColor = PdfColors.grey600;
           break;
       }
@@ -156,6 +156,13 @@ class StylerMethods {
 
       switch (x.color) {
         case ColorOption.regular:
+          if (section == PdfSection.h1 ||
+              section == PdfSection.h2 ||
+              section == PdfSection.h3) {
+            thisColor = PdfColors.blueGrey800;
+            isBold = true;
+          }
+
           outputSpan = pdf_widj.TextSpan(
               text: x.text,
               style: pdf_widj.TextStyle(
@@ -195,102 +202,4 @@ class StylerMethods {
     output = pdf_widj.RichText(text: pdf_widj.TextSpan(children: inlineSpan));
     return output;
   }
-
-  // static Future<pdf_widj.TextStyle> getTextStyle(
-  //     PdfSection section, PdfTextType type) async {
-  //   switch (section) {
-  //     case PdfSection.h1:
-  //       switch (type) {
-  //         case PdfTextType.sub:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.grey600,
-  //               fontSize: 16.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-SemiBold.ttf")));
-  //         default:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.blueGrey800,
-  //               fontSize: 20.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-Bold.ttf")));
-  //       }
-  //     case PdfSection.h2:
-  //       switch (type) {
-  //         case PdfTextType.sub:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.grey600,
-  //               fontSize: 13.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-SemiBold.ttf")));
-  //         default:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.blueGrey700,
-  //               fontSize: 16.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-Regular.ttf")));
-  //       }
-  //     case PdfSection.h3:
-  //       switch (type) {
-  //         case PdfTextType.sub:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.grey600,
-  //               fontSize: 11.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-SemiBold.ttf")));
-  //         default:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.blueGrey800,
-  //               fontSize: 13.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-Bold.ttf")));
-  //       }
-  //     case PdfSection.body:
-  //       switch (type) {
-  //         case PdfTextType.tableHeader:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.blue800,
-  //               fontSize: 15.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-SemiBold.ttf")));
-  //         case PdfTextType.question:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.blue600,
-  //               fontSize: 10.0,
-  //               fontStyle: pdf_widj.FontStyle.italic,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-Regular.ttf")));
-  //         case PdfTextType.regular:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.black,
-  //               fontSize: 11.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-Regular.ttf")));
-  //         case PdfTextType.sub:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.grey600,
-  //               fontSize: 9.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-SemiBold.ttf")));
-  //         case PdfTextType.example:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.green800,
-  //               fontSize: 10.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-SemiBold.ttf")));
-  //         case PdfTextType.info:
-  //           return pdf_widj.TextStyle(
-  //               color: PdfColors.orange800,
-  //               fontSize: 10.0,
-  //               font: pdf_widj.Font.ttf(await rootBundle
-  //                   .load("lib/assets/IBMPlexSansKR-Regular.ttf")));
-  //       }
-  //     case PdfSection.footer:
-  //       return pdf_widj.TextStyle(
-  //           fontSize: 9.0,
-  //           color: PdfColors.blueGrey600,
-  //           fontStyle: pdf_widj.FontStyle.italic,
-  //           font: pdf_widj.Font.ttf(
-  //               await rootBundle.load("lib/assets/IBMPlexSansKR-Regular.ttf")));
-  //   }
-  // }
 }
