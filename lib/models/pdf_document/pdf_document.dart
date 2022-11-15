@@ -55,7 +55,7 @@ class PdfDoc {
             section: PdfSection.h2, pdfText: homework!)
         : null;
 
-    final List<Table> _tables = [];
+    final List<Widget> _tables = [];
     if (tables != null && tables!.length > 0) {
       for (int i = 0; i < tables!.length; i++) {
         await newTable(table: tables![i]).then((value) => _tables.add(value));
@@ -115,46 +115,126 @@ class PdfDoc {
   //COMPONENTS------------------------------------------------------------------
   //============================================================================
   ///Takes a heading and a map of LHS and RHS values to build a table with
-  Future<Table> newTable({required PdfTableModel table}) async {
+  Future<Widget> newTable({required PdfTableModel table}) async {
     final _heading = await StylerMethods.styleText(
         section: PdfSection.h3, pdfText: table.heading!);
     final _rows = await styleTableRows(table);
 
-    return Table(children: [
-      TableRow(
-          children: [Expanded(child: _heading)],
-          decoration: const BoxDecoration(
-              border: Border(
-                  bottom: BorderSide(
-                      color: PdfColors.black,
-                      width:
-                          2.0)))), //TableBorder.symmetric(inside: const BorderSide(color: PdfColors.blueGrey700), outside: const BorderSide()
-      ..._rows.map((row) {
-        return TableRow(
-            verticalAlignment: TableCellVerticalAlignment.middle,
-            decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: PdfColors.blueGrey))),
-            children: [
-              // LHS
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 200, minWidth: 100),
-                child: row[0],
-              ),
+    final Map<String, int> _flexAmounts = {
+      "New Language": 2,
+      "Pronunciation": 3,
+      "Corrections": 1
+    };
 
-              // Separator
-              if (row.length == 2)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                ),
+    return Column(children: [
+      Container(
+        decoration: const BoxDecoration(
+            border:
+                Border(bottom: BorderSide(color: PdfColors.black, width: 2.0))),
+        child: Row(children: [
+          Expanded(child: _heading),
+          if (table.heading.toString() == "Pronunciation")
+            Container(
+                alignment: Alignment.centerRight,
+                padding: EdgeInsets.symmetric(vertical: 0.5, horizontal: 2.0),
+                decoration: BoxDecoration(
+                    border: Border.all(),
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: PdfColors.grey300),
+                child: UrlLink(
+                  destination:
+                      "https://www.englishclub.com/images/pronunciation/Phonemic-Chart.jpg",
+                  child: Text("IPA Reference",
+                      style: TextStyle(
+                          color: PdfColors.blueGrey700,
+                          fontSize: 10.0,
+                          fontStyle: FontStyle.italic,
+                          font: Font.ttf(await rootBundle
+                              .load("lib/assets/IBMPlexSansKR-SemiBold.ttf")))),
+                ))
+        ]),
+      ),
+      Table(children: [
+//TableBorder.symmetric(inside: const BorderSide(color: PdfColors.blueGrey700), outside: const BorderSide()
+        ..._rows.map((row) {
+          return TableRow(
+              verticalAlignment: TableCellVerticalAlignment.middle,
+              decoration: const BoxDecoration(
+                  border:
+                      Border(bottom: BorderSide(color: PdfColors.blueGrey))),
+              children: [
+                // LHS
+                Expanded(child: row[0]),
 
-              // RHS
-              if (row.length == 2) Expanded(child: row[1])
-            ]);
-      }),
-      TableRow(children: [
-        Padding(padding: const EdgeInsets.symmetric(vertical: 4.0))
+                // Separator
+                if (row.length == 2)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  ),
+
+                // RHS
+                if (row.length == 2)
+                  Expanded(
+                      child: row[1],
+                      flex: _flexAmounts[table.heading.toString()]!)
+              ]);
+        }),
+        TableRow(children: [
+          Padding(padding: const EdgeInsets.symmetric(vertical: 4.0))
+        ])
       ])
     ]);
+
+    // return Table(children: [
+    //   TableRow(
+    //       children: [
+    //         Expanded(child: _heading),
+    //         Container(
+    //             alignment: Alignment.centerRight,
+    //             child: UrlLink(
+    //               destination:
+    //                   "https://www.englishclub.com/images/pronunciation/Phonemic-Chart.jpg",
+    //               child: Text("IPA Reference",
+    //                   style: TextStyle(
+    //                       color: PdfColors.blueGrey700,
+    //                       fontSize: 10.0,
+    //                       fontStyle: FontStyle.italic,
+    //                       font: Font.ttf(await rootBundle
+    //                           .load("lib/assets/IBMPlexSansKR-SemiBold.ttf")))),
+    //             ))
+    //       ],
+    //       decoration: const BoxDecoration(
+    //           border: Border(
+    //               bottom: BorderSide(
+    //                   color: PdfColors.black,
+    //                   width:
+    //                       2.0)))), //TableBorder.symmetric(inside: const BorderSide(color: PdfColors.blueGrey700), outside: const BorderSide()
+    //   ..._rows.map((row) {
+    //     return TableRow(
+    //         verticalAlignment: TableCellVerticalAlignment.middle,
+    //         decoration: const BoxDecoration(
+    //             border: Border(bottom: BorderSide(color: PdfColors.blueGrey))),
+    //         children: [
+    //           // LHS
+    //           ConstrainedBox(
+    //             constraints: const BoxConstraints(maxWidth: 200, minWidth: 100),
+    //             child: row[0],
+    //           ),
+
+    //           // Separator
+    //           if (row.length == 2)
+    //             Padding(
+    //               padding: const EdgeInsets.symmetric(horizontal: 10),
+    //             ),
+
+    //           // RHS
+    //           if (row.length == 2) Expanded(child: row[1])
+    //         ]);
+    //   }),
+    //   TableRow(children: [
+    //     Padding(padding: const EdgeInsets.symmetric(vertical: 4.0))
+    //   ])
+    // ]);
   }
 
   Future<List<List<RichText>>> styleTableRows(PdfTableModel table) async {

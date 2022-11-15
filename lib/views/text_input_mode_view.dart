@@ -76,6 +76,69 @@ My manager will send you far branch || (He) will send me to a far branch
 // i\\It's all up to your\\
 // """;
 
+final markerOptions = [
+  'g.b',
+  'g.i',
+  'g.u',
+  'p.b',
+  'p.i',
+  'p.u',
+  'o.b',
+  'o.i',
+  'o.u',
+  's.b',
+  's.i',
+  's.u',
+  'g.bi',
+  'g.bu',
+  'g.ib',
+  'g.iu',
+  'g.ub',
+  'g.ui',
+  'p.bi',
+  'p.bu',
+  'p.ib',
+  'p.iu',
+  'p.ub',
+  'p.ui',
+  'o.bi',
+  'o.bu',
+  'o.ib',
+  'o.iu',
+  'o.ub',
+  'o.ui',
+  's.bi',
+  's.bu',
+  's.ib',
+  's.iu',
+  's.ub',
+  's.ui',
+  'g.biu',
+  'g.bui',
+  'g.ibu',
+  'g.iub',
+  'g.ubi',
+  'g.uib',
+  'p.biu',
+  'p.bui',
+  'p.ibu',
+  'p.iub',
+  'p.ubi',
+  'p.uib',
+  'o.biu',
+  'o.bui',
+  'o.ibu',
+  'o.iub',
+  'o.ubi',
+  'o.uib',
+  's.biu',
+  's.bui',
+  's.ibu',
+  's.iub',
+  's.ubi',
+  's.uib'
+];
+
 //TODO: Fix the auto-completion (in edit)
 
 //======================================================================
@@ -161,14 +224,20 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           if (mapping.keys.length > 4 ||
               (mapping.keys.length == 4 &&
                   !mapping.keys.contains("Homework"))) {
-            final report = Report();
-            await report.fromMap(mapping);
-            final pdfDoc = await report.createPdf();
-            Navigator.push(context, MaterialPageRoute(
-              builder: (context) {
-                return PdfPreviewPage(pdfDocument: pdfDoc);
-              },
-            ));
+            try {
+              final report = Report();
+              await report.fromMap(mapping);
+              final pdfDoc = await report.createPdf();
+              Navigator.push(context, MaterialPageRoute(
+                builder: (context) {
+                  return PdfPreviewPage(pdfDocument: pdfDoc);
+                },
+              ));
+            } on Exception {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(
+                      "Report could not be made.\nYou may have made a mistake with you notation markers.\nPlease check them again")));
+            }
           }
         }
       } on InputException {

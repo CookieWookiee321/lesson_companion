@@ -127,11 +127,20 @@ class PdfText {
             _indexMarkerStart = i + 1;
             break;
           }
+
+          if (i == 0) {
+            _indexMarkerStart = 0;
+          }
         }
 
         //identify what the markers indicate
         final markdownSubstring =
             text.substring(_indexMarkerStart!, _indexBracketStart);
+
+        if (!markerCombinations.contains(markdownSubstring)) {
+          throw Exception(
+              "Unexpected colour marker caught in a markdown substring");
+        }
 
         _colour = ColorOption.regular;
         bool isBold = false;
@@ -158,12 +167,8 @@ class PdfText {
                 _colour = ColorOption.silver;
                 break;
               default:
-                if (text[i] == "b" || text[i] == "g" || text[i] == "o") {
-                  i--;
-                } else {
-                  throw Exception(
-                      "Unexpected colour marker caught in a markdown substring");
-                }
+                i--;
+
                 break;
             }
             afterPeriod = true;
@@ -211,6 +216,13 @@ class PdfText {
 
         //set the main text str for the next iteration
         text = text.substring(_indexBracketEnd + 1, text.length);
+      }
+      if (text.length > 0) {
+        //assign PdfSubstring obj for regular text
+        final pdfRestOfText = PdfSubstring();
+        pdfRestOfText.text = text;
+        pdfRestOfText.color = ColorOption.regular;
+        components.add(pdfRestOfText);
       }
     } else {
       final pdfText = PdfSubstring();
