@@ -1,9 +1,13 @@
 import 'package:isar/isar.dart';
+import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_substring.dart';
 
 part 'pdf_text.g.dart';
 
 final markerCombinations = [
+  'b',
+  'i',
+  'u',
   'p',
   'o',
   'g',
@@ -110,20 +114,19 @@ class PdfText {
         //the markdown text begins the line, and is simple
         if (_textUpToBracket.length == 0) {
           final x = PdfSubstring();
-          x.text = text.substring(_indexBracketStart, _indexBracketEnd);
+          x.text = text.substring(_indexBracketStart, _indexBracketEnd + 1);
           x.color = ColorOption.silver;
 
           components.add(x);
 
-          text = text.substring(_indexBracketEnd, text.length);
+          text = text.substring(_indexBracketEnd + 1, text.length);
           continue;
         }
 
         //isolate the markdown substring
         for (int i = _textUpToBracket.length - 1; i >= 0; i--) {
-          if (_textUpToBracket[i] == " " ||
-              _textUpToBracket[i] == "\n" ||
-              _textUpToBracket[i] == "\t") {
+          if (!CompanionMethods.isLetter(_textUpToBracket[i]) &&
+              _textUpToBracket[i] != ".") {
             _indexMarkerStart = i + 1;
             break;
           }
@@ -137,9 +140,10 @@ class PdfText {
         final markdownSubstring =
             text.substring(_indexMarkerStart!, _indexBracketStart);
 
-        if (!markerCombinations.contains(markdownSubstring)) {
+        if (markdownSubstring.length > 0 &&
+            !markerCombinations.contains(markdownSubstring)) {
           throw Exception(
-              "Unexpected colour marker caught in a markdown substring");
+              "One of your styling markers is incorrect (i.e. the letters like \"p.bu\").\nFor help, please check the starter guide.");
         }
 
         _colour = ColorOption.regular;

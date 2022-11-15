@@ -250,6 +250,9 @@ class CompanionMethods {
         baseOffset: currentIndex + 1, extentOffset: currentIndex + 1);
     return sb.toString();
   }
+
+  static RegExp _isLetterRegExp = RegExp(r'[a-z]', caseSensitive: false);
+  static bool isLetter(String letter) => _isLetterRegExp.hasMatch(letter);
 }
 
 class TextPart {
