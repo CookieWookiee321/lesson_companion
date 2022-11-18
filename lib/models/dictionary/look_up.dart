@@ -2,7 +2,7 @@ import 'package:lesson_companion/models/dictionary/free_dictionary.dart';
 
 class LookUp {
   late final String term;
-  late final List<LookUpDetails> details = [];
+  late final List<LookUpDetails> lookUpDetails = [];
 
   LookUp(List<FreeDictionary> freeDictionaryEntries) {
     this.term = freeDictionaryEntries.first.word.toString();
@@ -14,10 +14,10 @@ class LookUp {
         final Map<String, String?> defAndEx = {};
 
         //if details list exists for part of speech, then add to existing obj
-        if (details.any((e) => e.partOfSpeech == partOfSpeech)) {
+        if (lookUpDetails.any((e) => e.partOfSpeech == partOfSpeech)) {
           //get the object
           final deets =
-              details.where((e) => e.partOfSpeech == partOfSpeech).single;
+              lookUpDetails.where((e) => e.partOfSpeech == partOfSpeech).single;
 
           for (final def in meaning.definitions!) {
             deets.definitionsAndExamples[def.definition!] = def.example;
@@ -29,7 +29,7 @@ class LookUp {
 
           thisEntry.partOfSpeech = partOfSpeech;
           thisEntry.definitionsAndExamples = defAndEx;
-          details.add(thisEntry);
+          lookUpDetails.add(thisEntry);
         }
       }
     }
@@ -41,4 +41,13 @@ class LookUpDetails {
   late final Map<String, String?> definitionsAndExamples;
 
   LookUpDetails();
+}
+
+class LookUpReturn {
+  final String term;
+  String? partOfSpeech;
+  String? definition;
+  String? example;
+
+  LookUpReturn(this.term);
 }

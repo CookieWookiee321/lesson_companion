@@ -3,11 +3,13 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/controllers/home_controller.dart';
 import 'package:lesson_companion/models/data_storage.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
+import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
@@ -113,6 +115,7 @@ class _HomeViewState extends State<HomeView> {
     }
     await DataStorage.saveLesson(thisLesson);
 
+    //counter was for something else - now it just checks tables are not empty
     final counter = HomeController.areTablesPopulated(_tables);
     if (counter > 0) {
       final dateSplit = _dateController.text.split(" ");
@@ -127,6 +130,7 @@ class _HomeViewState extends State<HomeView> {
           ? thisReport.homework = _homework!.split("\n").toList()
           : null;
 
+      thisReport.tables = [];
       for (final t in _tables) {
         final thisTable = PdfTableModel();
 
@@ -162,6 +166,17 @@ class _HomeViewState extends State<HomeView> {
         _dateController.text = CompanionMethods.getDateString(_date);
         _currentFocus = 2;
       });
+    }
+  }
+
+  void _resetPage() {
+    _nameController.text = "";
+    _date = DateTime.now();
+    _topicController.text = "";
+    _homeworkController.text = "";
+
+    for (final t in _tables) {
+      t.clear();
     }
   }
 
@@ -260,8 +275,37 @@ class _HomeViewState extends State<HomeView> {
           )
         ],
       )),
-      floatingActionButton: FloatingActionButton.small(
-          heroTag: null, child: Icon(Icons.more), onPressed: null),
+      floatingActionButton: SpeedDial(
+        icon: Icons.more,
+        children: [
+          SpeedDialChild(
+            label: "Reset Page",
+            onTap: () async {
+              await showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    content: Text(
+                        "Are you sure you want to reset the page to the default state?"),
+                    actions: [
+                      TextButton(
+                          onPressed: () {
+                            _resetPage();
+                            setState(() {});
+                            Navigator.pop(context);
+                          },
+                          child: Text("Yes")),
+                      TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text("No"))
+                    ],
+                  );
+                },
+              );
+            },
+          )
+        ],
+      ),
     );
   }
 }
@@ -315,6 +359,12 @@ class _HomeTextFieldState extends State<HomeTextField> {
 class ReportTable extends StatefulWidget {
   final String title;
   final List<ReportTableRow> children;
+
+  void clear() {
+    children.removeRange(1, children.length);
+    children.first.model.lhs = "";
+    children.first.model.rhs = "";
+  }
 
   const ReportTable({Key? key, required this.title, required this.children})
       : super(key: key);
@@ -560,7 +610,7 @@ class ReportTableBottomRow extends StatefulWidget {
 }
 
 class _ReportTableBottomRowState extends State<ReportTableBottomRow> {
-  final String _countTemplate = "Current Row Count";
+  final String _countTemplate = "Count";
   String? _countStr;
 
   @override

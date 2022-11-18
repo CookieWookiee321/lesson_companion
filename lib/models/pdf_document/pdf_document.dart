@@ -58,7 +58,7 @@ class PdfDoc {
     final List<Widget> _tables = [];
     if (tables != null && tables!.length > 0) {
       for (int i = 0; i < tables!.length; i++) {
-        await newTable(table: tables![i]).then((value) => _tables.add(value));
+        await _newTable(table: tables![i]).then((value) => _tables.add(value));
       }
     }
 
@@ -101,7 +101,8 @@ class PdfDoc {
             Padding(padding: const EdgeInsets.symmetric(vertical: 4.0)),
             // BODY-----------------------------------------------------------------
             ..._tables.map((e) {
-              return e;
+              return Padding(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10), child: e);
             }),
             // FOOTER---------------------------------------------------------------
             _footer
@@ -115,10 +116,10 @@ class PdfDoc {
   //COMPONENTS------------------------------------------------------------------
   //============================================================================
   ///Takes a heading and a map of LHS and RHS values to build a table with
-  Future<Widget> newTable({required PdfTableModel table}) async {
+  Future<Widget> _newTable({required PdfTableModel table}) async {
     final _heading = await StylerMethods.styleText(
         section: PdfSection.h3, pdfText: table.heading!);
-    final _rows = await styleTableRows(table);
+    final _rows = await _styleTableRows(table);
 
     final Map<String, int> _flexAmounts = {
       "New Language": 2,
@@ -155,7 +156,6 @@ class PdfDoc {
         ]),
       ),
       Table(children: [
-//TableBorder.symmetric(inside: const BorderSide(color: PdfColors.blueGrey700), outside: const BorderSide()
         ..._rows.map((row) {
           return TableRow(
               verticalAlignment: TableCellVerticalAlignment.middle,
@@ -164,7 +164,18 @@ class PdfDoc {
                       Border(bottom: BorderSide(color: PdfColors.blueGrey))),
               children: [
                 // LHS
-                Expanded(child: row[0]),
+                table.heading.toString() == "Pronunciation"
+                    ? UrlLink(
+                        child: Expanded(
+                            child: Container(
+                                child: row[0],
+                                decoration: BoxDecoration(
+                                    border: Border(
+                                        bottom: BorderSide(
+                                            color: PdfColors.blue600))))),
+                        destination: _getForvoLink(
+                            row[0].text.toPlainText().toLowerCase()))
+                    : Expanded(child: row[0]),
 
                 // Separator
                 if (row.length == 2)
@@ -184,60 +195,9 @@ class PdfDoc {
         ])
       ])
     ]);
-
-    // return Table(children: [
-    //   TableRow(
-    //       children: [
-    //         Expanded(child: _heading),
-    //         Container(
-    //             alignment: Alignment.centerRight,
-    //             child: UrlLink(
-    //               destination:
-    //                   "https://www.englishclub.com/images/pronunciation/Phonemic-Chart.jpg",
-    //               child: Text("IPA Reference",
-    //                   style: TextStyle(
-    //                       color: PdfColors.blueGrey700,
-    //                       fontSize: 10.0,
-    //                       fontStyle: FontStyle.italic,
-    //                       font: Font.ttf(await rootBundle
-    //                           .load("lib/assets/IBMPlexSansKR-SemiBold.ttf")))),
-    //             ))
-    //       ],
-    //       decoration: const BoxDecoration(
-    //           border: Border(
-    //               bottom: BorderSide(
-    //                   color: PdfColors.black,
-    //                   width:
-    //                       2.0)))), //TableBorder.symmetric(inside: const BorderSide(color: PdfColors.blueGrey700), outside: const BorderSide()
-    //   ..._rows.map((row) {
-    //     return TableRow(
-    //         verticalAlignment: TableCellVerticalAlignment.middle,
-    //         decoration: const BoxDecoration(
-    //             border: Border(bottom: BorderSide(color: PdfColors.blueGrey))),
-    //         children: [
-    //           // LHS
-    //           ConstrainedBox(
-    //             constraints: const BoxConstraints(maxWidth: 200, minWidth: 100),
-    //             child: row[0],
-    //           ),
-
-    //           // Separator
-    //           if (row.length == 2)
-    //             Padding(
-    //               padding: const EdgeInsets.symmetric(horizontal: 10),
-    //             ),
-
-    //           // RHS
-    //           if (row.length == 2) Expanded(child: row[1])
-    //         ]);
-    //   }),
-    //   TableRow(children: [
-    //     Padding(padding: const EdgeInsets.symmetric(vertical: 4.0))
-    //   ])
-    // ]);
   }
 
-  Future<List<List<RichText>>> styleTableRows(PdfTableModel table) async {
+  Future<List<List<RichText>>> _styleTableRows(PdfTableModel table) async {
     final List<List<RichText>> output = [];
 
     for (final row in table.rows!) {
@@ -257,5 +217,9 @@ class PdfDoc {
     }
 
     return output;
+  }
+
+  String _getForvoLink(String term) {
+    return "https://forvo.com/word/argentinian/$term";
   }
 }

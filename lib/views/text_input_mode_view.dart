@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -10,6 +11,7 @@ import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/pdf_preview.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 import '../controllers/companion_methods.dart';
 import '../controllers/text_mode_input_controller.dart';
@@ -152,8 +154,252 @@ class TextInputModeView extends StatefulWidget {
 }
 
 class _TextInputModeViewState extends State<TextInputModeView> {
+  final List<LookUp> _lookUps = [];
+  final List<LookUpCard> _lookUpCards = [];
+  final List<LookUpReturn> _lookUpReturns = [];
+
   final _textController = TextEditingController();
   bool _inFocus = false;
+  bool _loading = false;
+
+  //FORMATTING------------------------------------------------------------------
+
+  String _format(String input) {
+    final sbTotal = StringBuffer();
+    final sbSection = StringBuffer();
+
+    //isolate each heading:
+    final parts = input.split("*");
+    //get each section
+    for (String p in parts) {
+      if (p.isEmpty) continue;
+      //get each line of section
+      final lines = p.split(";");
+
+      final spl = lines[0].split("\n");
+      //skip heading
+      String heading = spl[0];
+      heading = "* ${heading.trim()}";
+
+      String? firstLine = spl[1];
+      //loop through other lines
+      for (String l in lines) {
+        if (l.trim().isEmpty) continue;
+
+        if (firstLine != null) {
+          l = firstLine;
+          firstLine = null;
+        }
+
+        if (l.trim() == "===") {
+          continue;
+        }
+
+        final firstChars = l.substring(0, 2);
+        if (firstChars != "-\t") {
+          l = "-\t${l.trim()}";
+        }
+        if (l.contains("||")) {
+          final cells = l.split("||");
+          String lhs = cells[0];
+          String rhs = cells[1];
+
+          if (lhs.contains("//")) {
+            lhs = lhs.replaceAll("//", "\n\t");
+          }
+
+          rhs = "\t\t${rhs.trim()}";
+          if (rhs.contains("//")) {
+            rhs = rhs.replaceAll("//", "\n\t\t");
+          }
+
+          l = "$lhs ||\n$rhs";
+        }
+        sbSection.writeln("$l;");
+      }
+
+      final section = sbSection.toString();
+      sbTotal.writeln("$heading\n$section");
+      sbSection.clear();
+    }
+
+    return "${sbTotal.toString()}===\n";
+  }
+
+  String _autoFormatAll(String input) {
+    final sb = StringBuffer();
+    const stoppingPoint = "===";
+    final commentPrefix = ">";
+
+    for (var line in _textController.text.split("\n")) {
+      if (line.length > 0) {
+        if (line[0] != "*" &&
+            line != stoppingPoint &&
+            line[0] != commentPrefix) {
+          if (line[0] != "-") {
+            line = "- $line";
+          }
+        }
+      } else {
+        line = "- $line";
+      }
+
+      sb.writeln(line);
+    }
+
+    if (!input.contains(stoppingPoint)) sb.writeln(stoppingPoint);
+
+    return sb.toString();
+  }
+
+  //LOOK UP---------------------------------------------------------------------
+
+  void _switchLoading() {
+    setState(() {
+      _loading = (_loading) ? false : true;
+    });
+  }
+
+  Future<bool> _lookUpWords() async {
+    final connection = await Connectivity().checkConnectivity();
+    if (connection == ConnectivityResult.none) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text(
+              "No Internet connection detected. Please make sure you are connected to use this feature.")));
+      return false;
+    }
+
+    List<LookUp> temp = [];
+    _textController.text = _autoFormatAll(_textController.text);
+    final indexStart = _textController.text.indexOf("* New Language");
+    final indexEnd = (_textController.text.indexOf("*", indexStart + 1) != -1)
+        ? _textController.text.indexOf("*", indexStart + 1)
+        : _textController.text.indexOf("===");
+    final chunk = _textController.text.substring(indexStart, indexEnd);
+    final terms = chunk.split("\n-");
+
+    //skip the first term as it is just the heading
+    for (int i = 1; i < terms.length; i++) {
+      if (terms[i].trim().length == 0) continue;
+
+      final thisTerm;
+
+      if (terms[i].contains("||")) {
+        thisTerm = terms[i].trim().substring(0, terms[i].trim().indexOf("||"));
+      } else {
+        thisTerm = terms[i].trim();
+      }
+
+      final url = "https://api.dictionaryapi.dev/api/v2/entries/en/${thisTerm}";
+      final dictionary = await FreeDictionary.fetchJson(url);
+
+      if (dictionary != null) {
+        temp.add(LookUp(dictionary));
+      }
+    }
+
+    if (temp.isNotEmpty) {
+      _lookUps.clear();
+      _lookUpCards.clear();
+      _lookUpReturns.clear();
+      _lookUps.addAll(temp);
+
+      for (final lu in _lookUps) {
+        final lur = LookUpReturn(lu.term);
+        if (lu.term.trim().isNotEmpty) _lookUpReturns.add(lur);
+        _lookUpCards.add(LookUpCard(
+          input: lu,
+          output: lur,
+        ));
+      }
+
+      await showDialog(
+          context: context,
+          builder: ((context) {
+            return _lookUpSelectionDialog();
+          }));
+      return true;
+    }
+    return false;
+  }
+
+  AlertDialog _lookUpSelectionDialog() {
+    return AlertDialog(
+      title: Text("Dictionary Results"),
+      content: SingleChildScrollView(
+        child: Column(children: [
+          //List of entries
+          ..._lookUpCards.map((card) => card),
+          //Button
+          ElevatedButton(
+            child: Text("OK"),
+            onPressed: () {
+              _processLookUpResults();
+              Navigator.pop(context);
+            },
+          )
+        ]),
+      ),
+    );
+  }
+
+  void _processLookUpResults() {
+    final sb = StringBuffer();
+    final fullText = _textController.text;
+    final indexHeading = fullText.indexOf("* New Language");
+    int indexEnding = fullText.indexOf("*", indexHeading + 1);
+    if (indexEnding == -1) {
+      indexEnding = fullText.indexOf("===");
+    }
+    final newLanguage = fullText.substring(
+      fullText.indexOf("\n", indexHeading) + 1,
+    );
+    final lines = newLanguage.split("\n");
+
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].isEmpty || lines[i][0] != "-") continue;
+
+      final trueTerm = lines[i].substring(2, lines[i].length).trim();
+
+      if (trueTerm.isEmpty) continue;
+
+      final lur;
+      try {
+        lur = _lookUpReturns.where((element) => element.term == trueTerm).first;
+      } on StateError {
+        continue;
+      }
+
+      String fullDefinition = "${lur.term} s.b[(${lur.partOfSpeech})]";
+      if (lur.example != null) {
+        fullDefinition = "$fullDefinition // g.b[> ${lur.example}]";
+      }
+      fullDefinition = "$fullDefinition || ${lur.definition}";
+      lines[i] = fullDefinition;
+    }
+
+    sb.writeln(" New Language");
+    lines.forEach((element) {
+      if (element.isNotEmpty && element[0] != "-") {
+        sb.writeln("- $element");
+      } else {
+        if (element != "- ===") {
+          sb.writeln("$element");
+        }
+      }
+    });
+    sb.writeln();
+
+    //highlight the whole original term and replace it
+    final before = fullText.substring(0, indexHeading + 1);
+    final after = fullText.substring(indexEnding);
+    print(before + "\n");
+    print(sb.toString() + "\n");
+    print(after);
+    _textController.text = "$before${sb.toString()}$after";
+  }
+
+  //OTHER-----------------------------------------------------------------------
 
   void _onPressedSubmit() async {
     _textController.text = _autoFormatAll(_textController.text);
@@ -252,82 +498,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
   }
 
-  String _autoFormatAll(String input) {
-    final sb = StringBuffer();
-    const stoppingPoint = "===";
-    final commentPrefix = ">";
-
-    for (var line in _textController.text.split("\n")) {
-      if (line.length > 0) {
-        if (line[0] != "*" &&
-            line != stoppingPoint &&
-            line[0] != commentPrefix) {
-          if (line[0] != "-") {
-            line = "- $line";
-          }
-        }
-      } else {
-        line = "- $line";
-      }
-
-      sb.writeln(line);
-    }
-
-    if (!input.contains(stoppingPoint)) sb.writeln(stoppingPoint);
-
-    return sb.toString();
-  }
-
-  void _lookUpWords() async {
-    List<LookUp> results = [];
-    _textController.text = _autoFormatAll(_textController.text);
-    final indexStart = _textController.text.indexOf("* New Language");
-    final chunk = _textController.text.substring(
-        indexStart, _textController.text.indexOf("*", indexStart + 1));
-    final terms = chunk.split("\n-");
-
-    //skip the first term as it is just the heading
-    for (int i = 1; i < terms.length; i++) {
-      if (terms[i].trim().length == 0) continue;
-
-      final thisTerm;
-
-      if (terms[i].contains("||")) {
-        thisTerm = terms[i].trim().substring(0, terms[i].trim().indexOf("||"));
-      } else {
-        thisTerm = terms[i].trim();
-      }
-
-      final url = "https://api.dictionaryapi.dev/api/v2/entries/en/${thisTerm}";
-      final dictionary = await FreeDictionary.fetchJson(url);
-
-      if (dictionary != null) {
-        results.add(LookUp(dictionary));
-      }
-    }
-
-    if (results.isNotEmpty) {
-      await showDialog(
-          context: context,
-          builder: ((context) {
-            return AlertDialog(
-              title: Text("Dictionary Results"),
-              content: SingleChildScrollView(
-                child: Column(children: [
-                  ...results.map((term) {
-                    return term.details.isNotEmpty
-                        ? LookUpCard(
-                            details: term,
-                          )
-                        : Container();
-                  })
-                ]),
-              ),
-            );
-          }));
-    }
-  }
-
   Map<String, List<String>> _mapTextInput(String text) {
     String currentHeading = "";
     final headingPrefix = "*";
@@ -386,6 +556,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     return mappings;
   }
 
+  //MAIN------------------------------------------------------------------------
+
   @override
   initState() {
     _textController.text = _template;
@@ -423,56 +595,67 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   Widget build(BuildContext context) {
     return Focus(
       child: Scaffold(
-          body: Column(
-            children: [
-              Expanded(
-                  child: Card(
-                child: Padding(
-                  padding: EdgeInsets.all(0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          child: TextField(
-                        controller: _textController,
-                        onSubmitted: ((value) {}),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(10.0))),
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                        ),
-                        style: const TextStyle(fontSize: 11),
-                        maxLines: null,
-                        expands: true,
-                      ))
-                    ],
+          body: ModalProgressHUD(
+            child: Column(
+              children: [
+                Expanded(
+                    child: Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: TextField(
+                          controller: _textController,
+                          onSubmitted: ((value) {}),
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(10.0))),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 13, vertical: 9),
+                          ),
+                          style: const TextStyle(fontSize: 11),
+                          maxLines: null,
+                          expands: true,
+                        ))
+                      ],
+                    ),
                   ),
-                ),
-              )),
-              Padding(
-                  padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
-                  child: ElevatedButton(
-                      onPressed: _onPressedSubmit, child: const Text("Submit")))
-            ],
+                )),
+                Padding(
+                    padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
+                    child: ElevatedButton(
+                        onPressed: _onPressedSubmit,
+                        child: const Text("Submit")))
+              ],
+            ),
+            inAsyncCall: _loading,
           ),
           floatingActionButton: SpeedDial(
             icon: Icons.more,
             children: [
               SpeedDialChild(
-                  label: "Reset to Default",
-                  onTap: () {
-                    setState(() {
-                      _textController.text = _template;
+                  label: "Dictionary Look-Up",
+                  onTap: () async {
+                    _switchLoading();
+                    _lookUpWords().then((value) {
+                      _switchLoading();
                     });
                   }),
-              SpeedDialChild(label: "Dictionary Look-Up", onTap: _lookUpWords),
               SpeedDialChild(
-                  label: "Format",
+                  label: "Format Text",
                   onTap: () {
                     setState(() {
                       _textController.text =
                           _autoFormatAll(_textController.text);
+                    });
+                  }),
+              SpeedDialChild(
+                  label: "Reset Text",
+                  onTap: () {
+                    setState(() {
+                      _textController.text = _template;
                     });
                   })
             ],
@@ -490,9 +673,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 //Look Up Card
 //======================================================================
 class LookUpCard extends StatefulWidget {
-  final LookUp details;
+  final LookUp input;
+  final LookUpReturn output;
 
-  const LookUpCard({super.key, required this.details});
+  const LookUpCard({super.key, required this.input, required this.output});
 
   @override
   State<LookUpCard> createState() => _LookUpCardState();
@@ -504,15 +688,12 @@ class _LookUpCardState extends State<LookUpCard> {
   String? _example;
   Map<String?, String?> _mapping = {};
 
-  @override
-  void initState() {
-    super.initState();
-  }
+  final _exampleController = TextEditingController();
 
   List<DropdownMenuItem> _definitionDropdownMenuItem(String partOfSpeech) {
     List<DropdownMenuItem> output = [];
 
-    widget.details.details
+    widget.input.lookUpDetails
         .where((element) => element.partOfSpeech == partOfSpeech)
         .toList()
         .forEach((element) {
@@ -528,12 +709,6 @@ class _LookUpCardState extends State<LookUpCard> {
     return output;
   }
 
-  // String _getExampleFieldValue() {
-  //   if (_definition == null) return "";
-  //   if (_example == null) return "";
-  //   if
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -545,10 +720,10 @@ class _LookUpCardState extends State<LookUpCard> {
         children: [
           Row(
             children: [
-              Expanded(child: Text(widget.details.term)),
+              Expanded(child: Text(widget.input.term)),
               DropdownButton(
                   items: [
-                    ...widget.details.details.map((e) {
+                    ...widget.input.lookUpDetails.map((e) {
                       return DropdownMenuItem(
                           value: e.partOfSpeech, child: Text(e.partOfSpeech));
                     })
@@ -557,6 +732,7 @@ class _LookUpCardState extends State<LookUpCard> {
                   onChanged: (value) {
                     setState(() {
                       _partOfSpeech = value;
+                      widget.output.partOfSpeech = _partOfSpeech;
                     });
                   })
             ],
@@ -572,13 +748,20 @@ class _LookUpCardState extends State<LookUpCard> {
                 if (_partOfSpeech != null) {
                   setState(() {
                     _definition = value;
+                    widget.output.definition = _definition;
                     _example = _mapping[_definition];
+                    _exampleController.text =
+                        _example ?? "[No example available]";
+                    widget.output.example = _example;
+                    if (widget.output.example != null) {
+                      widget.output.example!.replaceAll("; ", "//> ");
+                    }
                   });
                 }
               }),
           TextFormField(
-            initialValue: _example ?? "",
-            readOnly: true,
+            controller: _exampleController,
+            readOnly: _example != null ? false : true,
           )
         ],
       ),
