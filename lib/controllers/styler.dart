@@ -77,7 +77,7 @@ class Styler {
 
 enum PdfSection { h1, h2, h3, body, footer }
 
-class StylerMethods {
+class PdfStyler {
   static Future<pdf_widj.RichText> styleText(
       {required PdfSection section,
       required PdfText pdfText,
@@ -119,7 +119,7 @@ class StylerMethods {
       PdfColor thisColor;
       switch (x.color) {
         case ColorOption.purple:
-          thisColor = PdfColors.purple600;
+          thisColor = PdfColors.purple800;
           break;
         case ColorOption.orange:
           thisColor = PdfColors.orange600;

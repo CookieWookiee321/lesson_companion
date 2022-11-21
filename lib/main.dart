@@ -19,23 +19,7 @@ Future<void> main() async {
 
   await initialSettings();
 
-  calculate();
-
   runApp(const MyApp());
-}
-
-void calculate() {
-  final _colorOptions = ["g", "p", "o", "s"];
-  final _stylingOptions = ["b", "i", "u"];
-  final sb = StringBuffer();
-
-  for (final color in _colorOptions) {
-    for (int i = 0; i < 3; i++) {
-      final temp = "${color}.${_stylingOptions[i]}";
-      sb.write("$temp ");
-    }
-  }
-  print(sb.toString());
 }
 
 Future<void> initialSettings() async {

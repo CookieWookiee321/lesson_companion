@@ -6,7 +6,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   desktop_window
   isar_flutter_libs
+  pasteboard
   printing
+  url_launcher_windows
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

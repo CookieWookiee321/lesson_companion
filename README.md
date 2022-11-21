@@ -1,16 +1,14 @@
-# lesson_companion
+# Lesson Companion
 
-A new Flutter project.
+A digital helper for all the educators out there.
 
-## Getting Started
+TODO:
+- get main form working properly
+- implement rich text editor for user markdown notation
+- finalise syntax for reports
 
-This project is a starting point for a Flutter application.
+## Introduction
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+

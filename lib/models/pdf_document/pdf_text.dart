@@ -253,37 +253,37 @@ class PdfText {
     var parts = this.toString().split(" ");
     String monthNum;
     switch (parts[1]) {
-      case "January":
+      case "Jan":
         monthNum = "01";
         break;
-      case "February":
+      case "Feb":
         monthNum = "02";
         break;
-      case "March":
+      case "Mar":
         monthNum = "03";
         break;
-      case "April":
+      case "Apr":
         monthNum = "04";
         break;
       case "May":
         monthNum = "05";
         break;
-      case "June":
+      case "Jun":
         monthNum = "06";
         break;
-      case "July":
+      case "Jul":
         monthNum = "07";
         break;
-      case "August":
+      case "Aug":
         monthNum = "08";
         break;
-      case "September":
+      case "Sep":
         monthNum = "09";
         break;
-      case "October":
+      case "Oct":
         monthNum = "10";
         break;
-      case "November":
+      case "Nov":
         monthNum = "11";
         break;
       default:

@@ -13,7 +13,7 @@ import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/pdf_preview.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 
-import '../controllers/companion_methods.dart';
+import '../controllers/COMPANION_METHODS.dart';
 import '../controllers/text_mode_input_controller.dart';
 
 // final _template = """* Name
@@ -46,37 +46,41 @@ import '../controllers/text_mode_input_controller.dart';
 
 // ===""";
 
-final _template = """* Name
-Enter the student's name here
+final _template =
+    """=< !@This is a commented line - it will not be processed in the report
+  * Name
+      Enter the student's name here
 
-* Date
-${CompanionMethods.getShortDate(DateTime.now())}
+  * Date
+      ${CompanionMethods.getShortDate(DateTime.now())}
 
-* Topic
-Enter one topic
-Per line [and enter subtext like this]
+  * Topic
+      Enter one topic
+      Per line p.i[and style text like this]
 
-* Homework
-Homework words
-The same way [and subtext is also allowed,] p.bi[which can be styled in various ways]
+  * Homework
+      Homework works
+      The same way [and subtext is also allowed,] p.bi[which can be styled in various ways]
 
-* New Language
-select
-"Auto-look up"
-in
-the
-menu
+  * New Language
+      select
+      "Auto-look up"
+      in
+      the
+      menu
 
-* Corrections
-Tables work a little bit differently || as you can break up text by cells
-You can show the end of the left-hand column cell || by using the specific marker
-You can format these cells more by using g[mark]-o[down] u[formatting] bu[like this] || p.bi[You can mix and reposition]//g.uib[these as much as you want]
-There is no limit to the length of text in a cell
-Leave out the "new-cell" marker to take away the border between cells
-#You can make a new heading within a table like this
-[Or you could make a mini-heading like this]
-o.b[It's all up to you]
-""";
+  * Corrections
+      Tables work a little bit differently ||
+          as you can break up text by cells
+      You can show the end of the left-hand column cell ||
+          by using the specific marker
+      You can format these cells more by using g[mark]-o[down] u[formatting] bu[like this] ||
+          p.bi[You can mix and reposition]//g.uib[these as much as you want]
+      There is no limit to the length of text in a cell
+      Leave out the "new-cell" marker to take away the border between cells
+      s.b[Or you could make a mini-heading like this]
+      o.bui[It's all up to you]
+>=""";
 
 final markerOptions = [
   'g.b',
@@ -164,6 +168,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   //FORMATTING------------------------------------------------------------------
 
+  //TODO: DO not implement this until you have a solid idea of the final formatting
   String _format(String input) {
     final sbTotal = StringBuffer();
     final sbSection = StringBuffer();
@@ -316,14 +321,14 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       await showDialog(
           context: context,
           builder: ((context) {
-            return _lookUpSelectionDialog();
+            return _lookUpNewLanguageDialog();
           }));
       return true;
     }
     return false;
   }
 
-  AlertDialog _lookUpSelectionDialog() {
+  AlertDialog _lookUpNewLanguageDialog() {
     return AlertDialog(
       title: Text("Dictionary Results"),
       content: SingleChildScrollView(
@@ -334,7 +339,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           ElevatedButton(
             child: Text("OK"),
             onPressed: () {
-              _processLookUpResults();
+              _processLookUpNewLanguageResults();
               Navigator.pop(context);
             },
           )
@@ -343,7 +348,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     );
   }
 
-  void _processLookUpResults() {
+  void _processLookUpNewLanguageResults() {
     final sb = StringBuffer();
     final fullText = _textController.text;
     final indexHeading = fullText.indexOf("* New Language");
@@ -698,9 +703,12 @@ class _LookUpCardState extends State<LookUpCard> {
         .toList()
         .forEach((element) {
       for (final e in element.definitionsAndExamples.entries) {
-        if (!output
-            .contains(DropdownMenuItem(value: e.key, child: Text(e.key)))) {
-          output.add(DropdownMenuItem(value: e.key, child: Text(e.key)));
+        if (!output.contains(DropdownMenuItem(
+            value: e.key,
+            child: Text(e.key, overflow: TextOverflow.visible)))) {
+          output.add(DropdownMenuItem(
+              value: e.key,
+              child: Text(e.key, overflow: TextOverflow.visible)));
           _mapping[e.key] = e.value;
         }
       }
@@ -718,48 +726,72 @@ class _LookUpCardState extends State<LookUpCard> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(child: Text(widget.input.term)),
-              DropdownButton(
-                  items: [
-                    ...widget.input.lookUpDetails.map((e) {
-                      return DropdownMenuItem(
-                          value: e.partOfSpeech, child: Text(e.partOfSpeech));
+          // Term + Part of speech----------------------------------------------
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 3),
+            child: Row(
+              children: [
+                Expanded(
+                    child: Text(
+                  widget.input.term.toUpperCase(),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.tertiary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                )),
+                // Parts of speech------------------------------------------------
+                DropdownButton(
+                    style: TextStyle(fontSize: 13),
+                    isDense: true,
+                    items: [
+                      ...widget.input.lookUpDetails.map((e) {
+                        return DropdownMenuItem(
+                            value: e.partOfSpeech, child: Text(e.partOfSpeech));
+                      })
+                    ],
+                    value: _partOfSpeech,
+                    onChanged: (value) {
+                      setState(() {
+                        _partOfSpeech = value;
+                        widget.output.partOfSpeech = _partOfSpeech;
+                      });
                     })
-                  ],
-                  value: _partOfSpeech,
-                  onChanged: (value) {
-                    setState(() {
-                      _partOfSpeech = value;
-                      widget.output.partOfSpeech = _partOfSpeech;
-                    });
-                  })
-            ],
+              ],
+            ),
           ),
-          DropdownButton(
-              isDense: true,
-              isExpanded: true,
-              value: _definition,
-              items: _partOfSpeech != null
-                  ? _definitionDropdownMenuItem(_partOfSpeech!)
-                  : null,
-              onChanged: (value) {
-                if (_partOfSpeech != null) {
-                  setState(() {
-                    _definition = value;
-                    widget.output.definition = _definition;
-                    _example = _mapping[_definition];
-                    _exampleController.text =
-                        _example ?? "[No example available]";
-                    widget.output.example = _example;
-                    if (widget.output.example != null) {
-                      widget.output.example!.replaceAll("; ", "//> ");
-                    }
-                  });
-                }
-              }),
-          TextFormField(
+          // Definitions--------------------------------------------------------
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 3),
+            child: DropdownButton(
+                style: TextStyle(fontSize: 13),
+                hint: Text("Defintion"),
+                isDense: true,
+                isExpanded: true,
+                value: _definition,
+                items: _partOfSpeech != null
+                    ? _definitionDropdownMenuItem(_partOfSpeech!)
+                    : null,
+                onChanged: (value) {
+                  if (_partOfSpeech != null) {
+                    setState(() {
+                      _definition = value;
+                      widget.output.definition = _definition;
+                      _example = _mapping[_definition];
+                      _exampleController.text =
+                          _example ?? "[No example available]";
+                      widget.output.example = _example;
+                      if (widget.output.example != null) {
+                        widget.output.example!.replaceAll("; ", "//> ");
+                      }
+                    });
+                  }
+                }),
+          ),
+          // Examples-----------------------------------------------------------
+          TextField(
+            style: TextStyle(fontSize: 13),
+            decoration: InputDecoration(hintText: "example", isDense: true),
+            maxLines: null,
             controller: _exampleController,
             readOnly: _example != null ? false : true,
           )

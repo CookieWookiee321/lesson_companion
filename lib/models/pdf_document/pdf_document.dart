@@ -29,11 +29,11 @@ class PdfDoc {
 
     // model the sections of the PDF to get styled objects
     final _name =
-        await StylerMethods.styleText(section: PdfSection.h1, pdfText: name);
+        await PdfStyler.styleText(section: PdfSection.h1, pdfText: name);
     // final _name = await _newText(name, PdfSection.h1);
 
     final _date =
-        await StylerMethods.styleText(section: PdfSection.h1, pdfText: date);
+        await PdfStyler.styleText(section: PdfSection.h1, pdfText: date);
 
     final _topicHeader = Text("Topic:",
         style: TextStyle(
@@ -42,7 +42,7 @@ class PdfDoc {
             font: Font.ttf(await rootBundle
                 .load("lib/assets/IBMPlexSansKR-SemiBold.ttf"))));
     final _topic =
-        await StylerMethods.styleText(section: PdfSection.h2, pdfText: topic);
+        await PdfStyler.styleText(section: PdfSection.h2, pdfText: topic);
 
     final _homeworkHeader = Text("Homework:",
         style: TextStyle(
@@ -51,8 +51,7 @@ class PdfDoc {
             font: Font.ttf(await rootBundle
                 .load("lib/assets/IBMPlexSansKR-SemiBold.ttf"))));
     final _homework = homework != null
-        ? await StylerMethods.styleText(
-            section: PdfSection.h2, pdfText: homework!)
+        ? await PdfStyler.styleText(section: PdfSection.h2, pdfText: homework!)
         : null;
 
     final List<Widget> _tables = [];
@@ -117,7 +116,7 @@ class PdfDoc {
   //============================================================================
   ///Takes a heading and a map of LHS and RHS values to build a table with
   Future<Widget> _newTable({required PdfTableModel table}) async {
-    final _heading = await StylerMethods.styleText(
+    final _heading = await PdfStyler.styleText(
         section: PdfSection.h3, pdfText: table.heading!);
     final _rows = await _styleTableRows(table);
 
@@ -187,7 +186,7 @@ class PdfDoc {
                 if (row.length == 2)
                   Expanded(
                       child: row[1],
-                      flex: _flexAmounts[table.heading.toString()]!)
+                      flex: _flexAmounts[table.heading.toString()] ?? 1)
               ]);
         }),
         TableRow(children: [
@@ -204,11 +203,11 @@ class PdfDoc {
       final lhs;
       final rhs;
 
-      lhs = await StylerMethods.styleText(
+      lhs = await PdfStyler.styleText(
           section: PdfSection.body, pdfText: row.lhs!);
 
       if (row.rhs != null) {
-        rhs = await StylerMethods.styleText(
+        rhs = await PdfStyler.styleText(
             section: PdfSection.body, pdfText: row.rhs!);
         output.add([lhs, rhs]);
       } else {
