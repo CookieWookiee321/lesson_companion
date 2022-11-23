@@ -16,36 +16,6 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../controllers/COMPANION_METHODS.dart';
 import '../controllers/text_mode_input_controller.dart';
 
-// final _template = """* Name
-// Serdar
-
-// * Date
-// 2022/11/10
-
-// * Topic
-// Speaking practice
-
-// * New Language
-// moment of silence s.b[(noun)]//g.b[The crowd observed a moment of silence for those who died in the tragedy.]||a short period of silent thought or prayer
-// in trouble s.o[(adjective)]//g.b[He would have been in real trouble if he had been caught.]||Someone who is in trouble is in a situation that is a problem or difficulty, esp. with the law
-// empty threat s.o[(noun)]//g.b[Don't make empty threats that you have no intention of backing up with action.]||a threat that someone does not really mean
-
-// * Pronunciation
-// moment of silence||MOE-muhn-tov-SY-lens
-// organised||OR-ga-nyzd
-// appearance||uh-PEER-ens
-
-// * Corrections
-// Homage to at 9:05am||Everybody pays homage to him at 9:05am
-// nine zero five (9:05)||nine oh five
-// Connection very bad||The connection is very bad
-// this country's whole peoples||All of this country's people//All of the people in this country
-// They anniversary for him||They celebrate the anniversary of his death
-// I running away from my manager//o[don't use "ing" grammar so much]||I run away from my manage//g[use: present simple tense - for routines & habits]
-// My manager will send you far branch || (He) will send me to a far branch
-
-// ===""";
-
 final _template =
     """=< !@This is a commented line - it will not be processed in the report
   * Name
@@ -623,7 +593,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                           style: const TextStyle(fontSize: 11),
                           maxLines: null,
                           expands: true,
-                        ))
+                        )),
                       ],
                     ),
                   ),
