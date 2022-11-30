@@ -1,19 +1,16 @@
 import 'package:flutter/services.dart';
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/styler.dart';
-import 'package:lesson_companion/models/data_storage.dart';
-import 'package:lesson_companion/models/pdf_document/pdf_substring.dart';
+import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
+import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
+import 'package:lesson_companion/models/styling/pdf_lexer.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart';
 
-part 'pdf_document.g.dart';
-
-@collection
 class PdfDoc {
-  final Id id = Isar.autoIncrement;
   final PdfText name;
   final PdfText date;
   final PdfText topic;
@@ -25,34 +22,28 @@ class PdfDoc {
   /// Creates and saves a report PDF based on the parent object.
   Future<Uint8List> create() async {
     final footer = PdfText();
-    footer.process(await DataStorage.getSetting(SharedPrefOption.footer));
+    footer.process(
+        await Database.getSetting(SharedPrefOption.footer), PdfSection.footer);
 
     // model the sections of the PDF to get styled objects
-    final _name =
-        await PdfStyler.styleText(section: PdfSection.h1, pdfText: name);
-    // final _name = await _newText(name, PdfSection.h1);
+    // final _name = await PdfStyler.parseTextSpanList(pdfText: name);
 
-    final _date =
-        await PdfStyler.styleText(section: PdfSection.h1, pdfText: date);
-
+    final _name = name.toRichText();
+    final _date = date.toRichText();
     final _topicHeader = Text("Topic:",
         style: TextStyle(
             color: PdfColors.blueGrey700,
             fontSize: 13.0,
             font: Font.ttf(await rootBundle
                 .load("lib/assets/IBMPlexSansKR-SemiBold.ttf"))));
-    final _topic =
-        await PdfStyler.styleText(section: PdfSection.h2, pdfText: topic);
-
+    final _topic = topic.toRichText();
     final _homeworkHeader = Text("Homework:",
         style: TextStyle(
             color: PdfColors.blueGrey700,
             fontSize: 13.0,
             font: Font.ttf(await rootBundle
                 .load("lib/assets/IBMPlexSansKR-SemiBold.ttf"))));
-    final _homework = homework != null
-        ? await PdfStyler.styleText(section: PdfSection.h2, pdfText: homework!)
-        : null;
+    final _homework = homework != null ? homework!.toRichText() : null;
 
     final List<Widget> _tables = [];
     if (tables != null && tables!.length > 0) {
@@ -116,8 +107,7 @@ class PdfDoc {
   //============================================================================
   ///Takes a heading and a map of LHS and RHS values to build a table with
   Future<Widget> _newTable({required PdfTableModel table}) async {
-    final _heading = await PdfStyler.styleText(
-        section: PdfSection.h3, pdfText: table.heading!);
+    final _heading = table.heading!.toRichText();
     final _rows = await _styleTableRows(table);
 
     final Map<String, int> _flexAmounts = {
@@ -203,12 +193,10 @@ class PdfDoc {
       final lhs;
       final rhs;
 
-      lhs = await PdfStyler.styleText(
-          section: PdfSection.body, pdfText: row.lhs!);
+      lhs = row.lhs!.toRichText();
 
       if (row.rhs != null) {
-        rhs = await PdfStyler.styleText(
-            section: PdfSection.body, pdfText: row.rhs!);
+        rhs = row.rhs!.toRichText();
         output.add([lhs, rhs]);
       } else {
         output.add([lhs]);
@@ -219,6 +207,6 @@ class PdfDoc {
   }
 
   String _getForvoLink(String term) {
-    return "https://forvo.com/word/argentinian/$term";
+    return "https://forvo.com/word/$term";
   }
 }

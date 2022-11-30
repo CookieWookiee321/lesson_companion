@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
+import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
+import 'package:lesson_companion/models/styling/pdf_lexer.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdf_widj;
-
-import '../models/pdf_document/pdf_text.dart';
 
 class Styler {
   static const lightColorScheme = ColorScheme(
@@ -78,128 +79,26 @@ class Styler {
 enum PdfSection { h1, h2, h3, body, footer }
 
 class PdfStyler {
-  static Future<pdf_widj.RichText> styleText(
-      {required PdfSection section,
-      required PdfText pdfText,
-      ColorOption color = ColorOption.regular,
-      bool isBold = false,
-      bool isItalic = false,
-      bool isUnderlined = false}) async {
-    final List<pdf_widj.TextSpan> inlineSpan = [];
-    final pdf_widj.RichText output;
-    final double baseHeight;
-    final double subHeight;
+  static PdfColor parseTextColour(String input) {
+    //col<this is the text :: colour>
+    final colour = input.substring(0, input.length - 1).split("::")[1].trim();
 
-    switch (section) {
-      case PdfSection.h1:
-        baseHeight = 20;
-        subHeight = 16;
-        break;
-      case PdfSection.h2:
-        baseHeight = 16;
-        subHeight = 13;
-        break;
-      case PdfSection.h3:
-        baseHeight = 13;
-        subHeight = 11;
-        break;
-      case PdfSection.body:
-        baseHeight = 11;
-        subHeight = 9;
-        break;
-      case PdfSection.footer:
-        baseHeight = 10;
-        subHeight = 8;
-        break;
+    switch (colour) {
+      case "grey":
+      case "silver":
+        return PdfColors.grey;
+      case "green":
+        return PdfColors.green;
+      case "orange":
+        return PdfColors.orange;
+      case "purple":
+        return PdfColors.purple;
+      case "blue":
+        return PdfColors.blue;
+      case "red":
+        return PdfColors.red;
+      default:
+        return PdfColors.black;
     }
-
-    for (final x in pdfText.components) {
-      pdf_widj.TextSpan outputSpan;
-
-      PdfColor thisColor;
-      switch (x.color) {
-        case ColorOption.purple:
-          thisColor = PdfColors.purple800;
-          break;
-        case ColorOption.orange:
-          thisColor = PdfColors.orange600;
-          break;
-        case ColorOption.green:
-          thisColor = PdfColors.green600;
-          break;
-        case ColorOption.regular:
-          thisColor = PdfColors.black;
-          break;
-        case ColorOption.silver:
-          thisColor = PdfColors.grey600;
-          break;
-      }
-
-      final thisFont;
-      if (x.bold && x.italic) {
-        thisFont = pdf_widj.Font.ttf(
-          await rootBundle.load("lib/assets/Andika-BoldItalic.ttf"),
-        );
-      } else if (x.bold) {
-        thisFont = pdf_widj.Font.ttf(
-          await rootBundle.load("lib/assets/Andika-Bold.ttf"),
-        );
-      } else if (x.italic) {
-        thisFont = pdf_widj.Font.ttf(
-          await rootBundle.load("lib/assets/Andika-Italic.ttf"),
-        );
-      } else {
-        thisFont = pdf_widj.Font.ttf(
-          await rootBundle.load("lib/assets/Andika-Regular.ttf"),
-        );
-      }
-
-      switch (x.color) {
-        case ColorOption.regular:
-          if (section == PdfSection.h1 ||
-              section == PdfSection.h2 ||
-              section == PdfSection.h3) {
-            thisColor = PdfColors.blueGrey800;
-            isBold = true;
-          }
-
-          outputSpan = pdf_widj.TextSpan(
-              text: x.text,
-              style: pdf_widj.TextStyle(
-                  fontSize: baseHeight,
-                  color: thisColor,
-                  fontWeight: x.bold
-                      ? pdf_widj.FontWeight.bold
-                      : pdf_widj.FontWeight.normal,
-                  fontStyle: x.italic
-                      ? pdf_widj.FontStyle.italic
-                      : pdf_widj.FontStyle.normal,
-                  font: thisFont,
-                  decoration:
-                      x.underlined ? pdf_widj.TextDecoration.underline : null));
-          break;
-        default:
-          outputSpan = pdf_widj.TextSpan(
-              text: x.text,
-              style: pdf_widj.TextStyle(
-                  fontSize: subHeight,
-                  color: thisColor,
-                  fontWeight: x.bold
-                      ? pdf_widj.FontWeight.bold
-                      : pdf_widj.FontWeight.normal,
-                  fontStyle: x.italic
-                      ? pdf_widj.FontStyle.italic
-                      : pdf_widj.FontStyle.normal,
-                  font: thisFont,
-                  decoration:
-                      x.underlined ? pdf_widj.TextDecoration.underline : null));
-          break;
-      }
-
-      inlineSpan.add(outputSpan);
-    }
-
-    output = pdf_widj.RichText(text: pdf_widj.TextSpan(children: inlineSpan));
-    return output;
   }
 }

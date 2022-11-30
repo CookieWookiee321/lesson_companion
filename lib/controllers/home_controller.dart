@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 import 'package:lesson_companion/views/home_view.dart';
@@ -69,12 +70,12 @@ class HomeController extends ChangeNotifier {
 
       if (row.model.lhs != null) {
         final thisLhs = PdfText();
-        thisLhs.process(row.model.lhs!);
+        thisLhs.process(row.model.lhs!, PdfSection.body);
         thisRow.lhs = thisLhs;
 
         if (row.model.rhs != null) {
           final thisRhs = PdfText();
-          thisRhs.process(row.model.rhs!);
+          thisRhs.process(row.model.rhs!, PdfSection.body);
           thisRow.rhs = thisRhs;
         }
 

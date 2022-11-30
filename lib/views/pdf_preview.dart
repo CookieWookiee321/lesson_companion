@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
-import 'package:lesson_companion/models/data_storage.dart';
+import 'package:lesson_companion/models/database.dart';
 import 'package:printing/printing.dart';
 
-import '../models/pdf_document/pdf_document.dart';
+import '../models/pdf_document/pdf_doc.dart';
 
 class PdfPreviewPage extends StatelessWidget {
   final PdfDoc _pdfDocument;
@@ -43,7 +43,7 @@ class PdfPreviewPage extends StatelessWidget {
                   child: Text("Save"),
                   onPressed: () async {
                     final saveDest =
-                        "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await DataStorage.getStudentId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
+                        "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await Database.getStudentId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
                     final file = File(saveDest);
                     await file.writeAsBytes(_bytes);
 

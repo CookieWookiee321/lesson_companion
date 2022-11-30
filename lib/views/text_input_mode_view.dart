@@ -4,7 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:lesson_companion/models/data_storage.dart';
+import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/dictionary/free_dictionary.dart';
 import 'package:lesson_companion/models/dictionary/look_up.dart';
 import 'package:lesson_companion/models/lesson.dart';
@@ -52,7 +52,7 @@ final _template =
       o.bui[It's all up to you]
 >=""";
 
-final markerOptions = [
+const markerOptions = [
   'g.b',
   'g.i',
   'g.u',
@@ -114,6 +114,12 @@ final markerOptions = [
   's.ubi',
   's.uib'
 ];
+
+const _rowStart = "- ";
+const _headingStart = "# ";
+const _commentStart = "!@";
+const _start = "=<";
+const _stop = ">=";
 
 //TODO: Fix the auto-completion (in edit)
 
@@ -203,28 +209,32 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   String _autoFormatAll(String input) {
     final sb = StringBuffer();
-    const stoppingPoint = "===";
-    final commentPrefix = ">";
 
     for (var line in _textController.text.split("\n")) {
-      if (line.length > 0) {
-        if (line[0] != "*" &&
-            line != stoppingPoint &&
-            line[0] != commentPrefix) {
-          if (line[0] != "-") {
-            line = "- $line";
-          }
-        }
-      } else {
-        line = "- $line";
+      if (line.trim().length == 0 ||
+          line.substring(0, 2) == _start ||
+          line.substring(0, 2) == _stop ||
+          line.substring(0, 2) == _headingStart ||
+          line.substring(0, 2) == _rowStart ||
+          line.substring(0, 2) == _commentStart) {
+        sb.writeln(line);
+        continue;
       }
+
+      line = "$_rowStart$line";
 
       sb.writeln(line);
     }
 
-    if (!input.contains(stoppingPoint)) sb.writeln(stoppingPoint);
+    if (!input.contains(_start)) {
+      final temp = sb.toString();
+      sb.clear();
+      sb.writeln(_start);
+      sb.write(temp);
+    }
+    if (!input.contains(_stop)) sb.write(_stop);
 
-    return sb.toString();
+    return sb.toString().substring(0, sb.length - 1);
   }
 
   //LOOK UP---------------------------------------------------------------------
@@ -381,24 +391,26 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     String text = _textController.text;
     if (TextInputModeMethods.checkNeededHeadings(text)) {
       try {
-        while (text.contains("===")) {
-          final stoppingPoint = text.indexOf("===");
-          final singleEntry = text.substring(0, stoppingPoint);
-          text = text.substring(stoppingPoint + 3, text.length);
+        while (text.contains("=<") && text.contains(">=")) {
+          final start = text.indexOf("=<");
+          final stop = text.indexOf(">=");
+          final singleEntry = text.substring(start + 2, stop);
+          text = text.substring(stop + 2, text.length);
 
-          final mapping = _mapTextInput(singleEntry);
+          final report = Report(singleEntry);
+          final mapping = report.toMap(text);
 
           //check if Student exists
           final student = Student();
           final studentId;
-          if (!await DataStorage.checkStudentExistsByName(
+          if (!await Database.checkStudentExistsByName(
               mapping["Name"]!.first)) {
             //if not, create new Hive entry
             student.name = mapping["Name"]!.first;
             student.active = true;
-            await DataStorage.saveStudent(student);
+            await Database.saveStudent(student);
           }
-          studentId = await DataStorage.getStudentId(mapping["Name"]!.first);
+          studentId = await Database.getStudentId(mapping["Name"]!.first);
 
           if (student.name != null) {
             student.id = studentId!;
@@ -435,9 +447,9 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                   ? CompanionMethods.convertListToString(homework!)
                   : "");
           //check if Lesson exists
-          if (!await DataStorage.checkLessonExists(studentId!, date!)) {
+          if (!await Database.checkLessonExists(studentId!, date!)) {
             //if not, create new entry
-            await DataStorage.saveLesson(lesson);
+            await Database.saveLesson(lesson);
             print(
                 "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}");
           }
@@ -446,9 +458,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
               (mapping.keys.length == 4 &&
                   !mapping.keys.contains("Homework"))) {
             try {
-              final report = Report();
-              await report.fromMap(mapping);
-              final pdfDoc = await report.createPdf();
+              final pdfDoc = await report.toPdfDoc();
               Navigator.push(context, MaterialPageRoute(
                 builder: (context) {
                   return PdfPreviewPage(pdfDocument: pdfDoc);
@@ -471,64 +481,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           content: Text(
               "Failed to submit lesson.\nThere is a problem with the text format.")));
     }
-  }
-
-  Map<String, List<String>> _mapTextInput(String text) {
-    String currentHeading = "";
-    final headingPrefix = "*";
-    final linePrefix = "-";
-    final commentPrefix = ">";
-    Map<String, List<String>> mappings = {};
-    List<String> currentEntryList = [];
-
-    //loop through each line in text
-    for (var line in text.split("\n")) {
-      //don't read blank lines
-      if (line.trim().isEmpty || line.trim() == "-" || line[0] == commentPrefix)
-        continue;
-      if (line.trim() == "===") continue;
-
-      //check if the line contains a heading or not
-      if (line[0] != headingPrefix) {
-        if (line[0] == linePrefix) {
-          final temp = line.substring(1).trim();
-          //add the line to the housing List obj
-          currentEntryList.add(temp);
-        }
-      } else {
-        //add the list of entries for the heading which was just processed
-        if (currentEntryList.isNotEmpty) {
-          mappings[currentHeading] = currentEntryList;
-          currentEntryList = [];
-        }
-
-        //if a new heading is detected
-        final currentHeadingUnchecked = line.substring(1).trim();
-        //determine if the heading is pre-defined + update the currentHeading var
-        switch (currentHeadingUnchecked.toUpperCase()) {
-          case "NAME":
-            currentHeading = "Name";
-            break;
-          case "DATE":
-            currentHeading = "Date";
-            break;
-          case "TOPIC":
-            currentHeading = "Topic";
-            break;
-          case "HOMEWORK":
-            currentHeading = "Homework";
-            break;
-          default:
-            currentHeading = currentHeadingUnchecked;
-            break;
-        }
-      }
-    }
-    if (currentEntryList.isNotEmpty) {
-      mappings[currentHeading] = currentEntryList;
-    }
-
-    return mappings;
   }
 
   //MAIN------------------------------------------------------------------------

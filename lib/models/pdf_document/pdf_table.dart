@@ -2,9 +2,6 @@ import 'package:isar/isar.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 
-part 'pdf_table.g.dart';
-
-@embedded
 class PdfTableModel {
   PdfText? _heading;
   List<PdfTableRowModel>? _rows;

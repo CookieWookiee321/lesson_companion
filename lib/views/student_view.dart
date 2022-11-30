@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lesson_companion/models/data_storage.dart';
+import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/companion_widgets.dart';
 
@@ -42,11 +42,11 @@ class _StudentsListViewState extends State<StudentsListView> {
   final _scrollController = ScrollController(keepScrollOffset: true);
 
   Future<void> _getStudentDetails() async {
-    _students = await DataStorage.getAllStudents();
+    _students = await Database.getAllStudents();
 
     final Map<String, int> temp = {};
     for (final s in _students!) {
-      temp[s.name!] = await DataStorage.getLessonCountOfStudent(s.id);
+      temp[s.name!] = await Database.getLessonCountOfStudent(s.id);
     }
     _namesAndCountMap = Map.fromEntries(
         temp.entries.toList()..sort((a, b) => a.key.compareTo(b.key)));
@@ -154,7 +154,7 @@ class _StudentsListViewState extends State<StudentsListView> {
                     .where((element) => element.name == __initialName)
                     .first;
                 student.name = __name;
-                await DataStorage.saveStudent(student);
+                await Database.saveStudent(student);
               } else {
                 //if name is taken
                 //TODO: merge the two profiles?
@@ -186,7 +186,7 @@ class _StudentsListViewState extends State<StudentsListView> {
                       element.name == _namesAndCountMap!.keys.elementAt(index))
                   .first;
 
-              await DataStorage.deleteStudent(s.id).then((value) {
+              await Database.deleteStudent(s.id).then((value) {
                 setState(() {});
                 Navigator.pop(context);
               });

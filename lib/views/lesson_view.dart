@@ -1,6 +1,6 @@
 import 'package:alphabet_scroll_view/alphabet_scroll_view.dart';
 import 'package:flutter/material.dart';
-import 'package:lesson_companion/models/data_storage.dart';
+import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/lesson.dart';
 
 import '../controllers/companion_methods.dart';
@@ -26,13 +26,13 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
 
   Future<void> _getLessons() async {
     if (_selectedStudent != null) {
-      _lessons = await DataStorage.getAllLessonsOfStudent(_selectedStudent!);
+      _lessons = await Database.getAllLessonsOfStudent(_selectedStudent!);
     }
   }
 
   Future<void> _getNames(bool onlyActive) async {
     if (_students == null) {
-      _students = await DataStorage.getAllStudents();
+      _students = await Database.getAllStudents();
     }
 
     if (onlyActive) {
@@ -221,7 +221,7 @@ class _EditDialogState extends State<EditDialog> {
                 topic: _selectedTopic ?? widget.initialTopic,
                 homework: _selectedHomework ?? widget.initialHomework);
 
-            await DataStorage.saveLesson(lesson);
+            await Database.saveLesson(lesson);
             Navigator.pop(context);
           },
         ))
@@ -242,7 +242,7 @@ class _EditDialogState extends State<EditDialog> {
                   topic: _selectedTopic ?? widget.initialTopic,
                   homework: _selectedHomework ?? widget.initialHomework);
 
-              await DataStorage.deleteLessonByDetails(
+              await Database.deleteLessonByDetails(
                   lesson.studentId, lesson.date);
               Navigator.pop(context);
             },

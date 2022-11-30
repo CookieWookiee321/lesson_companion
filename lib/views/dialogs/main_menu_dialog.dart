@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
-import 'package:lesson_companion/models/data_storage.dart';
+import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/views/companion_widgets.dart';
 
 final _template =
@@ -107,13 +107,13 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
                         Expanded(child: Text("Dark Mode")),
                         FutureBuilder(
                           future:
-                              DataStorage.getSetting(SharedPrefOption.darkMode),
+                              Database.getSetting(SharedPrefOption.darkMode),
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
                               return Switch(
                                   value: snapshot.data,
                                   onChanged: (value) async {
-                                    await DataStorage.saveSetting(
+                                    await Database.saveSetting(
                                         SharedPrefOption.darkMode, value);
                                     setState(() {});
                                   });
@@ -144,7 +144,7 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
         _optionCard(
             "Report Footer:",
             FutureBuilder(
-              future: DataStorage.getSetting(SharedPrefOption.footer),
+              future: Database.getSetting(SharedPrefOption.footer),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   if (snapshot.hasData) {
@@ -153,7 +153,7 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
                       size: 13,
                       readOnly: false,
                       onTextChanged: (text) async {
-                        await DataStorage.saveSetting(
+                        await Database.saveSetting(
                             SharedPrefOption.footer, text);
                       },
                     );

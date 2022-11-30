@@ -6,10 +6,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/controllers/home_controller.dart';
-import 'package:lesson_companion/models/data_storage.dart';
+import 'package:lesson_companion/controllers/styler.dart';
+import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
-import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
@@ -91,14 +91,14 @@ class _HomeViewState extends State<HomeView> {
     Student? thisStudent;
 
     //check if student exists
-    if (!await DataStorage.checkStudentExistsByName(_name!)) {
+    if (!await Database.checkStudentExistsByName(_name!)) {
       //create new entry if not existant
       thisStudent = Student();
       thisStudent.name = _name!;
       thisStudent.active = true;
-      await DataStorage.saveStudent(thisStudent);
+      await Database.saveStudent(thisStudent);
     }
-    thisStudent = await DataStorage.getStudentByName(_name!);
+    thisStudent = await Database.getStudentByName(_name!);
 
     Lesson thisLesson = Lesson(
         studentId: thisStudent!.id,
@@ -107,43 +107,45 @@ class _HomeViewState extends State<HomeView> {
         homework: _homework);
 
     //check if student exists
-    if (await DataStorage.checkLessonExists(
+    if (await Database.checkLessonExists(
         thisLesson.studentId, thisLesson.date)) {
       //update details of existing entry
-      final id = await DataStorage.getLessonId(_name, thisLesson.date);
+      final id = await Database.getLessonId(_name, thisLesson.date);
       thisLesson.id = id!;
     }
-    await DataStorage.saveLesson(thisLesson);
+    await Database.saveLesson(thisLesson);
 
-    //counter was for something else - now it just checks tables are not empty
+    //counter checks tables are not empty
     final counter = HomeController.areTablesPopulated(_tables);
     if (counter > 0) {
       final dateSplit = _dateController.text.split(" ");
 
-      final thisReport = Report();
-      thisReport.studentId = thisStudent.id;
-      thisReport.lessonId = thisLesson.id;
-      thisReport.date = HomeController.convertStringToDateTime(
-          dateSplit[0], dateSplit[1], dateSplit[2]);
-      thisReport.topic = _topic!.split("\n").toList();
-      _homework != null
-          ? thisReport.homework = _homework!.split("\n").toList()
-          : null;
-
-      thisReport.tables = [];
-      for (final t in _tables) {
-        final thisTable = PdfTableModel();
-
-        final heading = PdfText();
-        heading.process(t.title);
-        thisTable.heading = heading;
-
-        thisTable.rows = HomeController.modelTableData(t); //t.children;
-
-        thisReport.tables!.add(thisTable);
+      //build report text
+      final sb = StringBuffer();
+      sb.writeln("# Name");
+      sb.writeln("- $_name");
+      sb.writeln("# Date");
+      sb.writeln("- $_date");
+      sb.writeln("# Topic");
+      sb.writeln("- $_topic");
+      if (_homework != null) {
+        sb.writeln("# Homework");
+        sb.writeln("- $_homework");
+      }
+      for (final table in _tables) {
+        sb.writeln("# ${table.title}");
+        for (final row in table.children) {
+          sb.write("- ${row.model.lhs}");
+          if (row.model.rhs != null) {
+            sb.write(" || ${row.model.rhs}");
+          }
+          sb.write("\n");
+        }
       }
 
-      final pdfDoc = await thisReport.createPdf();
+      final thisReport = Report(sb.toString());
+
+      final pdfDoc = await thisReport.toPdfDoc();
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return PdfPreviewPage(pdfDocument: pdfDoc);
       }));

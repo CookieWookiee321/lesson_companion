@@ -1,8 +1,9 @@
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
-import 'package:lesson_companion/models/data_storage.dart';
-import 'package:lesson_companion/models/pdf_document/pdf_document.dart';
-import 'package:lesson_companion/models/pdf_document/pdf_substring.dart';
+import 'package:lesson_companion/controllers/home_controller.dart';
+import 'package:lesson_companion/controllers/styler.dart';
+import 'package:lesson_companion/models/database.dart';
+import 'package:lesson_companion/models/pdf_document/pdf_doc.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
@@ -12,80 +13,80 @@ part 'report.g.dart';
 @collection
 class Report {
   Id id = Isar.autoIncrement;
-  int? studentId;
-  String? studentName;
-  int? lessonId;
-  DateTime? date;
-  List<String>? topic;
-  List<String>? homework;
-  List<PdfTableModel>? tables;
+  final String text;
 
   final objectSplitter = "===";
   final headingPrefix = '*';
   final tableSubheading = '#';
   final linePrefix = "-";
 
-  Report();
-
-  Future<void> fromMap(Map<String, List<String>> mappings) async {
-    studentId = await DataStorage.getStudentId(mappings["Name"]!.first);
-    studentName = mappings["Name"]!.first;
-    date = DateTime.parse(mappings["Date"]!.first);
-    topic = mappings["Topic"];
-    homework = mappings["Homework"];
-    tables = [];
-
-    // Skip over pre-defined heading keywords.
-    if (mappings.length > 3) {
-      for (var key in mappings.keys) {
-        if (key == "Name" ||
-            key == "Date" ||
-            key == "Topic" ||
-            key == "Homework") {
-          continue;
-        }
-
-        // Process the user-defined headings
-        final name = PdfText();
-        name.process(key);
-
-        final items = cnvtStringToTableRows(mappings[key]!);
-
-        final thisTable = PdfTableModel();
-        thisTable.heading = name;
-        thisTable.rows = items;
-
-        tables!.add(thisTable);
-      }
-    }
-  }
+  Report(this.text);
 
   //TODO: syntax highlighting
   //TODO: import old database data
 
   /// Creates and saves a report PDF based on the parent object.
-  Future<PdfDoc> createPdf() async {
+  Future<PdfDoc> toPdfDoc() async {
+    final map = toMap(text);
+
     // transform string vars into the right from to be printed
-    final tempName = await DataStorage.getStudentName(studentId!);
-    final strName = tempName!.contains("(")
-        ? tempName.substring(0, tempName.indexOf("(") - 1)
-        : tempName;
-    final strDate = CompanionMethods.getDateString(date!);
-    final strTopics = CompanionMethods.convertListToString(topic!);
-    final strHomework = homework != null
-        ? CompanionMethods.convertListToString(homework!)
+    final name = map["Name"]!.first.contains("[")
+        ? map["Name"]!.first.substring(0, map["Name"]!.first.indexOf("[") - 1)
+        : map["Name"]!.first;
+    final date =
+        CompanionMethods.getDateString(DateTime.parse(map["Date"]!.first));
+    final topics = CompanionMethods.convertListToString(map["Topic"]!);
+    final homework = map["Homework"] != null
+        ? CompanionMethods.convertListToString(map["Homework"]!)
         : null;
 
     //header
     final _name = PdfText();
-    _name.process(strName);
+    _name.process(name, PdfSection.h1);
     final _date = PdfText();
-    _date.process(strDate);
+    _date.process(date, PdfSection.h1);
     final _topic = PdfText();
-    _topic.process(strTopics);
+    _topic.process(topics, PdfSection.h2);
     PdfText _homework = PdfText();
-    if (homework != null && homework!.first != "") {
-      _homework.process(strHomework!);
+    if (map["Homework"] != null && map["Homework"]!.first != "") {
+      _homework.process(homework!, PdfSection.h2);
+    }
+
+    //body
+    final _tables = <PdfTableModel>[];
+    for (final t in map.entries.where((element) =>
+        element.key != "Name" &&
+        element.key != "Date" &&
+        element.key != "Topic" &&
+        element.key != "Homework")) {
+      final thisTable = PdfTableModel();
+
+      final heading = PdfText();
+      heading.process(t.key, PdfSection.h3);
+      thisTable.heading = heading;
+
+      final temp = <PdfTableRowModel>[];
+      for (final row in t.value) {
+        final r = PdfTableRowModel();
+
+        if (row.contains("||")) {
+          final cellLhs = PdfText();
+          final cellRhs = PdfText();
+          final text = row.split("||");
+          cellLhs.process(text[0].trim(), PdfSection.body);
+          cellRhs.process(text[1].trim(), PdfSection.body);
+          r.lhs = cellLhs;
+          r.rhs = cellRhs;
+        } else {
+          final cell = PdfText();
+          cell.process(row, PdfSection.body);
+          r.lhs = cell;
+        }
+
+        temp.add(PdfTableRowModel());
+      }
+      thisTable.rows = temp;
+      _tables.add(thisTable);
     }
 
     final pdf = PdfDoc(
@@ -93,7 +94,7 @@ class Report {
       _date,
       _topic,
       _homework,
-      tables,
+      _tables,
     );
     return pdf;
   }
@@ -113,15 +114,15 @@ class Report {
       if (row.contains("||")) {
         final split = row.split("||");
 
-        lhs.process(split[0].trim());
-        rhs.process(split[1].trim());
+        lhs.process(split[0].trim(), PdfSection.body);
+        rhs.process(split[1].trim(), PdfSection.body);
 
         thisRow.lhs = lhs;
         thisRow.rhs = rhs;
 
         output.add(thisRow);
       } else {
-        lhs.process(row.trim());
+        lhs.process(row.trim(), PdfSection.body);
         thisRow.lhs = lhs;
         output.add(thisRow);
       }
@@ -130,20 +131,24 @@ class Report {
     return output;
   }
 
-  Map<String, List<String>> mapTextInput(String text) {
+  Map<String, List<String>> toMap(String text) {
     String currentHeading = "";
-    Map<String, List<String>> mappings = {};
-    List<String> currentEntryList = [];
+    final headingPrefix = "# ";
+    final linePrefix = "- ";
+    final commentPrefix = "!@";
+    final mappings = <String, List<String>>{};
+    var currentEntryList = <String>[];
 
     //loop through each line in text
     for (var line in text.split("\n")) {
       //don't read blank lines
-      if (line.trim().isEmpty || line.trim() == "-") continue;
-      if (line.trim() == objectSplitter) continue;
+      if (line.trim().isEmpty || line.trim().length == 0) continue;
+      if (line.trim().substring(0, 2) == commentPrefix) continue;
+      if (line.trim() == "=<" || line.trim() == ">=") continue;
 
       //check if the line contains a heading or not
-      if (line[0] != headingPrefix) {
-        if (line[0] == linePrefix) {
+      if (line.substring(0, 2) != headingPrefix) {
+        if (line.substring(0, 2) == linePrefix) {
           final temp = line.substring(1).trim();
           //add the line to the housing List obj
           currentEntryList.add(temp);
