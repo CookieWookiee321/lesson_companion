@@ -1,3 +1,4 @@
+import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
 import 'package:pdf/pdf.dart' as p;

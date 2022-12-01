@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 //==============================================================================
-//TextField Outlined
+// TextField Outlined
 //==============================================================================
 class TextFieldOutlined extends StatefulWidget {
   const TextFieldOutlined(
@@ -12,7 +13,9 @@ class TextFieldOutlined extends StatefulWidget {
       this.size,
       this.padded,
       this.readOnly = false,
-      this.onTextChanged})
+      this.textAlign = TextAlign.left,
+      this.onTextChanged,
+      this.keyboardType})
       : super(key: key);
 
   //TODO: Must assert no init value with controller
@@ -22,7 +25,9 @@ class TextFieldOutlined extends StatefulWidget {
   final String? hint;
   final double? size;
   final bool? padded;
+  final TextAlign textAlign;
   final bool readOnly;
+  final TextInputType? keyboardType;
   final Function(String text)? onTextChanged;
 
   @override
@@ -49,6 +54,11 @@ class _TextFieldOutlinedState extends State<TextFieldOutlined> {
           ? const EdgeInsets.fromLTRB(13.0, 6.0, 13.0, 0.0)
           : const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 0.0),
       child: TextField(
+        inputFormatters: widget.keyboardType == TextInputType.number
+            ? [FilteringTextInputFormatter.digitsOnly]
+            : null,
+        textAlign: widget.textAlign,
+        textDirection: TextDirection.ltr,
         decoration: InputDecoration(
           border: const OutlineInputBorder(),
           hintText: widget.hint,
@@ -58,6 +68,7 @@ class _TextFieldOutlinedState extends State<TextFieldOutlined> {
         ),
         style: TextStyle(fontSize: widget.size),
         maxLines: null,
+        keyboardType: widget.keyboardType,
         onChanged: widget.onTextChanged,
         controller: _controller,
       ),
@@ -66,7 +77,7 @@ class _TextFieldOutlinedState extends State<TextFieldOutlined> {
 }
 
 //==============================================================================
-//TextField Borderless
+// TextField Borderless
 //==============================================================================
 class TextFieldBorderless extends StatefulWidget {
   final String defaultText;
@@ -118,7 +129,7 @@ class _TextFieldBorderlessState extends State<TextFieldBorderless> {
 }
 
 //==============================================================================
-//Bottom Bar
+// Bottom Bar
 //==============================================================================
 class LabelledSwitch extends StatefulWidget {
   final String label;

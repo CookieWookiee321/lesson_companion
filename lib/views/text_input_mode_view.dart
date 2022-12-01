@@ -234,7 +234,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
     if (!input.contains(_stop)) sb.write(_stop);
 
-    return sb.toString().substring(0, sb.length - 1);
+    return sb.toString().substring(0, sb.length);
   }
 
   //LOOK UP---------------------------------------------------------------------
@@ -256,10 +256,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
     List<LookUp> temp = [];
     _textController.text = _autoFormatAll(_textController.text);
-    final indexStart = _textController.text.indexOf("* New Language");
-    final indexEnd = (_textController.text.indexOf("*", indexStart + 1) != -1)
-        ? _textController.text.indexOf("*", indexStart + 1)
-        : _textController.text.indexOf("===");
+    final indexStart = _textController.text.indexOf("# New Language");
+    final indexEnd = (_textController.text.indexOf("#", indexStart + 1) != -1)
+        ? _textController.text.indexOf("#", indexStart + 1)
+        : _textController.text.indexOf(">=");
     final chunk = _textController.text.substring(indexStart, indexEnd);
     final terms = chunk.split("\n-");
 
@@ -331,10 +331,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   void _processLookUpNewLanguageResults() {
     final sb = StringBuffer();
     final fullText = _textController.text;
-    final indexHeading = fullText.indexOf("* New Language");
-    int indexEnding = fullText.indexOf("*", indexHeading + 1);
+    final indexHeading = fullText.indexOf("# New Language");
+    int indexEnding = fullText.indexOf("#", indexHeading + 1);
     if (indexEnding == -1) {
-      indexEnding = fullText.indexOf("===");
+      indexEnding = fullText.indexOf(">=");
     }
     final newLanguage = fullText.substring(
       fullText.indexOf("\n", indexHeading) + 1,
@@ -355,6 +355,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         continue;
       }
 
+      //TODO: Replace with style snippet
       String fullDefinition = "${lur.term} s.b[(${lur.partOfSpeech})]";
       if (lur.example != null) {
         fullDefinition = "$fullDefinition // g.b[> ${lur.example}]";
@@ -398,7 +399,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           text = text.substring(stop + 2, text.length);
 
           final report = Report(singleEntry);
-          final mapping = report.toMap(text);
+          //TODO: the following method is returning empty
+          final mapping = report.toMap(singleEntry);
 
           //check if Student exists
           final student = Student();
@@ -452,6 +454,9 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             await Database.saveLesson(lesson);
             print(
                 "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}");
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}")));
           }
 
           if (mapping.keys.length > 4 ||

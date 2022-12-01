@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/container.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/database.dart';
+import 'package:lesson_companion/models/styling/pdf_lexer.dart';
 import 'package:lesson_companion/views/companion_widgets.dart';
+import 'package:pdf/pdf.dart';
 
 final _template =
     """>Lines like this will not be processed, so please replace them with your own information.
@@ -79,9 +79,20 @@ class MenuMainDialog extends StatefulWidget {
 }
 
 class _MenuMainDialogState extends State<MenuMainDialog> {
-  ///Menu names include [Report Options]
+  ///Menu names are [Templates], [Report Options], [Appearance Options]
   Future<void> _go(BuildContext context, String menuName) async {
     switch (menuName) {
+      case "Style Snippets":
+        await showDialog(
+            context: context,
+            builder: ((context) {
+              return AlertDialog(
+                title: Text("Style Snippets"),
+                scrollable: true,
+                content: _styleSnippetMenu(),
+              );
+            }));
+        break;
       case "Report Options":
         await showDialog(
             context: context,
@@ -193,6 +204,19 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
             padding: EdgeInsets.all(4.0)));
   }
 
+  Column _styleSnippetMenu() {
+    return Column(
+      children: [
+        IconButton(
+            icon: Icon(Icons.hdr_plus),
+            onPressed: () async => await showDialog(
+                  context: context,
+                  builder: (context) => NewSnippetDialogMenu(),
+                ))
+      ],
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -205,6 +229,10 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          OutlinedButton(
+              child: Text("Style Snippets"),
+              onPressed: () async => await _go(context, "Style Snippets")),
+          Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
           OutlinedButton(
             child: Text("Appearance Options"),
             onPressed: () async => await _go(context, "Appearance Options"),
@@ -220,5 +248,230 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
         ],
       ),
     );
+  }
+}
+
+class NewSnippetDialogMenu extends StatefulWidget {
+  const NewSnippetDialogMenu({super.key});
+
+  @override
+  State<NewSnippetDialogMenu> createState() => _NewSnippetDialogMenuState();
+}
+
+class _NewSnippetDialogMenuState extends State<NewSnippetDialogMenu> {
+  final _nameController = TextEditingController();
+  final _sizeController = TextEditingController(text: "14");
+
+  String? _snippetName;
+
+  PdfColor? _colour;
+  double _size = 11;
+  bool _bold = false;
+  bool _italic = false;
+  bool _underline = false;
+  bool _strikethrough = false;
+  //TODO: Add links functionality
+
+  Color _selectedColour = Colors.black;
+
+  final List<DropdownMenuItem> _colours = [
+    DropdownMenuItem(value: Colors.black, child: Text("black")),
+    DropdownMenuItem(value: Colors.blue, child: Text("blue")),
+    DropdownMenuItem(value: Colors.blueGrey, child: Text("blue grey")),
+    DropdownMenuItem(value: Colors.green, child: Text("green")),
+    DropdownMenuItem(value: Colors.grey, child: Text("grey")),
+    DropdownMenuItem(value: Colors.orange, child: Text("orange")),
+    DropdownMenuItem(value: Colors.pink, child: Text("pink")),
+    DropdownMenuItem(value: Colors.purple, child: Text("purple")),
+    DropdownMenuItem(value: Colors.red, child: Text("red")),
+    DropdownMenuItem(value: Colors.yellow, child: Text("yellow")),
+  ];
+
+  List<TextSpan> _buildPreview() {
+    TextDecoration? _handleDecor() {
+      if (_underline && _strikethrough) {
+        return TextDecoration.combine(
+            [TextDecoration.lineThrough, TextDecoration.underline]);
+      } else if (_underline) {
+        return TextDecoration.underline;
+      } else if (_strikethrough) {
+        return TextDecoration.lineThrough;
+      } else {
+        return null;
+      }
+    }
+
+    return [
+      TextSpan(
+          text: "sample text",
+          style: TextStyle(
+              fontSize: _size,
+              color: _selectedColour,
+              fontStyle: _italic ? FontStyle.italic : FontStyle.normal,
+              fontWeight: _bold ? FontWeight.bold : FontWeight.normal,
+              decoration: _handleDecor()))
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        title: Text("New Snippet"),
+        scrollable: true,
+        content: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            //TODO:focus on fixed things first, then add customisation later
+            Text("Snippet Name"),
+            TextFieldOutlined(
+              controller: _nameController,
+              textAlign: TextAlign.center,
+              onTextChanged: (text) {
+                _snippetName = text;
+              },
+            ),
+            Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+            Container(
+              decoration: BoxDecoration(
+                  border: Border.all(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  borderRadius: BorderRadius.circular(4.0)),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4.0),
+                child: Column(
+                  children: [
+                    Text("Styles"),
+                    //colour + size
+                    IntrinsicHeight(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text("Size"),
+                                Expanded(
+                                    child: TextFieldOutlined(
+                                  controller: _sizeController,
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  onTextChanged: (text) {
+                                    setState(() {
+                                      final temp = double.tryParse(text);
+                                      if (temp == null) {
+                                        _size = 14.0;
+                                        _sizeController.text = "14";
+                                      } else {
+                                        _size = temp;
+                                      }
+                                    });
+                                  },
+                                ))
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                              child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text("Colour"),
+                              Expanded(
+                                  child: DropdownButton(
+                                value: _selectedColour,
+                                items: _colours,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedColour = value;
+                                  });
+                                },
+                              ))
+                            ],
+                          ))
+                        ],
+                      ),
+                    ),
+                    Row(),
+                    //bold + italic
+                    Row(
+                      children: [
+                        Expanded(
+                            child: Row(
+                          children: [
+                            Checkbox(
+                                value: _bold,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _bold = value!;
+                                  });
+                                }),
+                            Text("bold"),
+                          ],
+                        )),
+                        Expanded(
+                            child: Row(
+                          children: [
+                            Checkbox(
+                                value: _italic,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _italic = value!;
+                                  });
+                                }),
+                            Text("italic"),
+                          ],
+                        ))
+                      ],
+                    ),
+                    //underline + strikethrough
+                    Row(
+                      children: [
+                        Expanded(
+                            child: Row(
+                          children: [
+                            Checkbox(
+                                value: _underline,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _underline = value!;
+                                  });
+                                }),
+                            Text("underline"),
+                          ],
+                        )),
+                        Expanded(
+                            child: Row(
+                          children: [
+                            Checkbox(
+                                value: _strikethrough,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _strikethrough = value!;
+                                  });
+                                }),
+                            Text("strikethrough"),
+                          ],
+                        ))
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ),
+            Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+            Text("Preview"),
+            //readonly textfield with changes applied on the fly
+            Container(
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  borderRadius: BorderRadius.circular(4.0)),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+                child: RichText(text: TextSpan(children: _buildPreview())),
+              ),
+            )
+          ],
+        ));
   }
 }
