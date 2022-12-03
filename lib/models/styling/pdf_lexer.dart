@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
+import 'package:lesson_companion/models/style_snippet.dart';
 import 'package:pdf/pdf.dart' as p;
 
 enum StylingOption {
@@ -11,7 +12,8 @@ enum StylingOption {
   subtext,
   underline,
   strikethrough,
-  link
+  link,
+  snippet
 }
 
 class PdfLexer {
@@ -25,14 +27,16 @@ class PdfLexer {
     r"(?<!\S)(\_{1})[A-Za-z0-9 ]+\1(?!\S)": StylingOption.underline,
     r"sub\<.*?\>": StylingOption.subtext,
     r"col<([A-Za-z0-9]+( [A-Za-z0-9]+)+) :: [a-zA-Z]+>": StylingOption.coloured,
+    r"[A-Za-z0-9]+\{[^}]*\}": StylingOption.snippet
     // r"lnk<([A-Za-z0-9]+( [A-Za-z0-9]+)+) :: ([A-Za-z0-9]+(\.[A-Za-z0-9]+)+)>":
     //     StylingOption.link,
   };
 
-  static List<PdfTextSpan> parseText(String text, PdfSection section) {
+  static Future<List<PdfTextSpan>> parseText(
+      String text, PdfSection section) async {
     final output = <PdfTextSpan>[];
     //seperate
-    final tempMap = _mapSeperateStyles(text, section);
+    final tempMap = await _mapSeperateStyles(text, section);
     //order
     if (tempMap.length > 1) {
       // sort the map by index (key)
@@ -56,11 +60,11 @@ class PdfLexer {
     return output;
   }
 
-  static Map<int, PdfTextSpan> _mapSeperateStyles(
-      String text, PdfSection section) {
+  static Future<Map<int, PdfTextSpan>> _mapSeperateStyles(
+      String text, PdfSection section) async {
     var output = <int, PdfTextSpan>{};
-    final double baseHeight;
-    final double subHeight;
+    double baseHeight;
+    double subHeight;
 
     switch (section) {
       case PdfSection.h1:
@@ -125,6 +129,37 @@ class PdfLexer {
             thisPdfTextSpan.underline = true;
             thisPdfTextSpan.color = p.PdfColors.blue;
             break;
+          case StylingOption.snippet:
+            final snippet = await StyleSnippet.getSnippet(
+                match.input.substring(0, match.input.indexOf("{")));
+
+            if (snippet != null) {
+              //TODO: currently snippets can only have one style applied
+              baseHeight = snippet.children.first.size;
+
+              final colour = snippet.children.first.getPdfColour();
+              if (colour != null) thisPdfTextSpan.color = colour;
+
+              for (final style in snippet.children.first.styles) {
+                switch (style) {
+                  case StylingOption.bold:
+                    thisPdfTextSpan.bold = true;
+                    break;
+                  case StylingOption.italic:
+                    thisPdfTextSpan.italic = true;
+                    break;
+                  case StylingOption.underline:
+                    thisPdfTextSpan.underline = true;
+                    break;
+                  case StylingOption.strikethrough:
+                    thisPdfTextSpan.strikethrough = true;
+                    break;
+                  default:
+                    continue;
+                }
+              }
+              break;
+            }
         }
 
         output[match.start] = thisPdfTextSpan;

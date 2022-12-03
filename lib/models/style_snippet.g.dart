@@ -586,16 +586,21 @@ const StyleSnippetSpanSchema = Schema(
   name: r'StyleSnippetSpan',
   id: 8337315344517272769,
   properties: {
-    r'styles': PropertySchema(
+    r'colour': PropertySchema(
       id: 0,
+      name: r'colour',
+      type: IsarType.long,
+    ),
+    r'size': PropertySchema(
+      id: 1,
+      name: r'size',
+      type: IsarType.double,
+    ),
+    r'styles': PropertySchema(
+      id: 2,
       name: r'styles',
       type: IsarType.byteList,
       enumMap: _StyleSnippetSpanstylesEnumValueMap,
-    ),
-    r'text': PropertySchema(
-      id: 1,
-      name: r'text',
-      type: IsarType.string,
     )
   },
   estimateSize: _styleSnippetSpanEstimateSize,
@@ -611,7 +616,6 @@ int _styleSnippetSpanEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.styles.length;
-  bytesCount += 3 + object.text.length * 3;
   return bytesCount;
 }
 
@@ -621,8 +625,9 @@ void _styleSnippetSpanSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeByteList(offsets[0], object.styles.map((e) => e.index).toList());
-  writer.writeString(offsets[1], object.text);
+  writer.writeLong(offsets[0], object.colour);
+  writer.writeDouble(offsets[1], object.size);
+  writer.writeByteList(offsets[2], object.styles.map((e) => e.index).toList());
 }
 
 StyleSnippetSpan _styleSnippetSpanDeserialize(
@@ -632,13 +637,14 @@ StyleSnippetSpan _styleSnippetSpanDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = StyleSnippetSpan();
+  object.colour = reader.readLong(offsets[0]);
+  object.size = reader.readDouble(offsets[1]);
   object.styles = reader
-          .readByteList(offsets[0])
+          .readByteList(offsets[2])
           ?.map((e) =>
               _StyleSnippetSpanstylesValueEnumMap[e] ?? StylingOption.bold)
           .toList() ??
       [];
-  object.text = reader.readString(offsets[1]);
   return object;
 }
 
@@ -650,14 +656,16 @@ P _styleSnippetSpanDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (reader.readLong(offset)) as P;
+    case 1:
+      return (reader.readDouble(offset)) as P;
+    case 2:
       return (reader
               .readByteList(offset)
               ?.map((e) =>
                   _StyleSnippetSpanstylesValueEnumMap[e] ?? StylingOption.bold)
               .toList() ??
           []) as P;
-    case 1:
-      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -686,6 +694,128 @@ const _StyleSnippetSpanstylesValueEnumMap = {
 
 extension StyleSnippetSpanQueryFilter
     on QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QFilterCondition> {
+  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
+      colourEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'colour',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
+      colourGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'colour',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
+      colourLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'colour',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
+      colourBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'colour',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
+      sizeEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'size',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
+      sizeGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'size',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
+      sizeLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'size',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
+      sizeBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'size',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
       stylesElementEqualTo(StylingOption value) {
     return QueryBuilder.apply(this, (query) {
@@ -828,142 +958,6 @@ extension StyleSnippetSpanQueryFilter
         upper,
         includeUpper,
       );
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      textEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      textGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      textLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      textBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'text',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      textStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      textEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      textContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      textMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'text',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      textIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'text',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      textIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'text',
-        value: '',
-      ));
     });
   }
 }

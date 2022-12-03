@@ -12,11 +12,11 @@ enum ColorOption { purple, orange, green, regular, silver }
 class PdfText {
   List<PdfTextSpan> components = [];
 
-  void process(String input, PdfSection section) {
+  void process(String input, PdfSection section) async {
     String text = input;
     //handle new lines
     text = text.replaceAll("//", "\n");
-    components = PdfLexer.parseText(text, section);
+    components = await PdfLexer.parseText(text, section);
   }
 
   ///Returns a plain text version of the substrings which make up the PdfText object

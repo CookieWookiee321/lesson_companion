@@ -1,8 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/models/styling/pdf_lexer.dart';
+import 'package:pdf/pdf.dart';
 
 part 'style_snippet.g.dart';
 
+//==============================================================================
+// StyleSnippet
+//==============================================================================
 @collection
 class StyleSnippet {
   final Id id = Isar.autoIncrement;
@@ -11,44 +16,86 @@ class StyleSnippet {
 
   StyleSnippet(this.marker, this.children);
 
-  // static Future<Student?> getStudentById(int id) async {
-  //   final isar = Isar.getInstance("student_db") ??
-  //       await Isar.open([StudentSchema], name: "student_db");
-  //   final student = isar.students.filter().idEqualTo(id).findFirst();
-  //   return student;
-  // }
+  // METHODS--------------------------------------------------------------------
 
-  // static Future<bool> checkLessonExists(int studentId, DateTime date) async {
-  //   final bool exists;
-  //   if (await getLessonId(await getStudentName(studentId), date) != null) {
-  //     exists = true;
-  //   } else {
-  //     exists = false;
-  //   }
-  //   return exists;
-  // }
+  static Future<StyleSnippet?> getSnippet(String marker) async {
+    final isar = Isar.getInstance("snippet_db") ??
+        await Isar.open([StyleSnippetSchema], name: "snippet_db");
+    return isar.styleSnippets.filter().markerEqualTo(marker).findFirst();
+  }
 
-  // static Future<void> saveLesson(Lesson lesson) async {
-  //   final isar = Isar.getInstance("lesson_db") ??
-  //       await Isar.open([LessonSchema], name: "lesson_db");
-  //   await isar.writeTxn(() async {
-  //     await isar.lessons.put(lesson);
-  //   });
-  // }
+  static Future<List<StyleSnippet>> getAllSnippets() async {
+    final isar = Isar.getInstance("snippet_db") ??
+        await Isar.open([StyleSnippetSchema], name: "snippet_db");
+    final x = await isar.styleSnippets.where().findAll();
+    return x;
+  }
 
-  // static Future<void> deleteStudent(int id) async {
-  //   final isar = Isar.getInstance("student_db") ??
-  //       await Isar.open([StudentSchema], name: "student_db");
+  static Future<void> saveLesson(StyleSnippet snippet) async {
+    final isar = Isar.getInstance("snippet_db") ??
+        await Isar.open([StyleSnippetSchema], name: "snippet_db");
+    await isar.writeTxn(() async {
+      await isar.styleSnippets.put(snippet);
+    });
+  }
 
-  //   await isar.writeTxn(() async {
-  //     isar.students.delete(id);
-  //   });
-  // }
+  static Future<void> deleteSnippet(int id) async {
+    final isar = Isar.getInstance("snippet_db") ??
+        await Isar.open([StyleSnippetSchema], name: "snippet_db");
+
+    await isar.writeTxn(() async {
+      isar.styleSnippets.delete(id);
+    });
+  }
 }
 
+//==============================================================================
+// StyleSnippetSpan
+//==============================================================================
+///[StyleSnippetSpan]s are used to build StyleSnippets.
 @embedded
 class StyleSnippetSpan {
-  late String text;
+  late double size;
+  late int colour;
   @enumerated
   late List<StylingOption> styles;
+
+  Map<int, Color> _colourMap = {
+    0: Colors.black,
+    1: Colors.blue,
+    2: Colors.blueGrey,
+    3: Colors.green,
+    4: Colors.grey,
+    5: Colors.orange,
+    6: Colors.pink,
+    7: Colors.purple,
+    8: Colors.red,
+    9: Colors.yellow,
+  };
+
+  ///Avaliable colour options are: [0: Colors.black], [1: Colors.blue],
+  ///[2: Colors.blueGrey], [3: Colors.green], [4: Colors.grey],
+  ///[5: Colors.orange], [6: Colors.pink], [7: Colors.purple],
+  ///[8: Colors.red], and [9: Colors.yellow]
+  void setColour(Color color) {
+    if (_colourMap.containsValue(color)) {
+      colour = _colourMap.keys
+          .where((element) => _colourMap[element] == color)
+          .first;
+    } else {
+      throw Exception("This is not a valid choice of colour.");
+    }
+  }
+
+  Color? getColour(int colour) {
+    return _colourMap[colour];
+  }
+
+  PdfColor? getPdfColour() {
+    try {
+      return PdfColor.fromInt(_colourMap[colour]!.value);
+    } on Exception {
+      return null;
+    }
+  }
 }

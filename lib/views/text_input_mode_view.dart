@@ -355,10 +355,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         continue;
       }
 
-      //TODO: Replace with style snippet
-      String fullDefinition = "${lur.term} s.b[(${lur.partOfSpeech})]";
+      //TODO: Replace with style snippet - snippets must be applied to fields
+      String fullDefinition = "${lur.term} pos{(${lur.partOfSpeech})}";
       if (lur.example != null) {
-        fullDefinition = "$fullDefinition // g.b[> ${lur.example}]";
+        fullDefinition = "$fullDefinition //eg{> ${lur.example}}";
       }
       fullDefinition = "$fullDefinition || ${lur.definition}";
       lines[i] = fullDefinition;
@@ -399,7 +399,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           text = text.substring(stop + 2, text.length);
 
           final report = Report(singleEntry);
-          //TODO: the following method is returning empty
           final mapping = report.toMap(singleEntry);
 
           //check if Student exists

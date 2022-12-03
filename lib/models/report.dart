@@ -33,8 +33,8 @@ class Report {
     final name = map["Name"]!.first.contains("[")
         ? map["Name"]!.first.substring(0, map["Name"]!.first.indexOf("[") - 1)
         : map["Name"]!.first;
-    final date =
-        CompanionMethods.getDateString(DateTime.parse(map["Date"]!.first));
+    final date = CompanionMethods.getDateString(
+        DateTime.parse(map["Date"]!.first.replaceAll("/", "-")));
     final topics = CompanionMethods.convertListToString(map["Topic"]!);
     final homework = map["Homework"] != null
         ? CompanionMethods.convertListToString(map["Homework"]!)
