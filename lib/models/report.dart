@@ -22,9 +22,6 @@ class Report {
 
   Report(this.text);
 
-  //TODO: syntax highlighting
-  //TODO: import old database data
-
   /// Creates and saves a report PDF based on the parent object.
   Future<PdfDoc> toPdfDoc() async {
     final map = toMap(text);
@@ -42,14 +39,14 @@ class Report {
 
     //header
     final _name = PdfText();
-    _name.process(name, PdfSection.h1);
+    await _name.process(name, PdfSection.h1);
     final _date = PdfText();
-    _date.process(date, PdfSection.h1);
+    await _date.process(date, PdfSection.h1);
     final _topic = PdfText();
-    _topic.process(topics, PdfSection.h2);
+    await _topic.process(topics, PdfSection.h2);
     PdfText _homework = PdfText();
     if (map["Homework"] != null && map["Homework"]!.first != "") {
-      _homework.process(homework!, PdfSection.h2);
+      await _homework.process(homework!, PdfSection.h2);
     }
 
     //body
@@ -62,7 +59,7 @@ class Report {
       final thisTable = PdfTableModel();
 
       final heading = PdfText();
-      heading.process(t.key, PdfSection.h3);
+      await heading.process(t.key, PdfSection.h3);
       thisTable.heading = heading;
 
       final temp = <PdfTableRowModel>[];
@@ -73,13 +70,13 @@ class Report {
           final cellLhs = PdfText();
           final cellRhs = PdfText();
           final text = row.split("||");
-          cellLhs.process(text[0].trim(), PdfSection.body);
-          cellRhs.process(text[1].trim(), PdfSection.body);
+          await cellLhs.process(text[0].trim(), PdfSection.body);
+          await cellRhs.process(text[1].trim(), PdfSection.body);
           r.lhs = cellLhs;
           r.rhs = cellRhs;
         } else {
           final cell = PdfText();
-          cell.process(row, PdfSection.body);
+          await cell.process(row, PdfSection.body);
           r.lhs = cell;
         }
 
@@ -103,7 +100,8 @@ class Report {
   //METHODS---------------------------------------------------------------------
   //============================================================================
 
-  List<PdfTableRowModel> cnvtStringToTableRows(List<String> entries) {
+  Future<List<PdfTableRowModel>> cnvtStringToTableRows(
+      List<String> entries) async {
     List<PdfTableRowModel> output = [];
 
     for (final row in entries) {
@@ -114,15 +112,15 @@ class Report {
       if (row.contains("||")) {
         final split = row.split("||");
 
-        lhs.process(split[0].trim(), PdfSection.body);
-        rhs.process(split[1].trim(), PdfSection.body);
+        await lhs.process(split[0].trim(), PdfSection.body);
+        await rhs.process(split[1].trim(), PdfSection.body);
 
         thisRow.lhs = lhs;
         thisRow.rhs = rhs;
 
         output.add(thisRow);
       } else {
-        lhs.process(row.trim(), PdfSection.body);
+        await lhs.process(row.trim(), PdfSection.body);
         thisRow.lhs = lhs;
         output.add(thisRow);
       }

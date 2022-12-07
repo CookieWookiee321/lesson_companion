@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
@@ -35,7 +36,7 @@ class PdfLexer {
   static Future<List<PdfTextSpan>> parseText(
       String text, PdfSection section) async {
     final output = <PdfTextSpan>[];
-    //seperate
+    //separate
     final tempMap = await _mapSeperateStyles(text, section);
     //order
     if (tempMap.length > 1) {
@@ -54,7 +55,7 @@ class PdfLexer {
       }
     } else {
       // if no styling present, full text added with default settings
-      output.add(tempMap[0]!);
+      output.add(tempMap.values.first);
     }
 
     return output;
@@ -62,7 +63,11 @@ class PdfLexer {
 
   static Future<Map<int, PdfTextSpan>> _mapSeperateStyles(
       String text, PdfSection section) async {
+    final _replaceMarker = ".?";
+
     var output = <int, PdfTextSpan>{};
+    final sb = StringBuffer();
+    sb.write(text);
     double baseHeight;
     double subHeight;
 
@@ -99,7 +104,8 @@ class PdfLexer {
       for (final match in matches) {
         final thisPdfTextSpan = PdfTextSpan(
             text: _getTrueText(
-                input: match.input.toString(), regExp: expression));
+                input: match.input.toString().substring(match.start, match.end),
+                regExp: expression));
         thisPdfTextSpan.size = baseHeight;
 
         switch (styles[expression]) {
@@ -130,8 +136,10 @@ class PdfLexer {
             thisPdfTextSpan.color = p.PdfColors.blue;
             break;
           case StylingOption.snippet:
-            final snippet = await StyleSnippet.getSnippet(
-                match.input.substring(0, match.input.indexOf("{")));
+            final snippetName = match.input
+                .substring(match.start, match.input.indexOf("{", match.start));
+            final snippet = await StyleSnippet.getSnippet(snippetName);
+            print("Stop skipping me");
 
             if (snippet != null) {
               //TODO: currently snippets can only have one style applied
@@ -163,6 +171,39 @@ class PdfLexer {
         }
 
         output[match.start] = thisPdfTextSpan;
+        String replacement = "";
+        for (int i = 0; i < (match.end - match.start); i++) {
+          replacement = "$replacement^";
+        }
+        final temp =
+            sb.toString().replaceFirst(RegExp(expression), replacement);
+        sb.clear();
+        sb.write(temp);
+      }
+      // process non-snippeted text at the end of the loop
+      int index = 0;
+      int indexEnd = 0;
+      bool skippingMode = false;
+      String newText = "";
+      for (final c in sb.toString().characters) {
+        if (c != "^") {
+          if (skippingMode) {
+            index = indexEnd;
+            skippingMode = false;
+          }
+          newText = "$newText$c";
+          indexEnd++;
+        } else {
+          if (!skippingMode) {
+            //add to ouput[]
+            output[index] = PdfTextSpan(text: newText);
+            skippingMode = true;
+            indexEnd++;
+          } else {
+            indexEnd++;
+            continue;
+          }
+        }
       }
     }
 
@@ -188,6 +229,8 @@ class PdfLexer {
         return input.substring(4, input.length - 1);
       case r"col<([A-Za-z0-9]+( [A-Za-z0-9]+)+) :: [a-zA-Z]+>":
         return input.substring(4, input.indexOf("::")).trim();
+      case r"[A-Za-z0-9]+\{[^}]*\}":
+        return input.substring(input.indexOf("{") + 1, input.indexOf("}"));
       default:
         return input;
     }

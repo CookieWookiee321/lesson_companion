@@ -40,7 +40,7 @@ const StyleSnippetSchema = CollectionSchema(
   getId: _styleSnippetGetId,
   getLinks: _styleSnippetGetLinks,
   attach: _styleSnippetAttach,
-  version: '3.0.2',
+  version: '3.0.5',
 );
 
 int _styleSnippetEstimateSize(
@@ -680,6 +680,7 @@ const _StyleSnippetSpanstylesEnumValueMap = {
   'underline': 5,
   'strikethrough': 6,
   'link': 7,
+  'snippet': 8,
 };
 const _StyleSnippetSpanstylesValueEnumMap = {
   0: StylingOption.bold,
@@ -690,6 +691,7 @@ const _StyleSnippetSpanstylesValueEnumMap = {
   5: StylingOption.underline,
   6: StylingOption.strikethrough,
   7: StylingOption.link,
+  8: StylingOption.snippet,
 };
 
 extension StyleSnippetSpanQueryFilter

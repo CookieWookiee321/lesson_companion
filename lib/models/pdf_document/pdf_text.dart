@@ -12,7 +12,7 @@ enum ColorOption { purple, orange, green, regular, silver }
 class PdfText {
   List<PdfTextSpan> components = [];
 
-  void process(String input, PdfSection section) async {
+  Future<void> process(String input, PdfSection section) async {
     String text = input;
     //handle new lines
     text = text.replaceAll("//", "\n");

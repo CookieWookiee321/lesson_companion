@@ -49,7 +49,7 @@ const LessonSchema = CollectionSchema(
   getId: _lessonGetId,
   getLinks: _lessonGetLinks,
   attach: _lessonAttach,
-  version: '3.0.2',
+  version: '3.0.5',
 );
 
 int _lessonEstimateSize(

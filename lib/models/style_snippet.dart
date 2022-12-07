@@ -21,7 +21,10 @@ class StyleSnippet {
   static Future<StyleSnippet?> getSnippet(String marker) async {
     final isar = Isar.getInstance("snippet_db") ??
         await Isar.open([StyleSnippetSchema], name: "snippet_db");
-    return isar.styleSnippets.filter().markerEqualTo(marker).findFirst();
+    print("Opened snippet_db");
+    final styleSnippets = isar.styleSnippets;
+    final output = styleSnippets.filter().markerEqualTo(marker).findFirst();
+    return output;
   }
 
   static Future<List<StyleSnippet>> getAllSnippets() async {
