@@ -4,17 +4,16 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:lesson_companion/controllers/companion_methods.dart';
+import 'package:lesson_companion/controllers/text_mode_input_controller.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/dictionary/free_dictionary.dart';
 import 'package:lesson_companion/models/dictionary/look_up.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
-import 'package:lesson_companion/views/pdf_preview.dart';
+import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-
-import '../controllers/COMPANION_METHODS.dart';
-import '../controllers/text_mode_input_controller.dart';
 
 final _template =
     """=< !@This is a commented line - it will not be processed in the report

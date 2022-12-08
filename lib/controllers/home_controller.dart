@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
-import 'package:lesson_companion/views/home_view.dart';
 
 import 'package:intl/intl.dart';
+import 'package:lesson_companion/views/main_windows/home_view.dart';
 
 import 'companion_methods.dart';
 

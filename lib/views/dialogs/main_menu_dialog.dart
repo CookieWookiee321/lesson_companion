@@ -83,8 +83,8 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
   Future<void> _go(BuildContext context, String menuName) async {
     switch (menuName) {
       case "Style Snippets":
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => SnippetDialogMenu()));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => SnippetList()));
         break;
       case "Report Options":
         await showDialog(

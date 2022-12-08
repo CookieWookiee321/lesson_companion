@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
 import 'package:lesson_companion/models/style_snippet.dart';
@@ -37,6 +36,7 @@ class PdfLexer {
       String text, PdfSection section) async {
     final output = <PdfTextSpan>[];
     //separate
+
     final tempMap = await _mapSeperateStyles(text, section);
     //order
     if (tempMap.length > 1) {
@@ -48,22 +48,23 @@ class PdfLexer {
       // get and order the regular text
       int start = 0;
       for (final index in placementMap.keys) {
-        final before = text.substring(start, index);
-        output.add(PdfTextSpan(text: before));
         output.add(placementMap[index]!);
-        start = index + placementMap[index]!.text.length;
       }
     } else {
       // if no styling present, full text added with default settings
       output.add(tempMap.values.first);
     }
 
+    //TODO: do blank PdfTextSpans matter?
     return output;
   }
 
   static Future<Map<int, PdfTextSpan>> _mapSeperateStyles(
       String text, PdfSection section) async {
     final _replaceMarker = ".?";
+    String newText = "";
+    int index = 0;
+    int indexEnd = 0;
 
     var output = <int, PdfTextSpan>{};
     final sb = StringBuffer();
@@ -139,7 +140,6 @@ class PdfLexer {
             final snippetName = match.input
                 .substring(match.start, match.input.indexOf("{", match.start));
             final snippet = await StyleSnippet.getSnippet(snippetName);
-            print("Stop skipping me");
 
             if (snippet != null) {
               //TODO: currently snippets can only have one style applied
@@ -180,23 +180,36 @@ class PdfLexer {
         sb.clear();
         sb.write(temp);
       }
+
+      if (text == "I was **in** elementary **school**") {
+        print("here");
+      }
+
       // process non-snippeted text at the end of the loop
-      int index = 0;
-      int indexEnd = 0;
       bool skippingMode = false;
-      String newText = "";
       for (final c in sb.toString().characters) {
         if (c != "^") {
           if (skippingMode) {
             index = indexEnd;
             skippingMode = false;
+            if (newText == "") {
+              newText = " ";
+            }
+            output[index] = PdfTextSpan(text: newText);
+            newText = "";
+            indexEnd++;
+            continue;
           }
           newText = "$newText$c";
           indexEnd++;
         } else {
-          if (!skippingMode) {
+          if (!skippingMode && newText.isNotEmpty) {
             //add to ouput[]
+            if (newText == "") {
+              newText = " ";
+            }
             output[index] = PdfTextSpan(text: newText);
+            newText = "";
             skippingMode = true;
             indexEnd++;
           } else {
@@ -208,7 +221,15 @@ class PdfLexer {
     }
 
     if (numMatches == 0) {
+      if (newText == "") {
+        newText = " ";
+      }
       output[0] = PdfTextSpan(text: text, size: baseHeight);
+    } else if (newText.isNotEmpty) {
+      if (newText == "") {
+        newText = " ";
+      }
+      output[indexEnd] = PdfTextSpan(text: newText);
     }
 
     return output;

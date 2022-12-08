@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/database.dart';
-import 'package:lesson_companion/views/base_view.dart';
+import 'package:lesson_companion/views/main_windows/base_view.dart';
 import 'package:lesson_companion/views/dialogs/main_menu_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

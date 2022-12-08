@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/views/dialogs/main_menu_dialog.dart';
-import 'package:lesson_companion/views/home_view.dart';
-import 'package:lesson_companion/views/lesson_view.dart';
-import 'package:lesson_companion/views/student_view.dart';
-import 'package:lesson_companion/views/text_input_mode_view.dart';
+import 'package:lesson_companion/views/main_windows/home_view.dart';
+import 'package:lesson_companion/views/main_windows/lesson_view.dart';
+import 'package:lesson_companion/views/main_windows/student_view.dart';
+import 'package:lesson_companion/views/main_windows/text_input_mode_view.dart';
 
 class BaseView extends StatefulWidget {
   const BaseView({super.key});

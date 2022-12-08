@@ -6,7 +6,7 @@ import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:printing/printing.dart';
 
-import '../models/pdf_document/pdf_doc.dart';
+import '../../models/pdf_document/pdf_doc.dart';
 
 class PdfPreviewPage extends StatelessWidget {
   final PdfDoc _pdfDocument;

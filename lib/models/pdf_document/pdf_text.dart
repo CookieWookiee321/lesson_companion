@@ -82,74 +82,35 @@ class PdfText {
   }
 
   w.RichText toRichText() {
-    // for (final entry in map.entries) {
-    //   int index = entry.key;
-    //   for (final character in entry.value.text.characters) {
-    //     if (!spans.containsKey(index)) {
-    //       spans[index] = PdfTextSpan(text: character);
-    //     }
+    final textSpans = <w.TextSpan>[];
 
-    //     if (!spans[index]!.bold) {
-    //       if (entry.value.bold) {
-    //         spans[index]!.bold = true;
-    //       }
-    //     }
-    //     if (!spans[index]!.italic) {
-    //       if (entry.value.italic) {
-    //         spans[index]!.italic = true;
-    //       }
-    //     }
-    //     if (!spans[index]!.underline) {
-    //       if (entry.value.underline) {
-    //         spans[index]!.underline = true;
-    //       }
-    //     }
-    //     if (!spans[index]!.strikethrough) {
-    //       if (entry.value.strikethrough) {
-    //         spans[index]!.strikethrough = true;
-    //       }
-    //     }
-    //     if (spans[index]!.color == p.PdfColors.black) {
-    //       if (entry.value.color != p.PdfColors.black) {
-    //         spans[index]!.color == p.PdfColors.black;
-    //       }
-    //     }
-    //   }
-    // }
+    for (final pdfTextSpan in components) {
+      final w.TextDecoration? decor;
+      if (pdfTextSpan.strikethrough && pdfTextSpan.underline) {
+        decor = w.TextDecoration.combine(
+            [w.TextDecoration.underline, w.TextDecoration.lineThrough]);
+      } else if (pdfTextSpan.strikethrough) {
+        decor = w.TextDecoration.lineThrough;
+      } else if (pdfTextSpan.underline) {
+        decor = w.TextDecoration.underline;
+      } else {
+        decor = null;
+      }
 
-    // //compile return list
-    // final List<w.TextSpan> output = [];
-    // for (final span in spans.entries) {
-    //   final decoration;
-    //   if (span.value.strikethrough && span.value.underline) {
-    //     decoration = w.TextDecoration.combine(
-    //         [w.TextDecoration.lineThrough, w.TextDecoration.underline]);
-    //   } else if (span.value.strikethrough) {
-    //     decoration = w.TextDecoration.lineThrough;
-    //   } else if (span.value.underline) {
-    //     decoration = w.TextDecoration.underline;
-    //   } else {
-    //     decoration = null;
-    //   }
+      final span = w.TextSpan(
+          text: pdfTextSpan.text,
+          style: w.TextStyle(
+            fontSize: pdfTextSpan.size,
+              decoration: decor != null ? decor : null,
+              color: pdfTextSpan.color,
+              fontWeight:
+                  pdfTextSpan.bold ? w.FontWeight.bold : w.FontWeight.normal,
+              fontStyle: pdfTextSpan.italic
+                  ? w.FontStyle.italic
+                  : w.FontStyle.normal));
 
-    //   //get correct font
-    //   final w.Font font =
-    //       w.Font.ttf(await rootBundle.load("lib/assets/Andika-Regular.ttf"));
-
-    //   //build and add the result
-    //   output.add(w.TextSpan(
-    //       text: span.value.text,
-    //       style: w.TextStyle(
-    //           font: font,
-    //           color: span.value.color,
-    //           fontSize: span.value.size,
-    //           fontWeight:
-    //               span.value.bold ? w.FontWeight.bold : w.FontWeight.normal,
-    //           fontStyle:
-    //               span.value.italic ? w.FontStyle.italic : w.FontStyle.normal,
-    //           decoration: decoration)));
-    // }
-    // return w.RichText(text: w.TextSpan(children: output));
-    return w.RichText(text: w.TextSpan(text: "Hello"));
+      textSpans.add(span);
+    }
+    return w.RichText(text: w.TextSpan(children: textSpans));
   }
 }

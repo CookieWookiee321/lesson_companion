@@ -6,17 +6,13 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/controllers/home_controller.dart';
-import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/lesson.dart';
-import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
-import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/models/views/home_view_models.dart';
-import 'package:lesson_companion/views/pdf_preview.dart';
-
-import 'companion_widgets.dart';
+import 'package:lesson_companion/views/companion_widgets.dart';
+import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 
 typedef IntCallback = void Function(int row, int column);
 
@@ -92,7 +88,7 @@ class _HomeViewState extends State<HomeView> {
 
     //check if student exists
     if (!await Database.checkStudentExistsByName(_name!)) {
-      //create new entry if not existant
+      //create new entry if not existent
       thisStudent = Student();
       thisStudent.name = _name!;
       thisStudent.active = true;

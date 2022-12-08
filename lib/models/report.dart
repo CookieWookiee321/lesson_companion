@@ -80,7 +80,7 @@ class Report {
           r.lhs = cell;
         }
 
-        temp.add(PdfTableRowModel());
+        temp.add(r);
       }
       thisTable.rows = temp;
       _tables.add(thisTable);

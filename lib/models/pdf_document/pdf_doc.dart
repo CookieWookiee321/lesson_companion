@@ -105,7 +105,7 @@ class PdfDoc {
   //============================================================================
   //COMPONENTS------------------------------------------------------------------
   //============================================================================
-  ///Takes a heading and a map of LHS and RHS values to build a table with
+  ///Takes a heading and a map of LHS and RHS values to build a table with them
   Future<Widget> _newTable({required PdfTableModel table}) async {
     final _heading = table.heading!.toRichText();
     final _rows = await _styleTableRows(table);

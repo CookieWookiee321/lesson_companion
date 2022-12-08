@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/lesson.dart';
 
-import '../controllers/companion_methods.dart';
-import '../models/student.dart';
+import '../../controllers/companion_methods.dart';
+import '../../models/student.dart';
 
 //==============================================================================
 //Lesson History View

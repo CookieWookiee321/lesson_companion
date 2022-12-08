@@ -34,7 +34,7 @@ class StyleSnippet {
     return x;
   }
 
-  static Future<void> saveLesson(StyleSnippet snippet) async {
+  static Future<void> saveSnippet(StyleSnippet snippet) async {
     final isar = Isar.getInstance("snippet_db") ??
         await Isar.open([StyleSnippetSchema], name: "snippet_db");
     await isar.writeTxn(() async {
@@ -65,15 +65,15 @@ class StyleSnippetSpan {
 
   Map<int, Color> _colourMap = {
     0: Colors.black,
-    1: Colors.blue,
+    1: Colors.blue[800]!,
     2: Colors.blueGrey,
     3: Colors.green,
-    4: Colors.grey,
+    4: Colors.grey[600]!,
     5: Colors.orange,
-    6: Colors.pink,
-    7: Colors.purple,
-    8: Colors.red,
-    9: Colors.yellow,
+    6: Colors.pink[500]!,
+    7: Colors.purple[600]!,
+    8: Colors.red[700]!,
+    9: Colors.yellow[700]!,
   };
 
   ///Avaliable colour options are: [0: Colors.black], [1: Colors.blue],
