@@ -23,15 +23,15 @@ class SnippetListState extends State<SnippetList> {
     );
   }
 
-  AlertDialog _confirmMenu(int id) {
+  AlertDialog _confirmMenu(String marker) {
     return AlertDialog(
       scrollable: true,
-      content: Text("Are you sure you want to delete this lesson?"),
+      content: Text("Are you sure you want to delete this snippet?"),
       actions: [
         TextButton(
           child: Text("Yes"),
           onPressed: () async {
-            await StyleSnippet.deleteSnippet(id);
+            await StyleSnippet.deleteSnippet(marker);
             Navigator.pop(context);
           },
         ),
@@ -40,6 +40,56 @@ class SnippetListState extends State<SnippetList> {
               Navigator.pop(context);
             },
             child: Text("No"))
+      ],
+    );
+  }
+
+  ListView _snippetListView(List<StyleSnippet> list) {
+    return ListView(
+      shrinkWrap: true,
+      children: [
+        ...list.map((e) {
+          return ListTile(
+            leading: Text(e.marker),
+            title: RichText(text: TextSpan(text: "hello")),
+            onTap: () async {
+              await showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton(
+                            child: Text("Edit"),
+                            onPressed: () async {
+                              await showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return _snippetEditMenu();
+                                },
+                              ).then((value) => Navigator.pop(context));
+                            },
+                          ),
+                          OutlinedButton(
+                            child: Text("Delete"),
+                            onPressed: () async {
+                              await showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return _confirmMenu(e.marker);
+                                },
+                              ).then((value) => Navigator.pop(context));
+                              setState(() {});
+                            },
+                          )
+                        ],
+                      ),
+                    );
+                  });
+            },
+          );
+        })
       ],
     );
   }
@@ -73,61 +123,7 @@ class SnippetListState extends State<SnippetList> {
                               if (snapshot.connectionState ==
                                   ConnectionState.done) {
                                 if (snapshot.hasData) {
-                                  return ListView(
-                                    shrinkWrap: true,
-                                    children: [
-                                      ...snapshot.data!.map((e) {
-                                        return ListTile(
-                                          leading: Text(e.marker),
-                                          title: RichText(
-                                              text: TextSpan(text: "hello")),
-                                          onLongPress: () async {
-                                            await showDialog(
-                                                context: context,
-                                                builder: (context) {
-                                                  return AlertDialog(
-                                                    content: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        OutlinedButton(
-                                                          child: Text("Edit"),
-                                                          onPressed: () async {
-                                                            await showDialog(
-                                                              context: context,
-                                                              builder:
-                                                                  (context) {
-                                                                return _snippetEditMenu();
-                                                              },
-                                                            ).then((value) =>
-                                                                Navigator.pop(
-                                                                    context));
-                                                          },
-                                                        ),
-                                                        OutlinedButton(
-                                                          child: Text("Delete"),
-                                                          onPressed: () async {
-                                                            await showDialog(
-                                                              context: context,
-                                                              builder:
-                                                                  (context) {
-                                                                return _confirmMenu(
-                                                                    e.id);
-                                                              },
-                                                            ).then((value) =>
-                                                                Navigator.pop(
-                                                                    context));
-                                                          },
-                                                        )
-                                                      ],
-                                                    ),
-                                                  );
-                                                });
-                                          },
-                                        );
-                                      })
-                                    ],
-                                  );
+                                  return _snippetListView(snapshot.data!);
                                 }
                               }
                               return Center(

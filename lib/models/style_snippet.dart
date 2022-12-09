@@ -42,12 +42,14 @@ class StyleSnippet {
     });
   }
 
-  static Future<void> deleteSnippet(int id) async {
+  static Future<void> deleteSnippet(String marker) async {
     final isar = Isar.getInstance("snippet_db") ??
         await Isar.open([StyleSnippetSchema], name: "snippet_db");
 
     await isar.writeTxn(() async {
-      isar.styleSnippets.delete(id);
+      final snippet =
+          await isar.styleSnippets.filter().markerEqualTo(marker).findFirst();
+      await isar.styleSnippets.delete(snippet!.id);
     });
   }
 }
