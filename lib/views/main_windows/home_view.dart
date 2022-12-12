@@ -51,8 +51,8 @@ class _HomeViewState extends State<HomeView> {
   void _autoInsert(TextEditingController controller) {
     final indexNow = controller.selection.base.offset;
     final character = controller.text[indexNow - 1];
-    controller.text =
-        CompanionMethods.autoInsert(character, controller, indexNow);
+    controller.text = CompanionMethods.autoInsert(
+        character, controller, indexNow, controller.selection.extentOffset);
   }
 
   @override

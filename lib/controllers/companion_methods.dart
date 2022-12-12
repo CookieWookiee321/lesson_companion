@@ -212,42 +212,24 @@ class CompanionMethods {
     return SelectableText.rich(TextSpan(children: outputComponents));
   }
 
-  static String autoInsert(
-      String char, TextEditingController controller, int currentIndex) {
-    if (char != "q" ||
-        char != "e" ||
-        char != "i" ||
-        char != "[" ||
-        char != "(" ||
-        char != "<" ||
-        char != "{") return controller.text;
-
+  static String autoInsert(String char, TextEditingController controller,
+      int currentIndex, int selectionEnd) {
     final sb = StringBuffer();
 
+    final start = controller.text.substring(0, currentIndex);
+    final end = controller.text.substring(currentIndex, controller.text.length);
+
     switch (char) {
-      case "[":
-        sb.write(
-            "${controller.text.substring(0, currentIndex)}[]${controller.text.substring(currentIndex, controller.text.length)}");
-        break;
-      case "(":
-        sb.write(
-            "${controller.text.substring(0, currentIndex)}()${controller.text.substring(currentIndex, controller.text.length)}");
-        break;
-      case "{":
-        sb.write(
-            "${controller.text.substring(0, currentIndex)}{}${controller.text.substring(currentIndex, controller.text.length)}");
-        break;
-      case "<":
-        sb.write(
-            "${controller.text.substring(0, currentIndex)}<>${controller.text.substring(currentIndex, controller.text.length)}");
+      case "*":
+        if (selectionEnd - currentIndex == 0) {
+          sb.write("$start$char$end");
+        } else {
+          final middle = controller.text.substring(currentIndex, selectionEnd);
+          sb.write("$start$middle$char$end");
+        }
         break;
       default:
-        sb.write(
-            "${controller.text.substring(0, currentIndex)}\\\\${controller.text.substring(currentIndex, controller.text.length)}");
-        break;
     }
-    controller.selection = TextSelection(
-        baseOffset: currentIndex + 1, extentOffset: currentIndex + 1);
     return sb.toString();
   }
 

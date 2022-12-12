@@ -1,8 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
-import 'package:lesson_companion/controllers/home_controller.dart';
 import 'package:lesson_companion/controllers/styler.dart';
-import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_doc.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
@@ -12,6 +10,8 @@ part 'report.g.dart';
 
 @collection
 class Report {
+  Report(this.text);
+
   Id id = Isar.autoIncrement;
   final String text;
 
@@ -19,8 +19,6 @@ class Report {
   final headingPrefix = '*';
   final tableSubheading = '#';
   final linePrefix = "-";
-
-  Report(this.text);
 
   /// Creates and saves a report PDF based on the parent object.
   Future<PdfDoc> toPdfDoc() async {

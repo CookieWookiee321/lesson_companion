@@ -1,12 +1,8 @@
 import 'package:flutter/services.dart';
-import 'package:isar/isar.dart';
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
-import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
-import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
-import 'package:lesson_companion/models/styling/pdf_lexer.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart';
 
@@ -156,15 +152,13 @@ class PdfDoc {
                 table.heading.toString() == "Pronunciation"
                     ? UrlLink(
                         child: Expanded(
-                            child: Container(
-                                child: row[0],
-                                decoration: BoxDecoration(
-                                    border: Border(
-                                        bottom: BorderSide(
-                                            color: PdfColors.blue600))))),
+                            child: Padding(
+                                padding: EdgeInsets.all(3.0), child: row[0])),
                         destination: _getForvoLink(
                             row[0].text.toPlainText().toLowerCase()))
-                    : Expanded(child: row[0]),
+                    : Expanded(
+                        child: Padding(
+                            padding: EdgeInsets.all(3.0), child: row[0])),
 
                 // Separator
                 if (row.length == 2)
@@ -175,7 +169,8 @@ class PdfDoc {
                 // RHS
                 if (row.length == 2)
                   Expanded(
-                      child: row[1],
+                      child:
+                          Padding(padding: EdgeInsets.all(3.0), child: row[1]),
                       flex: _flexAmounts[table.heading.toString()] ?? 1)
               ]);
         }),

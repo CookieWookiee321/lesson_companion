@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
 import 'package:lesson_companion/models/styling/pdf_lexer.dart';
-import 'package:pdf/pdf.dart' as p;
 import 'package:pdf/widgets.dart' as w;
 
 import '../../controllers/styler.dart';
@@ -100,7 +97,7 @@ class PdfText {
       final span = w.TextSpan(
           text: pdfTextSpan.text,
           style: w.TextStyle(
-            fontSize: pdfTextSpan.size,
+              fontSize: pdfTextSpan.size,
               decoration: decor != null ? decor : null,
               color: pdfTextSpan.color,
               fontWeight:

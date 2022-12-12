@@ -13,43 +13,22 @@ import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
 
-final _template =
-    """=< !@This is a commented line - it will not be processed in the report
-  * Name
-      Enter the student's name here
+final _template = """=< !@
+# Name
+NAME
+# Date
+${CompanionMethods.getShortDate(DateTime.now())}
+# Topic
+___ sh1{(___)}
+# New Language
+___
+# Pronunciation
 
-  * Date
-      ${CompanionMethods.getShortDate(DateTime.now())}
+# Corrections
 
-  * Topic
-      Enter one topic
-      Per line p.i[and style text like this]
-
-  * Homework
-      Homework works
-      The same way [and subtext is also allowed,] p.bi[which can be styled in various ways]
-
-  * New Language
-      select
-      "Auto-look up"
-      in
-      the
-      menu
-
-  * Corrections
-      Tables work a little bit differently ||
-          as you can break up text by cells
-      You can show the end of the left-hand column cell ||
-          by using the specific marker
-      You can format these cells more by using g[mark]-o[down] u[formatting] bu[like this] ||
-          p.bi[You can mix and reposition]//g.uib[these as much as you want]
-      There is no limit to the length of text in a cell
-      Leave out the "new-cell" marker to take away the border between cells
-      s.b[Or you could make a mini-heading like this]
-      o.bui[It's all up to you]
->=""";
+>=
+""";
 
 const _rowStart = "- ";
 const _headingStart = "# ";
@@ -77,6 +56,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   final _textController = TextEditingController();
   bool _inFocus = false;
   bool _loading = false;
+  final FocusNode _textNode = FocusNode();
 
   //FORMATTING------------------------------------------------------------------
 
@@ -423,31 +403,45 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
   }
 
+  void _handleKeyDown(RawKeyEvent value) {
+    if (value is RawKeyDownEvent) {
+      final k = value.logicalKey;
+      if (k == LogicalKeyboardKey.asterisk) {
+        final i = _textController.selection.baseOffset;
+        final e = _textController.selection.extentOffset;
+        _textController.text = CompanionMethods.autoInsert(
+            k.keyLabel, _textController, i, e);
+        _textController.selection =
+            TextSelection(baseOffset: i, extentOffset: e);
+      }
+    }
+  }
+
   //MAIN------------------------------------------------------------------------
 
   @override
   initState() {
     _textController.text = _template;
 
-    window.onKeyData = (keyData) {
-      if (_inFocus) {
-        final indexNow = _textController.selection.base.offset;
-        if (keyData.logical == LogicalKeyboardKey.backslash.keyId) {
-          final marker = _textController.text[indexNow - 1];
+    // window.onKeyData = (keyData) {
+    //   if (_inFocus) {
+    //     final indexNow = _textController.selection.base.offset;
+    //     if (keyData.logical == LogicalKeyboardKey.backslash.keyId) {
+    //       final marker = _textController.text[indexNow - 1];
 
-          CompanionMethods.autoInsert(marker, _textController, indexNow);
-          return true;
-        } else if (keyData.character != null) {
-          CompanionMethods.autoInsert(
-              keyData.character!, _textController, indexNow);
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    };
+    //       CompanionMethods.autoInsert(marker, _textController, indexNow);
+    //       return true;
+    //     } else if (keyData.character != null) {
+    //       CompanionMethods.autoInsert(
+    //           keyData.character!, _textController, indexNow);
+    //       return true;
+    //     } else {
+    //       return false;
+    //     }
+    //   } else {
+    //     return false;
+    //   }
+    // };
     super.initState();
   }
 
@@ -462,17 +456,20 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   Widget build(BuildContext context) {
     return Focus(
       child: Scaffold(
-          body: ModalProgressHUD(
-            child: Column(
-              children: [
-                Expanded(
-                    child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: TextField(
+          body: Column(
+            children: [
+              Expanded(
+                  child: Card(
+                child: Padding(
+                  padding: EdgeInsets.all(0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          //TODO: auto-completion
+                          child: RawKeyboardListener(
+                        focusNode: _textNode,
+                        autofocus: true,
+                        child: TextField(
                           controller: _textController,
                           onSubmitted: ((value) {}),
                           decoration: InputDecoration(
@@ -485,19 +482,18 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                           style: const TextStyle(fontSize: 11),
                           maxLines: null,
                           expands: true,
-                        )),
-                      ],
-                    ),
+                        ),
+                        onKey: _handleKeyDown,
+                      )),
+                    ],
                   ),
-                )),
-                Padding(
-                    padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
-                    child: ElevatedButton(
-                        onPressed: _onPressedSubmit,
-                        child: const Text("Submit")))
-              ],
-            ),
-            inAsyncCall: _loading,
+                ),
+              )),
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
+                  child: ElevatedButton(
+                      onPressed: _onPressedSubmit, child: const Text("Submit")))
+            ],
           ),
           floatingActionButton: SpeedDial(
             icon: Icons.more,

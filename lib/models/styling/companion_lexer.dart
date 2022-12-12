@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:rich_code_editor/syntaxt_highlighter_base.dart';
 
 class CompanionLexer {
   static Map<String, TextStyle> styles = {

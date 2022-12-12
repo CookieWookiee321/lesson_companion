@@ -17,16 +17,25 @@ const StyleSnippetSchema = CollectionSchema(
   name: r'StyleSnippet',
   id: 6487127595738180429,
   properties: {
-    r'children': PropertySchema(
+    r'colour': PropertySchema(
       id: 0,
-      name: r'children',
-      type: IsarType.objectList,
-      target: r'StyleSnippetSpan',
+      name: r'colour',
+      type: IsarType.long,
     ),
     r'marker': PropertySchema(
       id: 1,
       name: r'marker',
       type: IsarType.string,
+    ),
+    r'size': PropertySchema(
+      id: 2,
+      name: r'size',
+      type: IsarType.double,
+    ),
+    r'styles': PropertySchema(
+      id: 3,
+      name: r'styles',
+      type: IsarType.longList,
     )
   },
   estimateSize: _styleSnippetEstimateSize,
@@ -36,7 +45,7 @@ const StyleSnippetSchema = CollectionSchema(
   idName: r'id',
   indexes: {},
   links: {},
-  embeddedSchemas: {r'StyleSnippetSpan': StyleSnippetSpanSchema},
+  embeddedSchemas: {},
   getId: _styleSnippetGetId,
   getLinks: _styleSnippetGetLinks,
   attach: _styleSnippetAttach,
@@ -49,16 +58,8 @@ int _styleSnippetEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.children.length * 3;
-  {
-    final offsets = allOffsets[StyleSnippetSpan]!;
-    for (var i = 0; i < object.children.length; i++) {
-      final value = object.children[i];
-      bytesCount +=
-          StyleSnippetSpanSchema.estimateSize(value, offsets, allOffsets);
-    }
-  }
   bytesCount += 3 + object.marker.length * 3;
+  bytesCount += 3 + object.styles.length * 8;
   return bytesCount;
 }
 
@@ -68,13 +69,10 @@ void _styleSnippetSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeObjectList<StyleSnippetSpan>(
-    offsets[0],
-    allOffsets,
-    StyleSnippetSpanSchema.serialize,
-    object.children,
-  );
+  writer.writeLong(offsets[0], object.colour);
   writer.writeString(offsets[1], object.marker);
+  writer.writeDouble(offsets[2], object.size);
+  writer.writeLongList(offsets[3], object.styles);
 }
 
 StyleSnippet _styleSnippetDeserialize(
@@ -84,14 +82,11 @@ StyleSnippet _styleSnippetDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = StyleSnippet(
+    id,
     reader.readString(offsets[1]),
-    reader.readObjectList<StyleSnippetSpan>(
-          offsets[0],
-          StyleSnippetSpanSchema.deserialize,
-          allOffsets,
-          StyleSnippetSpan(),
-        ) ??
-        [],
+    reader.readDouble(offsets[2]),
+    reader.readLong(offsets[0]),
+    reader.readLongList(offsets[3]) ?? [],
   );
   return object;
 }
@@ -104,22 +99,20 @@ P _styleSnippetDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readObjectList<StyleSnippetSpan>(
-            offset,
-            StyleSnippetSpanSchema.deserialize,
-            allOffsets,
-            StyleSnippetSpan(),
-          ) ??
-          []) as P;
+      return (reader.readLong(offset)) as P;
     case 1:
       return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readDouble(offset)) as P;
+    case 3:
+      return (reader.readLongList(offset) ?? []) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Id _styleSnippetGetId(StyleSnippet object) {
-  return object.id;
+  return object.id ?? Isar.autoIncrement;
 }
 
 List<IsarLinkBase<dynamic>> _styleSnippetGetLinks(StyleSnippet object) {
@@ -127,7 +120,9 @@ List<IsarLinkBase<dynamic>> _styleSnippetGetLinks(StyleSnippet object) {
 }
 
 void _styleSnippetAttach(
-    IsarCollection<dynamic> col, Id id, StyleSnippet object) {}
+    IsarCollection<dynamic> col, Id id, StyleSnippet object) {
+  object.id = id;
+}
 
 extension StyleSnippetQueryWhereSort
     on QueryBuilder<StyleSnippet, StyleSnippet, QWhere> {
@@ -210,97 +205,80 @@ extension StyleSnippetQueryWhere
 
 extension StyleSnippetQueryFilter
     on QueryBuilder<StyleSnippet, StyleSnippet, QFilterCondition> {
-  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
-      childrenLengthEqualTo(int length) {
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition> colourEqualTo(
+      int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'children',
-        length,
-        true,
-        length,
-        true,
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'colour',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
-      childrenIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'children',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
-      childrenIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'children',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
-      childrenLengthLessThan(
-    int length, {
+      colourGreaterThan(
+    int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'children',
-        0,
-        true,
-        length,
-        include,
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'colour',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
-      childrenLengthGreaterThan(
-    int length, {
+      colourLessThan(
+    int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'children',
-        length,
-        include,
-        999999,
-        true,
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'colour',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
-      childrenLengthBetween(
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition> colourBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'children',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'colour',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
     });
   }
 
   QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition> idEqualTo(
-      Id value) {
+      Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -310,7 +288,7 @@ extension StyleSnippetQueryFilter
   }
 
   QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition> idGreaterThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -323,7 +301,7 @@ extension StyleSnippetQueryFilter
   }
 
   QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition> idLessThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -336,8 +314,8 @@ extension StyleSnippetQueryFilter
   }
 
   QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -486,23 +464,236 @@ extension StyleSnippetQueryFilter
       ));
     });
   }
-}
 
-extension StyleSnippetQueryObject
-    on QueryBuilder<StyleSnippet, StyleSnippet, QFilterCondition> {
-  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
-      childrenElement(FilterQuery<StyleSnippetSpan> q) {
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition> sizeEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'children');
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'size',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      sizeGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'size',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition> sizeLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'size',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition> sizeBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'size',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      stylesElementEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'styles',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      stylesElementGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'styles',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      stylesElementLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'styles',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      stylesElementBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'styles',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      stylesLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'styles',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      stylesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'styles',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      stylesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'styles',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      stylesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'styles',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      stylesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'styles',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterFilterCondition>
+      stylesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'styles',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 }
+
+extension StyleSnippetQueryObject
+    on QueryBuilder<StyleSnippet, StyleSnippet, QFilterCondition> {}
 
 extension StyleSnippetQueryLinks
     on QueryBuilder<StyleSnippet, StyleSnippet, QFilterCondition> {}
 
 extension StyleSnippetQuerySortBy
     on QueryBuilder<StyleSnippet, StyleSnippet, QSortBy> {
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterSortBy> sortByColour() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'colour', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterSortBy> sortByColourDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'colour', Sort.desc);
+    });
+  }
+
   QueryBuilder<StyleSnippet, StyleSnippet, QAfterSortBy> sortByMarker() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'marker', Sort.asc);
@@ -514,10 +705,34 @@ extension StyleSnippetQuerySortBy
       return query.addSortBy(r'marker', Sort.desc);
     });
   }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterSortBy> sortBySize() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'size', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterSortBy> sortBySizeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'size', Sort.desc);
+    });
+  }
 }
 
 extension StyleSnippetQuerySortThenBy
     on QueryBuilder<StyleSnippet, StyleSnippet, QSortThenBy> {
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterSortBy> thenByColour() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'colour', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterSortBy> thenByColourDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'colour', Sort.desc);
+    });
+  }
+
   QueryBuilder<StyleSnippet, StyleSnippet, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -541,14 +756,44 @@ extension StyleSnippetQuerySortThenBy
       return query.addSortBy(r'marker', Sort.desc);
     });
   }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterSortBy> thenBySize() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'size', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QAfterSortBy> thenBySizeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'size', Sort.desc);
+    });
+  }
 }
 
 extension StyleSnippetQueryWhereDistinct
     on QueryBuilder<StyleSnippet, StyleSnippet, QDistinct> {
+  QueryBuilder<StyleSnippet, StyleSnippet, QDistinct> distinctByColour() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'colour');
+    });
+  }
+
   QueryBuilder<StyleSnippet, StyleSnippet, QDistinct> distinctByMarker(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'marker', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QDistinct> distinctBySize() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'size');
+    });
+  }
+
+  QueryBuilder<StyleSnippet, StyleSnippet, QDistinct> distinctByStyles() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'styles');
     });
   }
 }
@@ -561,10 +806,9 @@ extension StyleSnippetQueryProperty
     });
   }
 
-  QueryBuilder<StyleSnippet, List<StyleSnippetSpan>, QQueryOperations>
-      childrenProperty() {
+  QueryBuilder<StyleSnippet, int, QQueryOperations> colourProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'children');
+      return query.addPropertyName(r'colour');
     });
   }
 
@@ -573,396 +817,16 @@ extension StyleSnippetQueryProperty
       return query.addPropertyName(r'marker');
     });
   }
-}
 
-// **************************************************************************
-// IsarEmbeddedGenerator
-// **************************************************************************
-
-// coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
-
-const StyleSnippetSpanSchema = Schema(
-  name: r'StyleSnippetSpan',
-  id: 8337315344517272769,
-  properties: {
-    r'colour': PropertySchema(
-      id: 0,
-      name: r'colour',
-      type: IsarType.long,
-    ),
-    r'size': PropertySchema(
-      id: 1,
-      name: r'size',
-      type: IsarType.double,
-    ),
-    r'styles': PropertySchema(
-      id: 2,
-      name: r'styles',
-      type: IsarType.byteList,
-      enumMap: _StyleSnippetSpanstylesEnumValueMap,
-    )
-  },
-  estimateSize: _styleSnippetSpanEstimateSize,
-  serialize: _styleSnippetSpanSerialize,
-  deserialize: _styleSnippetSpanDeserialize,
-  deserializeProp: _styleSnippetSpanDeserializeProp,
-);
-
-int _styleSnippetSpanEstimateSize(
-  StyleSnippetSpan object,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  var bytesCount = offsets.last;
-  bytesCount += 3 + object.styles.length;
-  return bytesCount;
-}
-
-void _styleSnippetSpanSerialize(
-  StyleSnippetSpan object,
-  IsarWriter writer,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  writer.writeLong(offsets[0], object.colour);
-  writer.writeDouble(offsets[1], object.size);
-  writer.writeByteList(offsets[2], object.styles.map((e) => e.index).toList());
-}
-
-StyleSnippetSpan _styleSnippetSpanDeserialize(
-  Id id,
-  IsarReader reader,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  final object = StyleSnippetSpan();
-  object.colour = reader.readLong(offsets[0]);
-  object.size = reader.readDouble(offsets[1]);
-  object.styles = reader
-          .readByteList(offsets[2])
-          ?.map((e) =>
-              _StyleSnippetSpanstylesValueEnumMap[e] ?? StylingOption.bold)
-          .toList() ??
-      [];
-  return object;
-}
-
-P _styleSnippetSpanDeserializeProp<P>(
-  IsarReader reader,
-  int propertyId,
-  int offset,
-  Map<Type, List<int>> allOffsets,
-) {
-  switch (propertyId) {
-    case 0:
-      return (reader.readLong(offset)) as P;
-    case 1:
-      return (reader.readDouble(offset)) as P;
-    case 2:
-      return (reader
-              .readByteList(offset)
-              ?.map((e) =>
-                  _StyleSnippetSpanstylesValueEnumMap[e] ?? StylingOption.bold)
-              .toList() ??
-          []) as P;
-    default:
-      throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-const _StyleSnippetSpanstylesEnumValueMap = {
-  'bold': 0,
-  'italic': 1,
-  'boldAndItalic': 2,
-  'coloured': 3,
-  'subtext': 4,
-  'underline': 5,
-  'strikethrough': 6,
-  'link': 7,
-  'snippet': 8,
-};
-const _StyleSnippetSpanstylesValueEnumMap = {
-  0: StylingOption.bold,
-  1: StylingOption.italic,
-  2: StylingOption.boldAndItalic,
-  3: StylingOption.coloured,
-  4: StylingOption.subtext,
-  5: StylingOption.underline,
-  6: StylingOption.strikethrough,
-  7: StylingOption.link,
-  8: StylingOption.snippet,
-};
-
-extension StyleSnippetSpanQueryFilter
-    on QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QFilterCondition> {
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      colourEqualTo(int value) {
+  QueryBuilder<StyleSnippet, double, QQueryOperations> sizeProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'colour',
-        value: value,
-      ));
+      return query.addPropertyName(r'size');
     });
   }
 
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      colourGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  QueryBuilder<StyleSnippet, List<int>, QQueryOperations> stylesProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'colour',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      colourLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'colour',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      colourBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'colour',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      sizeEqualTo(
-    double value, {
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'size',
-        value: value,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      sizeGreaterThan(
-    double value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'size',
-        value: value,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      sizeLessThan(
-    double value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'size',
-        value: value,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      sizeBetween(
-    double lower,
-    double upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'size',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      stylesElementEqualTo(StylingOption value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'styles',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      stylesElementGreaterThan(
-    StylingOption value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'styles',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      stylesElementLessThan(
-    StylingOption value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'styles',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      stylesElementBetween(
-    StylingOption lower,
-    StylingOption upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'styles',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      stylesLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'styles',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      stylesIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'styles',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      stylesIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'styles',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      stylesLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'styles',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      stylesLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'styles',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QAfterFilterCondition>
-      stylesLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'styles',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
+      return query.addPropertyName(r'styles');
     });
   }
 }
-
-extension StyleSnippetSpanQueryObject
-    on QueryBuilder<StyleSnippetSpan, StyleSnippetSpan, QFilterCondition> {}

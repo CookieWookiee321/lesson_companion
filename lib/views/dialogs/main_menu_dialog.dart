@@ -3,7 +3,7 @@ import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/style_snippet.dart';
 import 'package:lesson_companion/views/companion_widgets.dart';
-import 'package:lesson_companion/views/dialogs/snippets.dart';
+import 'package:lesson_companion/views/dialogs/snippets/snippet_list.dart';
 
 final _template =
     """>Lines like this will not be processed, so please replace them with your own information.

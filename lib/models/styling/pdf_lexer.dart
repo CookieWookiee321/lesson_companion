@@ -20,11 +20,11 @@ class PdfLexer {
   static Map<String, StylingOption> styles = {
     // r"\B##\s[A-Za-z0-9]+$": StylingOption.bold,
     // r"\B#\s[A-Za-z0-9]+$": (fontWeight: FontWeight.bold),
-    r"(?<!\S)(\*{1})[A-Za-z0-9 ]+\1(?!\S)": StylingOption.italic,
-    r"(?<!\S)(\*{2})[A-Za-z0-9 ]+\1(?!\S)": StylingOption.bold,
-    r"(?<!\S)(\*{3})[A-Za-z0-9 ]+\1(?!\S)": StylingOption.boldAndItalic,
-    r"\B\~{2}[A-Za-z0-9 ]+\~{2}\B": StylingOption.strikethrough,
-    r"(?<!\S)(\_{1})[A-Za-z0-9 ]+\1(?!\S)": StylingOption.underline,
+    r"(?<!\S)(\*{1})[^*]+\1(?!\S)": StylingOption.italic,
+    r"(?<!\S)(\*{2})[^*]+\1(?!\S)": StylingOption.bold,
+    r"(?<!\S)(\*{3})[^*]+\1(?!\S)": StylingOption.boldAndItalic,
+    r"\B\~{2}[^*]+\~{2}\B": StylingOption.strikethrough,
+    r"(?<!\S)(\_{1})[^*]+\1(?!\S)": StylingOption.underline,
     r"sub\<.*?\>": StylingOption.subtext,
     r"col<([A-Za-z0-9]+( [A-Za-z0-9]+)+) :: [a-zA-Z]+>": StylingOption.coloured,
     r"[A-Za-z0-9]+\{[^}]*\}": StylingOption.snippet
@@ -32,6 +32,7 @@ class PdfLexer {
     //     StylingOption.link,
   };
 
+  //TODO: some parsing errors persist
   static Future<List<PdfTextSpan>> parseText(
       String text, PdfSection section) async {
     final output = <PdfTextSpan>[];
@@ -55,13 +56,12 @@ class PdfLexer {
       output.add(tempMap.values.first);
     }
 
-    //TODO: do blank PdfTextSpans matter?
     return output;
   }
 
   static Future<Map<int, PdfTextSpan>> _mapSeperateStyles(
       String text, PdfSection section) async {
-    final _replaceMarker = ".?";
+    final _replaceMarker = "^";
     String newText = "";
     int index = 0;
     int indexEnd = 0;
@@ -136,30 +136,29 @@ class PdfLexer {
             thisPdfTextSpan.underline = true;
             thisPdfTextSpan.color = p.PdfColors.blue;
             break;
-          case StylingOption.snippet:
+          default:
             final snippetName = match.input
                 .substring(match.start, match.input.indexOf("{", match.start));
             final snippet = await StyleSnippet.getSnippet(snippetName);
 
             if (snippet != null) {
-              //TODO: currently snippets can only have one style applied
-              baseHeight = snippet.children.first.size;
+              baseHeight = snippet.styles.length.toDouble();
 
-              final colour = snippet.children.first.getPdfColour();
+              final colour = snippet.getPdfColour();
               if (colour != null) thisPdfTextSpan.color = colour;
 
-              for (final style in snippet.children.first.styles) {
+              for (final style in snippet.styles) {
                 switch (style) {
-                  case StylingOption.bold:
+                  case 1:
                     thisPdfTextSpan.bold = true;
                     break;
-                  case StylingOption.italic:
+                  case 2:
                     thisPdfTextSpan.italic = true;
                     break;
-                  case StylingOption.underline:
+                  case 3:
                     thisPdfTextSpan.underline = true;
                     break;
-                  case StylingOption.strikethrough:
+                  case 4:
                     thisPdfTextSpan.strikethrough = true;
                     break;
                   default:
@@ -173,49 +172,44 @@ class PdfLexer {
         output[match.start] = thisPdfTextSpan;
         String replacement = "";
         for (int i = 0; i < (match.end - match.start); i++) {
-          replacement = "$replacement^";
+          replacement = "$replacement$_replaceMarker";
         }
         final temp =
             sb.toString().replaceFirst(RegExp(expression), replacement);
         sb.clear();
         sb.write(temp);
       }
-
-      if (text == "I was **in** elementary **school**") {
-        print("here");
-      }
-
-      // process non-snippeted text at the end of the loop
-      bool skippingMode = false;
-      for (final c in sb.toString().characters) {
-        if (c != "^") {
-          if (skippingMode) {
-            index = indexEnd;
-            skippingMode = false;
-            if (newText == "") {
-              newText = " ";
-            }
-            output[index] = PdfTextSpan(text: newText);
-            newText = "";
-            indexEnd++;
-            continue;
+    }
+    // process non-snippeted text at the end of the loop
+    bool skippingMode = false;
+    for (final c in sb.toString().characters) {
+      if (c != _replaceMarker) {
+        if (skippingMode) {
+          index = indexEnd;
+          skippingMode = false;
+          if (newText == "") {
+            newText = " ";
           }
-          newText = "$newText$c";
+          output[sb.toString().indexOf(newText)] = PdfTextSpan(text: newText);
+          newText = "";
+          indexEnd++;
+          continue;
+        }
+        newText = "$newText$c";
+        indexEnd++;
+      } else {
+        if (!skippingMode && newText.isNotEmpty) {
+          //add to ouput[]
+          if (newText == "") {
+            newText = " ";
+          }
+          output[sb.toString().indexOf(newText)] = PdfTextSpan(text: newText);
+          newText = "";
+          skippingMode = true;
           indexEnd++;
         } else {
-          if (!skippingMode && newText.isNotEmpty) {
-            //add to ouput[]
-            if (newText == "") {
-              newText = " ";
-            }
-            output[index] = PdfTextSpan(text: newText);
-            newText = "";
-            skippingMode = true;
-            indexEnd++;
-          } else {
-            indexEnd++;
-            continue;
-          }
+          indexEnd++;
+          continue;
         }
       }
     }
@@ -237,14 +231,14 @@ class PdfLexer {
 
   static String _getTrueText({required String input, required String regExp}) {
     switch (regExp) {
-      case r"(?<!\S)(\*{1})[A-Za-z0-9 ]+\1(?!\S)":
-      case r"(?<!\S)(\_{1})[A-Za-z0-9 ]+\1(?!\S)":
+      case r"(?<!\S)(\*{1})[^*]+\1(?!\S)":
+      case r"(?<!\S)(\_{1})[^_]+\1(?!\S)":
         return input.substring(1, input.length - 1);
-      case r"(?<!\S)(\*{2})[A-Za-z0-9 ]+\1(?!\S)":
+      case r"(?<!\S)(\*{2})[^*]+\1(?!\S)":
         return input.substring(2, input.length - 2);
-      case r"(?<!\S)(\*{3})[A-Za-z0-9 ]+\1(?!\S)":
+      case r"(?<!\S)(\*{3})[^*]+\1(?!\S)":
         return input.substring(3, input.length - 3);
-      case r"\B\~{2}[A-Za-z0-9 ]+\~{2}\B":
+      case r"\B\~{2}[^*]+\~{2}\B":
         return input.substring(2, input.length - 2);
       case r"sub\<.*?\>":
         return input.substring(4, input.length - 1);

@@ -1,4 +1,3 @@
-import 'package:isar/isar.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 
 class PdfTableRowModel {

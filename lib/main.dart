@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/material.dart';
+import 'package:lesson_companion/models/database.dart' as db;
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/views/main_windows/base_view.dart';
-import 'package:lesson_companion/views/dialogs/main_menu_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common/sqlite_api.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'controllers/styler.dart';
 
@@ -20,11 +22,13 @@ Future<void> main() async {
 
   await initialSettings();
 
+  sqfliteFfiInit();
+
   runApp(const MyApp());
 }
 
 Future<void> initialSettings() async {
-  final checker = await Database.getSetting(SharedPrefOption.darkMode);
+  final checker = await db.Database.getSetting(SharedPrefOption.darkMode);
 
   if (checker != null) {
     return;
