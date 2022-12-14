@@ -13,7 +13,7 @@ class Report {
   Report(this.text);
 
   Id id = Isar.autoIncrement;
-  final String text;
+  String? text;
 
   final objectSplitter = "===";
   final headingPrefix = '*';
@@ -22,7 +22,10 @@ class Report {
 
   /// Creates and saves a report PDF based on the parent object.
   Future<PdfDoc> toPdfDoc() async {
-    final map = toMap(text);
+    assert(text != null,
+        "The Report object's 'text' field has not been initialized");
+
+    final map = toMap(text!);
 
     // transform string vars into the right from to be printed
     final name = map["Name"]!.first.contains("[")
@@ -183,6 +186,31 @@ class Report {
     }
 
     return mappings;
+  }
+
+  //DATABASE
+  static Future<Report?> getReport(int id) async {
+    final isar = Isar.getInstance("report_db") ??
+        await Isar.open([ReportSchema], name: "report_db");
+    final student = isar.reports.filter().idEqualTo(id).findFirst();
+    return student;
+  }
+
+  static Future<void> saveReport(Report report) async {
+    final isar = Isar.getInstance("report_db") ??
+        await Isar.open([ReportSchema], name: "report_db");
+    await isar.writeTxn(() async {
+      await isar.reports.put(report);
+    });
+  }
+
+  static Future<void> deleteReport(int id) async {
+    final isar = Isar.getInstance("report_db") ??
+        await Isar.open([ReportSchema], name: "report_db");
+
+    await isar.writeTxn(() async {
+      isar.reports.delete(id);
+    });
   }
 }
 

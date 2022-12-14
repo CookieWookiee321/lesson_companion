@@ -216,19 +216,45 @@ class CompanionMethods {
       int currentIndex, int selectionEnd) {
     final sb = StringBuffer();
 
-    final start = controller.text.substring(0, currentIndex);
-    final end = controller.text.substring(currentIndex, controller.text.length);
+    final startInd;
+    final endInd;
+
+    if (currentIndex > selectionEnd) {
+      startInd = selectionEnd;
+      endInd = currentIndex;
+    } else {
+      startInd = currentIndex;
+      endInd = selectionEnd;
+    }
+
+    final start = controller.text.substring(0, startInd);
+    final end = controller.text.substring(endInd, controller.text.length);
 
     switch (char) {
-      case "*":
+      case "{":
         if (selectionEnd - currentIndex == 0) {
-          sb.write("$start$char$end");
+          sb.write("$start}$end");
         } else {
-          final middle = controller.text.substring(currentIndex, selectionEnd);
-          sb.write("$start$middle$char$end");
+          final middle = controller.text.substring(startInd, endInd);
+          sb.write("$start$middle}$end");
+        }
+        break;
+      case "(":
+        if (selectionEnd - currentIndex == 0) {
+          sb.write("$start)$end");
+        } else {
+          final middle = controller.text.substring(startInd, endInd);
+          sb.write("$start($middle)$end");
         }
         break;
       default:
+        if (selectionEnd - currentIndex == 0) {
+          sb.write("$start$char$end");
+        } else {
+          final middle = controller.text.substring(startInd, endInd);
+          sb.write("$start$middle$char$end");
+        }
+        break;
     }
     return sb.toString();
   }

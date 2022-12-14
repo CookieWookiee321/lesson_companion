@@ -53,6 +53,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   final List<LookUpCard> _lookUpCards = [];
   final List<LookUpReturn> _lookUpReturns = [];
 
+  int? _currentReportId;
+
   final _textController = TextEditingController();
   bool _inFocus = false;
   bool _loading = false;
@@ -404,15 +406,37 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   }
 
   void _handleKeyDown(RawKeyEvent value) {
+    final _markers = <String>["*", "{", "("];
+
     if (value is RawKeyDownEvent) {
       final k = value.logicalKey;
-      if (k == LogicalKeyboardKey.asterisk) {
+      if (_markers.contains(k.keyLabel)) {
         final i = _textController.selection.baseOffset;
         final e = _textController.selection.extentOffset;
-        _textController.text = CompanionMethods.autoInsert(
-            k.keyLabel, _textController, i, e);
+        _textController.text =
+            CompanionMethods.autoInsert(k.keyLabel, _textController, i, e);
         _textController.selection =
             TextSelection(baseOffset: i, extentOffset: e);
+      } else if (value.isControlPressed) {
+        if (k.keyLabel == "s") {}
+      }
+    }
+  }
+
+  Future<void> _saveReport() async {
+    _textController.text = _autoFormatAll(_textController.text);
+
+    final report;
+    if (_currentReportId != null) {
+      report = await Report.getReport(_currentReportId!);
+
+      if (report == null) {
+        final newReport = Report(_textController.text);
+        await Report.saveReport(newReport);
+        _currentReportId = newReport.id;
+      } else {
+        report.text = _textController.text;
+        await Report.saveReport(report);
       }
     }
   }
@@ -422,26 +446,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   @override
   initState() {
     _textController.text = _template;
-
-    // window.onKeyData = (keyData) {
-    //   if (_inFocus) {
-    //     final indexNow = _textController.selection.base.offset;
-    //     if (keyData.logical == LogicalKeyboardKey.backslash.keyId) {
-    //       final marker = _textController.text[indexNow - 1];
-
-    //       CompanionMethods.autoInsert(marker, _textController, indexNow);
-    //       return true;
-    //     } else if (keyData.character != null) {
-    //       CompanionMethods.autoInsert(
-    //           keyData.character!, _textController, indexNow);
-    //       return true;
-    //     } else {
-    //       return false;
-    //     }
-    //   } else {
-    //     return false;
-    //   }
-    // };
     super.initState();
   }
 

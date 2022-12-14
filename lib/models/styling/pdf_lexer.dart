@@ -63,7 +63,6 @@ class PdfLexer {
       String text, PdfSection section) async {
     final _replaceMarker = "^";
     String newText = "";
-    int index = 0;
     int indexEnd = 0;
 
     var output = <int, PdfTextSpan>{};
@@ -185,12 +184,11 @@ class PdfLexer {
     for (final c in sb.toString().characters) {
       if (c != _replaceMarker) {
         if (skippingMode) {
-          index = indexEnd;
           skippingMode = false;
           if (newText == "") {
             newText = " ";
           }
-          output[sb.toString().indexOf(newText)] = PdfTextSpan(text: newText);
+          output[indexEnd] = PdfTextSpan(text: newText);
           newText = "";
           indexEnd++;
           continue;

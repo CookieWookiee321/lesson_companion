@@ -67,7 +67,12 @@ int _reportEstimateSize(
   bytesCount += 3 + object.linePrefix.length * 3;
   bytesCount += 3 + object.objectSplitter.length * 3;
   bytesCount += 3 + object.tableSubheading.length * 3;
-  bytesCount += 3 + object.text.length * 3;
+  {
+    final value = object.text;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -91,7 +96,7 @@ Report _reportDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Report(
-    reader.readString(offsets[4]),
+    reader.readStringOrNull(offsets[4]),
   );
   object.id = id;
   return object;
@@ -113,7 +118,7 @@ P _reportDeserializeProp<P>(
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -783,8 +788,24 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Report, Report, QAfterFilterCondition> textIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'text',
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> textIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'text',
+      ));
+    });
+  }
+
   QueryBuilder<Report, Report, QAfterFilterCondition> textEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -797,7 +818,7 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
   }
 
   QueryBuilder<Report, Report, QAfterFilterCondition> textGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -812,7 +833,7 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
   }
 
   QueryBuilder<Report, Report, QAfterFilterCondition> textLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -827,8 +848,8 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
   }
 
   QueryBuilder<Report, Report, QAfterFilterCondition> textBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1124,7 +1145,7 @@ extension ReportQueryProperty on QueryBuilder<Report, Report, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Report, String, QQueryOperations> textProperty() {
+  QueryBuilder<Report, String?, QQueryOperations> textProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'text');
     });
