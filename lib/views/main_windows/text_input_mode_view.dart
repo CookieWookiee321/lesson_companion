@@ -132,20 +132,24 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   String _autoFormatAll(String input) {
     final sb = StringBuffer();
 
-    for (var line in _textController.text.split("\n")) {
-      if (line.trim().length == 0 ||
-          line.substring(0, 2) == _start ||
-          line.substring(0, 2) == _stop ||
-          line.substring(0, 2) == _headingStart ||
-          line.substring(0, 2) == _rowStart ||
-          line.substring(0, 2) == _commentStart) {
-        sb.writeln(line);
+    final lines = _textController.text.split("\n");
+
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].trim().length == 0 ||
+          lines[i].substring(0, 2) == _start ||
+          lines[i].substring(0, 2) == _stop ||
+          lines[i].substring(0, 2) == _headingStart ||
+          lines[i].substring(0, 2) == _rowStart ||
+          lines[i].substring(0, 2) == _commentStart) {
+        sb.write(lines[i]);
+        if (i != lines.length) sb.write("\n");
         continue;
       }
 
-      line = "$_rowStart$line";
+      lines[i] = "$_rowStart${lines[i]}";
 
-      sb.writeln(line);
+      sb.write(lines[i]);
+      if (i != lines.length) sb.write("\n");
     }
 
     if (!input.contains(_start)) {
