@@ -89,6 +89,23 @@ class Database {
     return lesson != null ? lesson.id : null;
   }
 
+  /// Attempts to retrieve the Lesson ID from a name and date.
+  ///
+  /// Returns either the correct Lesson ID, or -1 in the event that no result is found
+  static Future<Lesson?> getLesson(String? name, DateTime date) async {
+    final isar = Isar.getInstance("lesson_db") ??
+        await Isar.open([LessonSchema], name: "lesson_db");
+    final studentId = await getStudentId(name!);
+    final lesson = await isar.lessons
+        .filter()
+        .idEqualTo(studentId)
+        .and()
+        .dateBetween(DateTime(date.year, date.month, date.day, 0, 0, 1),
+            DateTime(date.year, date.month, date.day, 23, 59, 59))
+        .findFirst();
+    return lesson;
+  }
+
   static Future<dynamic>? getSetting(SharedPrefOption option) async {
     final prefs = await SharedPreferences.getInstance();
 

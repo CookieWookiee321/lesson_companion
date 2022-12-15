@@ -5,10 +5,10 @@ part 'lesson.g.dart';
 @collection
 class Lesson {
   Id id;
-  final int studentId;
-  final DateTime date;
-  final String topic;
-  final String? homework;
+  late int studentId;
+  late DateTime date;
+  late String topic;
+  String? homework;
 
   Lesson(
       {this.id = Isar.autoIncrement,

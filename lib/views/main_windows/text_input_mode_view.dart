@@ -365,24 +365,30 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           date = DateTime.parse(mapping["Date"]!.first);
           topic = mapping["Topic"]!;
           homework = mapping["Homework"];
+
           //Submit Lesson
-          var lesson = Lesson(
-              studentId: studentId!,
-              date: date!,
-              topic: CompanionMethods.convertListToString(topic!),
-              homework: homework != null
-                  ? CompanionMethods.convertListToString(homework!)
-                  : "");
-          //check if Lesson exists
-          if (!await Database.checkLessonExists(studentId!, date!)) {
-            //if not, create new entry
-            await Database.saveLesson(lesson);
-            print(
-                "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}");
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(
-                    "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}")));
+          var less = await Database.getLesson(student.name, date);
+          if (less != null) {
+            less.topic = CompanionMethods.convertListToString(topic!);
+            less.homework = homework != null
+                ? CompanionMethods.convertListToString(homework!)
+                : "";
+          } else {
+            less = Lesson(
+                studentId: studentId!,
+                date: date!,
+                topic: CompanionMethods.convertListToString(topic!),
+                homework: homework != null
+                    ? CompanionMethods.convertListToString(homework!)
+                    : "");
           }
+
+          await Database.saveLesson(less);
+          print(
+              "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}");
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                  "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}")));
 
           if (mapping.keys.length > 4 ||
               (mapping.keys.length == 4 &&
