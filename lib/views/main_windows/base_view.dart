@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lesson_companion/views/dialogs/main_menu_dialog.dart';
+import 'package:lesson_companion/views/generic/dialogs/main_menu_dialog.dart';
 import 'package:lesson_companion/views/main_windows/home_view.dart';
 import 'package:lesson_companion/views/main_windows/lesson_view.dart';
 import 'package:lesson_companion/views/main_windows/student_view.dart';

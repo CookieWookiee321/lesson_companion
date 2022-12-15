@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/student.dart';
-import 'package:lesson_companion/views/companion_widgets.dart';
+import 'package:lesson_companion/views/generic/companion_widgets.dart';
 
 //==============================================================================
 //Student View

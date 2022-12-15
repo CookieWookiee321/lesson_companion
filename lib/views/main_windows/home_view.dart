@@ -11,7 +11,7 @@ import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/models/views/home_view_models.dart';
-import 'package:lesson_companion/views/companion_widgets.dart';
+import 'package:lesson_companion/views/generic/companion_widgets.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 
 typedef IntCallback = void Function(int row, int column);

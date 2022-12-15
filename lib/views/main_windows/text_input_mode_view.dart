@@ -14,21 +14,25 @@ import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 
-final _template = """=< !@
+final _template = """=<
 # Name
-NAME
+
+
 # Date
-${CompanionMethods.getShortDate(DateTime.now())}
+- ${CompanionMethods.getShortDate(DateTime.now())}
+
 # Topic
-___ sh1{(___)}
+
+
 # New Language
-___
+
+
 # Pronunciation
+
 
 # Corrections
 
->=
-""";
+>=""";
 
 const _rowStart = "- ";
 const _headingStart = "# ";
@@ -405,11 +409,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
   }
 
-  void _handleKeyDown(RawKeyEvent value) {
+  void _handleKeyDown(RawKeyEvent value) async {
     final _markers = <String>["*", "{", "("];
-
+    final k = value.logicalKey;
     if (value is RawKeyDownEvent) {
-      final k = value.logicalKey;
       if (_markers.contains(k.keyLabel)) {
         final i = _textController.selection.baseOffset;
         final e = _textController.selection.extentOffset;
@@ -417,8 +420,12 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             CompanionMethods.autoInsert(k.keyLabel, _textController, i, e);
         _textController.selection =
             TextSelection(baseOffset: i, extentOffset: e);
-      } else if (value.isControlPressed) {
-        if (k.keyLabel == "s") {}
+      }
+    } else if (value is RawKeyUpEvent) {
+      if (value.isControlPressed) {
+        if (k.keyLabel == "S") {
+          await _saveReport();
+        }
       }
     }
   }
@@ -438,7 +445,13 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         report.text = _textController.text;
         await Report.saveReport(report);
       }
+    } else {
+      final newReport = Report(_textController.text);
+      await Report.saveReport(newReport);
+      _currentReportId = newReport.id;
     }
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text("Report saved")));
   }
 
   //MAIN------------------------------------------------------------------------
