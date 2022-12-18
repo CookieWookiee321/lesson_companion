@@ -141,7 +141,7 @@ class PdfLexer {
             final snippet = await StyleSnippet.getSnippet(snippetName);
 
             if (snippet != null) {
-              baseHeight = snippet.styles.length.toDouble();
+              baseHeight = snippet.size;
 
               final colour = snippet.getPdfColour();
               if (colour != null) thisPdfTextSpan.color = colour;

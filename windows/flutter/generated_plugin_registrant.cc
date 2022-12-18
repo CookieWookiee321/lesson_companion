@@ -9,6 +9,7 @@
 #include <connectivity_plus/connectivity_plus_windows_plugin.h>
 #include <desktop_window/desktop_window_plugin.h>
 #include <isar_flutter_libs/isar_flutter_libs_plugin.h>
+#include <modal_progress_hud_nsn/modal_progress_hud_nsn_plugin.h>
 #include <printing/printing_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
@@ -18,6 +19,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("DesktopWindowPlugin"));
   IsarFlutterLibsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("IsarFlutterLibsPlugin"));
+  ModalProgressHudNsnPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("ModalProgressHudNsnPlugin"));
   PrintingPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("PrintingPlugin"));
 }

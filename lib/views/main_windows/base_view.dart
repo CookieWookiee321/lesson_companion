@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lesson_companion/views/generic/dialogs/main_menu_dialog.dart';
 import 'package:lesson_companion/views/main_windows/home_view.dart';
 import 'package:lesson_companion/views/main_windows/lesson_view.dart';
+import 'package:lesson_companion/views/main_windows/report_view.dart';
 import 'package:lesson_companion/views/main_windows/student_view.dart';
 import 'package:lesson_companion/views/main_windows/text_input_mode_view.dart';
 
@@ -26,7 +27,7 @@ class _BaseViewState extends State<BaseView> {
     TextInputModeView(),
     StudentsView(),
     LessonHistoryView(),
-    HomeView()
+    ReportsView()
   ];
 
   @override

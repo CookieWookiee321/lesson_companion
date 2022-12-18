@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_window
   isar_flutter_libs
+  modal_progress_hud_nsn
   printing
 )
 

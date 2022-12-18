@@ -229,33 +229,28 @@ class CompanionMethods {
 
     final start = controller.text.substring(0, startInd);
     final end = controller.text.substring(endInd, controller.text.length);
-
+    final endChar;
     switch (char) {
       case "{":
-        if (selectionEnd - currentIndex == 0) {
-          sb.write("$start}$end");
-        } else {
-          final middle = controller.text.substring(startInd, endInd);
-          sb.write("$start$middle}$end");
-        }
+        endChar = "}";
         break;
       case "(":
-        if (selectionEnd - currentIndex == 0) {
-          sb.write("$start)$end");
-        } else {
-          final middle = controller.text.substring(startInd, endInd);
-          sb.write("$start($middle)$end");
-        }
+        endChar = ")";
+        break;
+      case "[":
+        endChar = "]";
         break;
       default:
-        if (selectionEnd - currentIndex == 0) {
-          sb.write("$start$char$end");
-        } else {
-          final middle = controller.text.substring(startInd, endInd);
-          sb.write("$start$middle$char$end");
-        }
-        break;
+        endChar = char;
     }
+
+    if (selectionEnd - currentIndex == 0) {
+      sb.write("$start$char$endChar$end");
+    } else {
+      final middle = controller.text.substring(startInd, endInd);
+      sb.write("$start$char$middle$endChar$end");
+    }
+
     return sb.toString();
   }
 

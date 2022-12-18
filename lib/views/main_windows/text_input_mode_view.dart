@@ -13,6 +13,7 @@ import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 final _template = """=<
 # Name
@@ -53,81 +54,20 @@ class TextInputModeView extends StatefulWidget {
 }
 
 class _TextInputModeViewState extends State<TextInputModeView> {
-  final List<LookUp> _lookUps = [];
-  final List<LookUpCard> _lookUpCards = [];
-  final List<LookUpReturn> _lookUpReturns = [];
+  static const _markers = <String>["*", "{", "(", "\"", "["];
+
+  final _lookUps = <LookUp>[];
+  final _lookUpCards = <LookUpCard>[];
+  final _lookUpReturns = <LookUpReturn>[];
 
   int? _currentReportId;
 
   final _textController = TextEditingController();
   bool _inFocus = false;
   bool _loading = false;
-  final FocusNode _textNode = FocusNode();
+  final _textNode = FocusNode();
 
   //FORMATTING------------------------------------------------------------------
-
-  //TODO: DO not implement this until you have a solid idea of the final formatting
-  String _format(String input) {
-    final sbTotal = StringBuffer();
-    final sbSection = StringBuffer();
-
-    //isolate each heading:
-    final parts = input.split("*");
-    //get each section
-    for (String p in parts) {
-      if (p.isEmpty) continue;
-      //get each line of section
-      final lines = p.split(";");
-
-      final spl = lines[0].split("\n");
-      //skip heading
-      String heading = spl[0];
-      heading = "* ${heading.trim()}";
-
-      String? firstLine = spl[1];
-      //loop through other lines
-      for (String l in lines) {
-        if (l.trim().isEmpty) continue;
-
-        if (firstLine != null) {
-          l = firstLine;
-          firstLine = null;
-        }
-
-        if (l.trim() == "===") {
-          continue;
-        }
-
-        final firstChars = l.substring(0, 2);
-        if (firstChars != "-\t") {
-          l = "-\t${l.trim()}";
-        }
-        if (l.contains("||")) {
-          final cells = l.split("||");
-          String lhs = cells[0];
-          String rhs = cells[1];
-
-          if (lhs.contains("//")) {
-            lhs = lhs.replaceAll("//", "\n\t");
-          }
-
-          rhs = "\t\t${rhs.trim()}";
-          if (rhs.contains("//")) {
-            rhs = rhs.replaceAll("//", "\n\t\t");
-          }
-
-          l = "$lhs ||\n$rhs";
-        }
-        sbSection.writeln("$l;");
-      }
-
-      final section = sbSection.toString();
-      sbTotal.writeln("$heading\n$section");
-      sbSection.clear();
-    }
-
-    return "${sbTotal.toString()}===\n";
-  }
 
   String _autoFormatAll(String input) {
     final sb = StringBuffer();
@@ -284,9 +224,11 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       //TODO: Replace with style snippet - snippets must be applied to fields
       String fullDefinition = "${lur.term} pos{(${lur.partOfSpeech})}";
       if (lur.example != null) {
-        fullDefinition = "$fullDefinition //eg{> ${lur.example}}";
+        fullDefinition =
+            "$fullDefinition || ${lur.definition} //eg{> ${lur.example}";
+      } else {
+        fullDefinition = "$fullDefinition || ${lur.definition}";
       }
-      fullDefinition = "$fullDefinition || ${lur.definition}";
       lines[i] = fullDefinition;
     }
 
@@ -419,45 +361,54 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
   }
 
-  void _handleKeyDown(RawKeyEvent value) async {
-    final _markers = <String>["*", "{", "("];
+  KeyEventResult _handleKeyDown(RawKeyEvent value) {
     final k = value.logicalKey;
     if (value is RawKeyDownEvent) {
       if (_markers.contains(k.keyLabel)) {
         final i = _textController.selection.baseOffset;
         final e = _textController.selection.extentOffset;
-        _textController.text =
+        final newText =
             CompanionMethods.autoInsert(k.keyLabel, _textController, i, e);
+        _textController.text = newText;
         _textController.selection =
-            TextSelection(baseOffset: i, extentOffset: e);
+            TextSelection(baseOffset: i + 1, extentOffset: e + 1);
+        return KeyEventResult.handled;
       }
     } else if (value is RawKeyUpEvent) {
       if (value.isControlPressed) {
-        if (k.keyLabel == "S") {
-          await _saveReport();
+        switch (k.keyLabel) {
+          case "S":
+            _saveReportSync();
+            break;
+          case "B":
+            //make bold
+            break;
+          default:
         }
+        return KeyEventResult.ignored;
       }
     }
+    return KeyEventResult.ignored;
   }
 
-  Future<void> _saveReport() async {
+  void _saveReportSync() {
     _textController.text = _autoFormatAll(_textController.text);
 
     final report;
     if (_currentReportId != null) {
-      report = await Report.getReport(_currentReportId!);
+      report = Report.getReportSync(_currentReportId!);
 
       if (report == null) {
         final newReport = Report(_textController.text);
-        await Report.saveReport(newReport);
+        Report.saveReportSync(newReport);
         _currentReportId = newReport.id;
       } else {
         report.text = _textController.text;
-        await Report.saveReport(report);
+        Report.saveReportSync(report);
       }
     } else {
       final newReport = Report(_textController.text);
-      await Report.saveReport(newReport);
+      Report.saveReportSync(newReport);
       _currentReportId = newReport.id;
     }
     ScaffoldMessenger.of(context)
@@ -481,81 +432,90 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Focus(
-      child: Scaffold(
-          body: Column(
-            children: [
-              Expanded(
-                  child: Card(
-                child: Padding(
-                  padding: EdgeInsets.all(0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          //TODO: auto-completion
-                          child: RawKeyboardListener(
-                        focusNode: _textNode,
-                        autofocus: true,
-                        child: TextField(
-                          controller: _textController,
-                          onSubmitted: ((value) {}),
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(10.0))),
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 13, vertical: 9),
-                          ),
-                          style: const TextStyle(fontSize: 11),
-                          maxLines: null,
-                          expands: true,
+    return Scaffold(
+        body: ModalProgressHUD(
+            inAsyncCall: _loading,
+            child: FocusScope(
+              autofocus: true,
+              canRequestFocus: true,
+              onKey: (node, event) {
+                return _handleKeyDown(event);
+              },
+              child: Focus(
+                child: Column(
+                  children: [
+                    Expanded(
+                        child: Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                                //TODO: auto-completion
+                                child: RawKeyboardListener(
+                              focusNode: _textNode,
+                              autofocus: true,
+                              child: TextField(
+                                controller: _textController,
+                                onSubmitted: ((value) {}),
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(10.0))),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 13, vertical: 9),
+                                ),
+                                style: const TextStyle(fontSize: 11),
+                                maxLines: null,
+                                expands: true,
+                              ),
+                              onKey: null,
+                            )),
+                          ],
                         ),
-                        onKey: _handleKeyDown,
-                      )),
-                    ],
-                  ),
+                      ),
+                    )),
+                    Padding(
+                        padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
+                        child: ElevatedButton(
+                            onPressed: _onPressedSubmit,
+                            child: const Text("Submit")))
+                  ],
                 ),
-              )),
-              Padding(
-                  padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
-                  child: ElevatedButton(
-                      onPressed: _onPressedSubmit, child: const Text("Submit")))
-            ],
-          ),
-          floatingActionButton: SpeedDial(
-            icon: Icons.more,
-            children: [
-              SpeedDialChild(
-                  label: "Dictionary Look-Up",
-                  onTap: () async {
+                onFocusChange: (value) {
+                  setState(() {
+                    _inFocus = value;
+                  });
+                },
+              ),
+            )),
+        floatingActionButton: SpeedDial(
+          icon: Icons.more,
+          children: [
+            SpeedDialChild(
+                label: "Dictionary Look-Up",
+                onTap: () async {
+                  _switchLoading();
+                  _lookUpWords().then((value) {
                     _switchLoading();
-                    _lookUpWords().then((value) {
-                      _switchLoading();
-                    });
-                  }),
-              SpeedDialChild(
-                  label: "Format Text",
-                  onTap: () {
-                    setState(() {
-                      _textController.text =
-                          _autoFormatAll(_textController.text);
-                    });
-                  }),
-              SpeedDialChild(
-                  label: "Reset Text",
-                  onTap: () {
-                    setState(() {
-                      _textController.text = _template;
-                    });
-                  })
-            ],
-          )),
-      onFocusChange: (value) {
-        setState(() {
-          _inFocus = value;
-        });
-      },
-    );
+                  });
+                }),
+            SpeedDialChild(
+                label: "Format Text",
+                onTap: () {
+                  setState(() {
+                    _textController.text = _autoFormatAll(_textController.text);
+                  });
+                }),
+            SpeedDialChild(
+                label: "Reset Text",
+                onTap: () {
+                  setState(() {
+                    _textController.text = _template;
+                  });
+                })
+          ],
+        ));
   }
 }
 

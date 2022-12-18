@@ -57,22 +57,6 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void initState() {
-    window.onKeyData = (keyData) {
-      switch (_currentFocus) {
-        case 1:
-          _autoInsert(_nameController);
-          return true;
-        case 3:
-          _autoInsert(_topicController);
-          return true;
-        case 4:
-          _autoInsert(_homeworkController);
-          return true;
-        default:
-          return false;
-      }
-    };
-
     super.initState();
   }
 

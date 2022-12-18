@@ -192,8 +192,22 @@ class Report {
   static Future<Report?> getReport(int id) async {
     final isar = Isar.getInstance("report_db") ??
         await Isar.open([ReportSchema], name: "report_db");
-    final student = isar.reports.filter().idEqualTo(id).findFirst();
-    return student;
+    final report = isar.reports.filter().idEqualTo(id).findFirst();
+    return report;
+  }
+
+  static Future<List<Report>> getAllReports() async {
+    final isar = Isar.getInstance("report_db") ??
+        await Isar.open([ReportSchema], name: "report_db");
+    final results = await isar.reports.where().findAll();
+    return results.toList();
+  }
+
+  static Report? getReportSync(int id) {
+    final isar = Isar.getInstance("report_db") ??
+        Isar.openSync([ReportSchema], name: "report_db");
+    final report = isar.reports.filter().idEqualTo(id).findFirstSync();
+    return report;
   }
 
   static Future<void> saveReport(Report report) async {
@@ -202,6 +216,12 @@ class Report {
     await isar.writeTxn(() async {
       await isar.reports.put(report);
     });
+  }
+
+  static void saveReportSync(Report report) {
+    final isar = Isar.getInstance("report_db") ??
+        Isar.openSync([ReportSchema], name: "report_db");
+    isar.writeTxnSync(() => isar.reports.putSync(report));
   }
 
   static Future<void> deleteReport(int id) async {
