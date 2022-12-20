@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/report_details.dart';
-import 'package:lesson_companion/views/generic/companion_widgets.dart';
 
 //==============================================================================
 //Report View

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:lesson_companion/views/generic/dialogs/main_menu_dialog.dart';
-import 'package:lesson_companion/views/main_windows/home_view.dart';
-import 'package:lesson_companion/views/main_windows/lesson_view.dart';
-import 'package:lesson_companion/views/main_windows/report_view.dart';
 import 'package:lesson_companion/views/main_windows/student_view.dart';
 import 'package:lesson_companion/views/main_windows/text_input_mode_view.dart';
+
+import '../dialogs/main_menu_dialog.dart';
+import 'home_view.dart';
+import 'lesson_view.dart';
 
 class BaseView extends StatefulWidget {
   const BaseView({super.key});
@@ -27,7 +27,7 @@ class _BaseViewState extends State<BaseView> {
     TextInputModeView(),
     StudentsView(),
     LessonHistoryView(),
-    ReportsView()
+    HomeView()
   ];
 
   @override
@@ -48,7 +48,7 @@ class _BaseViewState extends State<BaseView> {
                 showDialog(
                     context: context, builder: (context) => MenuMainDialog());
               },
-              child: Text("Options"))
+              child: const Text("Options"))
         ],
       ),
       body: IndexedStack(
@@ -60,9 +60,9 @@ class _BaseViewState extends State<BaseView> {
         selectedIconTheme:
             IconThemeData(color: Theme.of(context).colorScheme.primary),
         selectedItemColor: Theme.of(context).colorScheme.primary,
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
         unselectedItemColor: Theme.of(context).colorScheme.onBackground,
-        items: [
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.note), label: "Text Mode"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Students"),

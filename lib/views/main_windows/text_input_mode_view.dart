@@ -13,7 +13,6 @@ import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
-import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 final _template = """=<
 # Name
@@ -433,62 +432,60 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: ModalProgressHUD(
-            inAsyncCall: _loading,
-            child: FocusScope(
-              autofocus: true,
-              canRequestFocus: true,
-              onKey: (node, event) {
-                return _handleKeyDown(event);
-              },
-              child: Focus(
-                child: Column(
-                  children: [
-                    Expanded(
-                        child: Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                                //TODO: auto-completion
-                                child: RawKeyboardListener(
-                              focusNode: _textNode,
-                              autofocus: true,
-                              child: TextField(
-                                controller: _textController,
-                                onSubmitted: ((value) {}),
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(10.0))),
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 13, vertical: 9),
-                                ),
-                                style: const TextStyle(fontSize: 11),
-                                maxLines: null,
-                                expands: true,
-                              ),
-                              onKey: null,
-                            )),
-                          ],
-                        ),
-                      ),
-                    )),
-                    Padding(
-                        padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
-                        child: ElevatedButton(
-                            onPressed: _onPressedSubmit,
-                            child: const Text("Submit")))
-                  ],
-                ),
-                onFocusChange: (value) {
-                  setState(() {
-                    _inFocus = value;
-                  });
-                },
-              ),
-            )),
+        body: FocusScope(
+          autofocus: true,
+          canRequestFocus: true,
+          onKey: (node, event) {
+            return _handleKeyDown(event);
+          },
+          child: Focus(
+            child: Column(
+              children: [
+                Expanded(
+                    child: Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            //TODO: auto-completion
+                            child: RawKeyboardListener(
+                          focusNode: _textNode,
+                          autofocus: true,
+                          child: TextField(
+                            controller: _textController,
+                            onSubmitted: ((value) {}),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10.0))),
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 13, vertical: 9),
+                            ),
+                            style: const TextStyle(fontSize: 11),
+                            maxLines: null,
+                            expands: true,
+                          ),
+                          onKey: null,
+                        )),
+                      ],
+                    ),
+                  ),
+                )),
+                Padding(
+                    padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
+                    child: ElevatedButton(
+                        onPressed: _onPressedSubmit,
+                        child: const Text("Submit")))
+              ],
+            ),
+            onFocusChange: (value) {
+              setState(() {
+                _inFocus = value;
+              });
+            },
+          ),
+        ),
         floatingActionButton: SpeedDial(
           icon: Icons.more,
           children: [

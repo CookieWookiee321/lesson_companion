@@ -1,18 +1,18 @@
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:lesson_companion/controllers/companion_methods.dart';
-import 'package:lesson_companion/controllers/home_controller.dart';
-import 'package:lesson_companion/models/database.dart';
-import 'package:lesson_companion/models/lesson.dart';
-import 'package:lesson_companion/models/report.dart';
-import 'package:lesson_companion/models/student.dart';
-import 'package:lesson_companion/models/views/home_view_models.dart';
-import 'package:lesson_companion/views/generic/companion_widgets.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
+
+import '../../controllers/companion_methods.dart';
+import '../../controllers/home_controller.dart';
+import '../../models/database.dart';
+import '../../models/home_view_models.dart';
+import '../../models/lesson.dart';
+import '../../models/report.dart';
+import '../../models/student.dart';
+import '../companion_widgets.dart';
 
 typedef IntCallback = void Function(int row, int column);
 

@@ -42,5 +42,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-/lib/models/student_hive.dart
-/lib/models/hive/report_hive.dart

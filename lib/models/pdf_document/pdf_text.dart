@@ -1,8 +1,8 @@
 import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
-import 'package:lesson_companion/models/styling/pdf_lexer.dart';
 import 'package:pdf/widgets.dart' as w;
 
 import '../../controllers/styler.dart';
+import '../../controllers/styling/pdf_lexer.dart';
 
 enum ColorOption { purple, orange, green, regular, silver }
 
