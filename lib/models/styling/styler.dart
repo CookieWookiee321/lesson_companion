@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pdf_widj;
-
-import '../pdf_document/pdf_text.dart';
 
 class Styler {
   static const lightColorScheme = ColorScheme(

@@ -47,7 +47,6 @@ class PdfLexer {
       final placementMap = Map.fromEntries(temp);
 
       // get and order the regular text
-      int start = 0;
       for (final index in placementMap.keys) {
         output.add(placementMap[index]!);
       }
