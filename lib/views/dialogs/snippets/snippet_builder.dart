@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/style_snippet.dart';
 import 'package:lesson_companion/models/styling/pdf_lexer.dart';
-import 'package:lesson_companion/views/generic/companion_widgets.dart';
+
+import '../../companion_widgets.dart';
 
 class SnippetBuilder extends StatefulWidget {
   final StyleSnippet? marker;

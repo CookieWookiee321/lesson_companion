@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/style_snippet.dart';
-import 'package:lesson_companion/views/generic/dialogs/snippets/snippet_builder.dart';
+import 'package:lesson_companion/views/dialogs/snippets/snippet_builder.dart';
 
 class SnippetList extends StatefulWidget {
   const SnippetList({super.key});

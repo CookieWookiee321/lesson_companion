@@ -206,6 +206,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     );
     final lines = newLanguage.split("\n");
 
+    //TODO: this is writing junk text, rewriting the text following NL
     for (int i = 0; i < lines.length; i++) {
       if (lines[i].isEmpty || lines[i][0] != "-") continue;
 
@@ -221,10 +222,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       }
 
       //TODO: Replace with style snippet - snippets must be applied to fields
-      String fullDefinition = "${lur.term} pos{(${lur.partOfSpeech})}";
+      String fullDefinition = "${lur.term} //pos{${lur.partOfSpeech}}";
       if (lur.example != null) {
         fullDefinition =
-            "$fullDefinition || ${lur.definition} //eg{> ${lur.example}";
+            "$fullDefinition || ${lur.definition} //eg{${lur.example}}";
       } else {
         fullDefinition = "$fullDefinition || ${lur.definition}";
       }
@@ -236,7 +237,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       if (element.isNotEmpty && element[0] != "-") {
         sb.writeln("- $element");
       } else {
-        if (element != "- ===") {
+        if (element != "- >=") {
           sb.writeln("$element");
         }
       }
@@ -605,10 +606,9 @@ class _LookUpCardState extends State<LookUpCard> {
           Padding(
             padding: EdgeInsets.fromLTRB(0, 0, 0, 3),
             child: DropdownButton(
+                isExpanded: true,
                 style: TextStyle(fontSize: 13),
                 hint: Text("Defintion"),
-                isDense: true,
-                isExpanded: true,
                 value: _definition,
                 items: _partOfSpeech != null
                     ? _definitionDropdownMenuItem(_partOfSpeech!)

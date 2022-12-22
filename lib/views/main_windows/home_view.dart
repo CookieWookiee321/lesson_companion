@@ -672,3 +672,10 @@ class AdjustableScrollController extends ScrollController {
     });
   }
 }
+
+class ReportTableRowModel {
+  String? lhs;
+  String? rhs;
+
+  ReportTableRowModel({this.lhs, this.rhs});
+}

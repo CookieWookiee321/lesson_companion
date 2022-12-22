@@ -4,7 +4,7 @@ import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/style_snippet.dart';
 
 import '../companion_widgets.dart';
-import '../snippets/snippet_list.dart';
+import 'snippets/snippet_list.dart';
 
 final _template =
     """>Lines like this will not be processed, so please replace them with your own information.

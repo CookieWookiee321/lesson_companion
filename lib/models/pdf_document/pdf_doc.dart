@@ -64,19 +64,23 @@ class PdfDoc {
         build: ((context) {
           return [
             // H1-------------------------------------------------------------------
-            Row(children: [
-              Expanded(child: _name),
-              Expanded(
-                  child:
-                      Container(alignment: Alignment.centerRight, child: _date))
-            ]),
+            Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Row(children: [
+                  Expanded(child: _name),
+                  Expanded(
+                      child: Container(
+                          alignment: Alignment.centerRight, child: _date))
+                ])),
             // H2-------------------------------------------------------------------
-            Row(children: [
-              Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: _topicHeader),
-              Expanded(child: _topic)
-            ]),
+            Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Row(children: [
+                  Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: _topicHeader),
+                  Expanded(child: _topic)
+                ])),
             if (homework!.components.isNotEmpty)
               Row(children: [
                 Padding(
