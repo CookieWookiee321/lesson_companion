@@ -53,7 +53,7 @@ class TextInputModeView extends StatefulWidget {
 }
 
 class _TextInputModeViewState extends State<TextInputModeView> {
-  static const _markers = <String>["*", "{", "(", "\"", "["];
+  static const _markers = <String>["*", "{", "(", "\"", "[", "_"];
 
   final _lookUps = <LookUp>[];
   final _lookUpCards = <LookUpCard>[];

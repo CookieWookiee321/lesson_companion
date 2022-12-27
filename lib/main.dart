@@ -1,3 +1,6 @@
+//TODO: "cntrl + __" shortcuts
+//TODO: message on look up no results
+//TODO: style functions
 import 'dart:io';
 
 import 'package:desktop_window/desktop_window.dart';
