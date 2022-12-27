@@ -50,7 +50,6 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
         future: _getNames(_onlyActive!),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            //TODO: offset alphabet bar
             return AlphabetScrollView(
               alignment: LetterAlignment.left,
               list: _names!.map((e) => AlphaModel(e)).toList(),

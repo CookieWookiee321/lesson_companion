@@ -100,7 +100,6 @@ class _StudentsListViewState extends State<StudentsListView> {
                 child: Text("Error. Failed to load students"));
           }
         } else {
-          //TODO: handle error connection state
           return Center(
             child: CircularProgressIndicator(),
           );
@@ -167,9 +166,6 @@ class _StudentsListViewState extends State<StudentsListView> {
                     .first;
                 student.name = __name;
                 await Database.saveStudent(student);
-              } else {
-                //if name is taken
-                //TODO: merge the two profiles?
               }
 
               setState(() {});
