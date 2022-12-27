@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/style_snippet.dart';
-import 'package:lesson_companion/models/styling/pdf_lexer.dart';
 
 import '../../companion_widgets.dart';
 
@@ -168,7 +167,6 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          //TODO:focus on fixed things first, then add customisation later
           Text("Snippet Name"),
           TextFieldOutlined(
             controller: _nameController,

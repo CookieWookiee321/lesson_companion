@@ -205,7 +205,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         fullText.indexOf("\n", indexHeading) + 1, indexEnding);
     final lines = newLanguage.split("\n");
 
-    //TODO: this is writing junk text, rewriting the text following NL
     for (int i = 0; i < lines.length; i++) {
       if (lines[i].isEmpty || lines[i][0] != "-") continue;
 

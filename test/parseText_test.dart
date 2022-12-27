@@ -1,7 +1,5 @@
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
-import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
-import 'package:pdf/pdf.dart';
 import 'package:test/test.dart';
 import 'package:lesson_companion/models/styling/pdf_lexer.dart';
 

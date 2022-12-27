@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/database.dart';
-import 'package:lesson_companion/models/style_snippet.dart';
 
 import '../companion_widgets.dart';
 import 'snippets/snippet_list.dart';

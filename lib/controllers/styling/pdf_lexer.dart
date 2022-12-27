@@ -32,7 +32,7 @@ class PdfLexer {
     //     StylingOption.link,
   };
 
-  //TODO: some parsing errors persist
+  //TODO: underlining doesn't erase the underscores encasing the text
   static Future<List<PdfTextSpan>> parseText(
       String text, PdfSection section) async {
     final output = <PdfTextSpan>[];

@@ -95,9 +95,10 @@ class SnippetListState extends State<SnippetList> {
                   await showDialog(
                     context: context,
                     builder: (context) => SnippetBuilder(),
-                  );
-                  setState() {}
-                  ;
+                  ).then((value) {
+                    setState() {}
+                    ;
+                  });
                 }),
           )
         ],

@@ -52,6 +52,7 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
           if (snapshot.connectionState == ConnectionState.done) {
             //TODO: offset alphabet bar
             return AlphabetScrollView(
+              alignment: LetterAlignment.left,
               list: _names!.map((e) => AlphaModel(e)).toList(),
               selectedTextStyle: Theme.of(context)
                   .textTheme
@@ -60,6 +61,7 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
               unselectedTextStyle: Theme.of(context).textTheme.labelSmall!,
               itemBuilder: (context, index, value) {
                 return ListTile(
+                  leading: Text(" "),
                   title: Text(value),
                   onTap: () {
                     setState(() {

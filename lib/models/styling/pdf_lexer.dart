@@ -32,7 +32,6 @@ class PdfLexer {
     //     StylingOption.link,
   };
 
-  //TODO: some parsing errors persist
   static Future<List<PdfTextSpan>> parseText(
       String text, PdfSection section) async {
     final output = <PdfTextSpan>[];
