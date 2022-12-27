@@ -21,7 +21,6 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
   List<String>? _names;
   bool? _onlyActive = false;
   String? _selectedStudent;
-  int? _lessonCount;
   List<Lesson>? _lessons;
 
   Future<void> _getLessons() async {
@@ -94,7 +93,7 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
                       subtitle: _lessons![index].homework != null
                           ? Text(_lessons![index].homework!)
                           : null,
-                      onLongPress: () async {
+                      onTap: () async {
                         final id = _students!
                             .where((s) => s.name! == _selectedStudent!)
                             .first

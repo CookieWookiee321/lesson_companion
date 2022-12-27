@@ -8,7 +8,6 @@ import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 import '../../controllers/companion_methods.dart';
 import '../../controllers/home_controller.dart';
 import '../../models/database.dart';
-import '../../models/home_view_models.dart';
 import '../../models/lesson.dart';
 import '../../models/report.dart';
 import '../../models/student.dart';
@@ -32,6 +31,7 @@ class _HomeViewState extends State<HomeView> {
   String? _topic;
   String? _homework;
 
+  //TODO:
   int? _currentFocus = null;
   double _traversalCap = 5;
 
@@ -47,13 +47,6 @@ class _HomeViewState extends State<HomeView> {
     ReportTable(title: "Pronunciation", children: []),
     ReportTable(title: "Corrections", children: [])
   ];
-
-  void _autoInsert(TextEditingController controller) {
-    final indexNow = controller.selection.base.offset;
-    final character = controller.text[indexNow - 1];
-    controller.text = CompanionMethods.autoInsert(
-        character, controller, indexNow, controller.selection.extentOffset);
-  }
 
   @override
   void initState() {

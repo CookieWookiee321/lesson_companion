@@ -202,8 +202,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       indexEnding = fullText.indexOf(">=");
     }
     final newLanguage = fullText.substring(
-      fullText.indexOf("\n", indexHeading) + 1,
-    );
+        fullText.indexOf("\n", indexHeading) + 1, indexEnding);
     final lines = newLanguage.split("\n");
 
     //TODO: this is writing junk text, rewriting the text following NL
@@ -491,27 +490,27 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           icon: Icons.more,
           children: [
             SpeedDialChild(
-                label: "Dictionary Look-Up",
-                onTap: () async {
-                  _switchLoading();
-                  _lookUpWords().then((value) {
-                    _switchLoading();
-                  });
-                }),
-            SpeedDialChild(
-                label: "Format Text",
+                label: "Format",
                 onTap: () {
                   setState(() {
                     _textController.text = _autoFormatAll(_textController.text);
                   });
                 }),
             SpeedDialChild(
-                label: "Reset Text",
+                label: "Reset",
                 onTap: () {
                   setState(() {
                     _textController.text = _template;
                   });
-                })
+                }),
+            SpeedDialChild(
+                label: "New Language Look-Up",
+                onTap: () async {
+                  _switchLoading();
+                  _lookUpWords().then((value) {
+                    _switchLoading();
+                  });
+                }),
           ],
         ));
   }
