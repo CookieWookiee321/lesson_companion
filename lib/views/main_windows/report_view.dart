@@ -64,36 +64,46 @@ class _ReportsListViewState extends State<ReportsListView> {
       future: _getReportDetails(),
       builder: ((context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          return Container(
-            decoration: BoxDecoration(
-                border: Border.all(),
-                borderRadius: const BorderRadius.all(Radius.circular(8))),
-            margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
-            padding: const EdgeInsets.all(6),
-            child: ListView.builder(
-                controller: _scrollController,
-                itemCount: _reports!.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(snapshot.data!.values.elementAt(index).name),
-                    subtitle: Text(
-                        "Date: ${snapshot.data!.values.elementAt(index).date}"),
-                    onTap: () async {
-                      await showDialog(
-                        context: context,
-                        builder: (context) {
-                          return _menuDialog(index);
-                        },
-                      );
-                    },
-                  );
-                }),
+          if (snapshot.hasData) {
+            return Container(
+              decoration: BoxDecoration(
+                  border: Border.all(),
+                  borderRadius: const BorderRadius.all(Radius.circular(8))),
+              margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
+              padding: const EdgeInsets.all(6),
+              child: ListView.builder(
+                  controller: _scrollController,
+                  itemCount: _reports!.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(snapshot.data!.values.elementAt(index).name),
+                      subtitle: Text(
+                          "Date: ${snapshot.data!.values.elementAt(index).date}"),
+                      onTap: () async {
+                        await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return _menuDialog(index);
+                          },
+                        );
+                      },
+                    );
+                  }),
+            );
+          } else {
+            return Container(
+                decoration: BoxDecoration(
+                    border: Border.all(),
+                    borderRadius: const BorderRadius.all(Radius.circular(8))),
+                margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
+                padding: const EdgeInsets.all(6),
+                child: Text("Error. Failed to load reports."));
+          }
+        } else {
+          return Center(
+            child: CircularProgressIndicator(),
           );
         }
-        //TODO: handle error connection state
-        return Center(
-          child: CircularProgressIndicator(),
-        );
       }),
     );
   }
