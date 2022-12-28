@@ -1,8 +1,9 @@
 //TODO: "cntrl + __" shortcuts
 //TODO: message on look up no results
 //TODO: style functions
+import 'dart:convert';
 import 'dart:io';
-
+import 'package:http/http.dart' as http;
 import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/database.dart' as db;
@@ -28,14 +29,21 @@ Future<void> main() async {
 
 Future<void> initialSettings() async {
   final checker = await db.Database.getSetting(SharedPrefOption.darkMode);
+  final prefs = await SharedPreferences.getInstance();
 
-  if (checker != null) {
-    return;
-  } else {
-    final prefs = await SharedPreferences.getInstance();
+  if (checker == null) {
     await prefs.setString(
         "footer", "Customise your footer in the options menu!");
     await prefs.setBool("darkMode", false);
+  }
+
+  final dictionaryCompiled =
+      await db.Database.getSetting(SharedPrefOption.dictionary);
+  if (dictionaryCompiled == null) {
+    final response = await http
+        .get(Uri.parse("http://www.mieliestronk.com/corncob_lowercase.txt"));
+    final fullText = utf8.decode(response.bodyBytes);
+    await prefs.setStringList("dictionary", fullText.split("\r\n"));
   }
 }
 
