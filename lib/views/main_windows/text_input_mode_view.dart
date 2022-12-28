@@ -381,12 +381,20 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             _saveReportSync();
             break;
           case "B":
-            //make bold
-            break;
-          case "Enter":
+            // make bold
             final before;
             final middle = "\n";
             final after;
+
+            final indexNextLineEnd = _textController.text
+                .indexOf("\n", _textController.selection.baseOffset);
+            break;
+          case "Enter":
+            // new line
+            final before;
+            final middle = "\n";
+            final after;
+            final newSelectionIndex;
 
             final indexNextLineEnd = _textController.text
                 .indexOf("\n", _textController.selection.baseOffset);
@@ -395,14 +403,16 @@ class _TextInputModeViewState extends State<TextInputModeView> {
               before = _textController.text.substring(0, indexNextLineEnd);
               after = _textController.text
                   .substring(indexNextLineEnd, _textController.text.length);
+              newSelectionIndex = indexNextLineEnd;
             } else {
               before = _textController.text;
               after = "";
+              newSelectionIndex = _textController.text.length + 1;
             }
 
             _textController.text = "$before$middle$after";
             _textController.selection =
-                TextSelection.collapsed(offset: indexNextLineEnd);
+                TextSelection.collapsed(offset: newSelectionIndex);
             return KeyEventResult.handled;
           default:
         }
