@@ -361,23 +361,23 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   KeyEventResult _handleKey(RawKeyEvent value) {
     final k = value.logicalKey;
+
     if (value is RawKeyDownEvent) {
+      final baseOffset = _textController.selection.baseOffset;
+      final extentOffset = _textController.selection.extentOffset;
+
       if (_markers.contains(k.keyLabel)) {
         final baseOffset = _textController.selection.baseOffset;
         final extentOffset = _textController.selection.extentOffset;
         final newText = CompanionMethods.autoInsertBrackets(
             k.keyLabel, _textController, baseOffset, extentOffset);
+
         _textController.text = newText;
         _textController.selection = TextSelection(
             baseOffset: baseOffset + 1, extentOffset: extentOffset + 1);
+
         return KeyEventResult.handled;
-      } else if (value.isControlPressed && k.keyLabel == "Enter") {
-        return KeyEventResult.handled;
-      }
-    } else if (value is RawKeyUpEvent) {
-      final baseOffset = _textController.selection.baseOffset;
-      final extentOffset = _textController.selection.extentOffset;
-      if (value.isControlPressed) {
+      } else if (value.isControlPressed) {
         switch (k.keyLabel) {
           case "S":
             _saveReportSync();
@@ -431,6 +431,61 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         return KeyEventResult.ignored;
       }
     }
+    // else if (value is RawKeyUpEvent) {
+    //   if (value.isControlPressed) {
+    //     switch (k.keyLabel) {
+    //       case "S":
+    //         _saveReportSync();
+    //         break;
+    //       case "B":
+    //         _textController.text =
+    //             CompanionMethods.insertStyleSyntax("**", _textController);
+    //         _textController.selection = TextSelection(
+    //             baseOffset: baseOffset, extentOffset: extentOffset);
+    //         break;
+    //       case "I":
+    //         _textController.text =
+    //             CompanionMethods.insertStyleSyntax("*", _textController);
+    //         _textController.selection = TextSelection(
+    //             baseOffset: baseOffset, extentOffset: extentOffset);
+    //         break;
+    //       case "U":
+    //         _textController.text =
+    //             CompanionMethods.insertStyleSyntax("_", _textController);
+    //         _textController.selection = TextSelection(
+    //             baseOffset: baseOffset, extentOffset: extentOffset);
+    //         break;
+    //       case "Enter":
+    //         final fullText = _textController.text;
+
+    //         final before;
+    //         final middle = "\n";
+    //         final after;
+    //         final newSelectionIndex;
+
+    //         final indexNextLineEnd =
+    //             fullText.indexOf("\n", _textController.selection.baseOffset);
+
+    //         if (indexNextLineEnd != -1) {
+    //           before = fullText.substring(0, indexNextLineEnd);
+    //           after = fullText.substring(indexNextLineEnd, fullText.length);
+    //           newSelectionIndex = indexNextLineEnd;
+    //         } else {
+    //           before = fullText;
+    //           after = "";
+    //           newSelectionIndex = fullText.length + 1;
+    //         }
+
+    //         _textController.text = "$before$middle$after";
+    //         _textController.selection =
+    //             TextSelection.collapsed(offset: newSelectionIndex + 1);
+
+    //         return KeyEventResult.handled;
+    //       default:
+    //     }
+    //     return KeyEventResult.ignored;
+    //   }
+    // }
     return KeyEventResult.ignored;
   }
 
