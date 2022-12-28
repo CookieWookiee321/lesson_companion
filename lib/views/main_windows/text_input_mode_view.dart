@@ -513,6 +513,39 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         .showSnackBar(SnackBar(content: Text("Report saved")));
   }
 
+  void _duplicateCorrections() {
+    _textController.text = _autoFormatAll(_textController.text);
+
+    final fullText = _textController.text;
+    final StringBuffer sb = StringBuffer();
+
+    final indexStart = fullText.indexOf("# Corrections") + 14;
+    final indexEnd;
+    if (fullText.indexOf("#", indexStart) != -1) {
+      indexEnd = fullText.indexOf("#", indexStart);
+    } else {
+      indexEnd = fullText.indexOf(">=");
+    }
+
+    final nl = fullText.substring(indexStart, indexEnd).split("\n");
+
+    for (final line in nl) {
+      if (line.isEmpty || line.trim().length == 0) continue;
+
+      if (!line.contains("||")) {
+        sb.writeln("${line.trim()} || ${line.substring(2)}");
+      } else {
+        sb.writeln(line);
+      }
+    }
+
+    final before = fullText.substring(0, indexStart);
+    final middle = sb.toString().trim();
+    final after = fullText.substring(indexEnd, fullText.length);
+
+    _textController.text = "$before\n$middle\n\n$after";
+  }
+
   //MAIN------------------------------------------------------------------------
 
   @override
@@ -589,11 +622,17 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           icon: Icons.more,
           children: [
             SpeedDialChild(
-                label: "Format",
-                onTap: () {
-                  setState(() {
-                    _textController.text = _autoFormatAll(_textController.text);
+                label: "Look Up New Language",
+                onTap: () async {
+                  _switchLoading();
+                  _lookUpWords().then((value) {
+                    _switchLoading();
                   });
+                }),
+            SpeedDialChild(
+                label: "Duplicate Corrections",
+                onTap: () {
+                  _duplicateCorrections();
                 }),
             SpeedDialChild(
                 label: "Reset",
@@ -603,11 +642,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                   });
                 }),
             SpeedDialChild(
-                label: "New Language Look-Up",
-                onTap: () async {
-                  _switchLoading();
-                  _lookUpWords().then((value) {
-                    _switchLoading();
+                label: "Format",
+                onTap: () {
+                  setState(() {
+                    _textController.text = _autoFormatAll(_textController.text);
                   });
                 }),
           ],
