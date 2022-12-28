@@ -248,7 +248,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     print(before + "\n");
     print(sb.toString() + "\n");
     print(after);
-    _textController.text = "$before${sb.toString()}$after";
+    _textController.text = "$before${sb.toString().trim()}\n\n$after";
   }
 
   //OTHER-----------------------------------------------------------------------

@@ -1,4 +1,3 @@
-//TODO: "cntrl + __" shortcuts
 //TODO: message on look up no results
 //TODO: style functions
 import 'dart:convert';

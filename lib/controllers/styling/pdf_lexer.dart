@@ -58,6 +58,7 @@ class PdfLexer {
     return output;
   }
 
+  //TODO: disallow '^' from textfields
   static Future<Map<int, PdfTextSpan>> _mapSeperateStyles(
       String text, PdfSection section) async {
     final _replaceMarker = "^";
@@ -102,7 +103,7 @@ class PdfLexer {
 
       for (final match in matches) {
         final thisPdfTextSpan = PdfTextSpan(
-            text: _getTrueText(
+            text: _removeSyntaxMarkers(
                 input: match.input.toString().substring(match.start, match.end),
                 regExp: expression));
         thisPdfTextSpan.size = baseHeight;
@@ -226,10 +227,11 @@ class PdfLexer {
     return output;
   }
 
-  static String _getTrueText({required String input, required String regExp}) {
+  static String _removeSyntaxMarkers(
+      {required String input, required String regExp}) {
     switch (regExp) {
       case r"(?<!\S)(\*{1})[^*]+\1(?!\S)":
-      case r"(?<!\S)(\_{1})[^_]+\1(?!\S)":
+      case r"(?<!\S)(\_{1})[^*]+\1(?!\S)":
         return input.substring(1, input.length - 1);
       case r"(?<!\S)(\*{2})[^*]+\1(?!\S)":
         return input.substring(2, input.length - 2);
