@@ -64,33 +64,7 @@ class _StudentsListViewState extends State<StudentsListView> {
       future: _getStudentDetails(),
       builder: ((context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasData) {
-            return Container(
-              decoration: BoxDecoration(
-                  border: Border.all(),
-                  borderRadius: const BorderRadius.all(Radius.circular(8))),
-              margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
-              padding: const EdgeInsets.all(6),
-              child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: _namesAndCountMap!.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(_namesAndCountMap!.keys.elementAt(index)),
-                      subtitle: Text(
-                          "Total Lessons: ${_namesAndCountMap!.values.elementAt(index)}"),
-                      onLongPress: () async {
-                        await showDialog(
-                          context: context,
-                          builder: (context) {
-                            return _menuDialog(index);
-                          },
-                        );
-                      },
-                    );
-                  }),
-            );
-          } else {
+          if (_students == null || _students!.isEmpty) {
             return Container(
                 decoration: BoxDecoration(
                     border: Border.all(),
@@ -99,6 +73,31 @@ class _StudentsListViewState extends State<StudentsListView> {
                 padding: const EdgeInsets.all(6),
                 child: Text("Error. Failed to load students"));
           }
+          return Container(
+            decoration: BoxDecoration(
+                border: Border.all(),
+                borderRadius: const BorderRadius.all(Radius.circular(8))),
+            margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
+            padding: const EdgeInsets.all(6),
+            child: ListView.builder(
+                controller: _scrollController,
+                itemCount: _namesAndCountMap!.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(_namesAndCountMap!.keys.elementAt(index)),
+                    subtitle: Text(
+                        "Total Lessons: ${_namesAndCountMap!.values.elementAt(index)}"),
+                    onLongPress: () async {
+                      await showDialog(
+                        context: context,
+                        builder: (context) {
+                          return _menuDialog(index);
+                        },
+                      );
+                    },
+                  );
+                }),
+          );
         } else {
           return Center(
             child: CircularProgressIndicator(),
