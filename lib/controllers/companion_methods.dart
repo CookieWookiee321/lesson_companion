@@ -6,6 +6,54 @@ import 'package:path_provider/path_provider.dart';
 enum TextType { question, base, sub, example, info }
 
 class CompanionMethods {
+  static String insertStyleSyntax(
+      String marker, TextEditingController controller) {
+    final fullText = controller.text;
+
+    final before;
+    final middle;
+    final after;
+
+    final base = controller.selection.baseOffset;
+    final extent = controller.selection.extentOffset;
+    final indexStart;
+    final indexEnd;
+
+    if (base > extent) {
+      indexStart = extent;
+      indexEnd = base;
+    } else if (extent > base) {
+      indexStart = base;
+      indexEnd = extent;
+    } else {
+      int counter = base;
+      while (fullText[counter] != " " && counter > 0) {
+        counter--;
+      }
+
+      if (fullText[counter] == " ") {
+        indexStart = counter + 1;
+      } else {
+        indexStart = counter;
+      }
+
+      final nextSpace = fullText.indexOf(" ", base);
+      final nextLineBreak = fullText.indexOf("\n", base);
+      final x = (nextSpace < nextLineBreak) ? nextSpace : nextLineBreak;
+      if (x != -1) {
+        indexEnd = x;
+      } else {
+        indexEnd = fullText.length;
+      }
+    }
+
+    before = "${fullText.substring(0, indexStart)}$marker";
+    middle = fullText.substring(indexStart, indexEnd);
+    after = "$marker${fullText.substring(indexEnd, fullText.length)}";
+
+    return "$before$middle$after";
+  }
+
   static Future<String> getLocalPath() async {
     final directory = await getApplicationDocumentsDirectory();
 
@@ -212,8 +260,8 @@ class CompanionMethods {
     return SelectableText.rich(TextSpan(children: outputComponents));
   }
 
-  static String autoInsert(String char, TextEditingController controller,
-      int currentIndex, int selectionEnd) {
+  static String autoInsertBrackets(String char,
+      TextEditingController controller, int currentIndex, int selectionEnd) {
     final sb = StringBuffer();
 
     final startInd;

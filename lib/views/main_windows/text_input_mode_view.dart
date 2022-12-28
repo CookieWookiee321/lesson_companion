@@ -363,93 +363,68 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     final k = value.logicalKey;
     if (value is RawKeyDownEvent) {
       if (_markers.contains(k.keyLabel)) {
-        final i = _textController.selection.baseOffset;
-        final e = _textController.selection.extentOffset;
-        final newText =
-            CompanionMethods.autoInsert(k.keyLabel, _textController, i, e);
+        final baseOffset = _textController.selection.baseOffset;
+        final extentOffset = _textController.selection.extentOffset;
+        final newText = CompanionMethods.autoInsertBrackets(
+            k.keyLabel, _textController, baseOffset, extentOffset);
         _textController.text = newText;
-        _textController.selection =
-            TextSelection(baseOffset: i + 1, extentOffset: e + 1);
+        _textController.selection = TextSelection(
+            baseOffset: baseOffset + 1, extentOffset: extentOffset + 1);
         return KeyEventResult.handled;
       } else if (value.isControlPressed && k.keyLabel == "Enter") {
         return KeyEventResult.handled;
       }
     } else if (value is RawKeyUpEvent) {
+      final baseOffset = _textController.selection.baseOffset;
+      final extentOffset = _textController.selection.extentOffset;
       if (value.isControlPressed) {
         switch (k.keyLabel) {
           case "S":
             _saveReportSync();
             break;
           case "B":
-            // make bold
-            final before;
-            final middle;
-            final after;
-
-            final base = _textController.selection.baseOffset;
-            final extent = _textController.selection.extentOffset;
-            final indexStart;
-            final indexEnd;
-
-            if (base > extent) {
-              indexStart = extent;
-              indexEnd = base;
-            } else if (extent > base) {
-              indexStart = base;
-              indexEnd = extent;
-            } else {
-              int counter = base;
-              while (_textController.text[counter] != " " && counter > 0) {
-                counter--;
-              }
-
-              if (_textController.text[counter] == " ") {
-                indexStart = counter + 1;
-              } else {
-                indexStart = counter;
-              }
-
-              final nextSpace = _textController.text.indexOf(" ", base);
-              final nextLineBreak = _textController.text.indexOf("\n", base);
-              final x = (nextSpace < nextLineBreak) ? nextSpace : nextLineBreak;
-              if (x != -1) {
-                indexEnd = x;
-              } else {
-                indexEnd = _textController.text.length;
-              }
-            }
-
-            before = "${_textController.text.substring(0, indexStart)}**";
-            middle = _textController.text.substring(indexStart, indexEnd);
-            after =
-                "**${_textController.text.substring(indexEnd, _textController.text.length)}";
-
-            _textController.text = "$before$middle$after";
+            _textController.text =
+                CompanionMethods.insertStyleSyntax("**", _textController);
+            _textController.selection = TextSelection(
+                baseOffset: baseOffset, extentOffset: extentOffset);
+            break;
+          case "I":
+            _textController.text =
+                CompanionMethods.insertStyleSyntax("*", _textController);
+            _textController.selection = TextSelection(
+                baseOffset: baseOffset, extentOffset: extentOffset);
+            break;
+          case "U":
+            _textController.text =
+                CompanionMethods.insertStyleSyntax("_", _textController);
+            _textController.selection = TextSelection(
+                baseOffset: baseOffset, extentOffset: extentOffset);
             break;
           case "Enter":
-            // new line
+            final fullText = _textController.text;
+
             final before;
             final middle = "\n";
             final after;
             final newSelectionIndex;
 
-            final indexNextLineEnd = _textController.text
-                .indexOf("\n", _textController.selection.baseOffset);
+            final indexNextLineEnd =
+                fullText.indexOf("\n", _textController.selection.baseOffset);
 
             if (indexNextLineEnd != -1) {
-              before = _textController.text.substring(0, indexNextLineEnd);
-              after = _textController.text
-                  .substring(indexNextLineEnd, _textController.text.length);
+              before = fullText.substring(0, indexNextLineEnd);
+              after = fullText.substring(indexNextLineEnd, fullText.length);
               newSelectionIndex = indexNextLineEnd;
             } else {
-              before = _textController.text;
+              before = fullText;
               after = "";
-              newSelectionIndex = _textController.text.length + 1;
+              newSelectionIndex = fullText.length + 1;
             }
 
             _textController.text = "$before$middle$after";
             _textController.selection =
-                TextSelection.collapsed(offset: newSelectionIndex);
+                TextSelection.collapsed(offset: newSelectionIndex + 1);
+
             return KeyEventResult.handled;
           default:
         }
