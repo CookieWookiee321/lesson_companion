@@ -359,7 +359,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
   }
 
-  KeyEventResult _handleKeyDown(RawKeyEvent value) {
+  KeyEventResult _handleKey(RawKeyEvent value) {
     final k = value.logicalKey;
     if (value is RawKeyDownEvent) {
       if (_markers.contains(k.keyLabel)) {
@@ -371,6 +371,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         _textController.selection =
             TextSelection(baseOffset: i + 1, extentOffset: e + 1);
         return KeyEventResult.handled;
+      } else if (value.isControlPressed && k.keyLabel == "Enter") {
+        return KeyEventResult.handled;
       }
     } else if (value is RawKeyUpEvent) {
       if (value.isControlPressed) {
@@ -381,6 +383,27 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           case "B":
             //make bold
             break;
+          case "Enter":
+            final before;
+            final middle = "\n";
+            final after;
+
+            final indexNextLineEnd = _textController.text
+                .indexOf("\n", _textController.selection.baseOffset);
+
+            if (indexNextLineEnd != -1) {
+              before = _textController.text.substring(0, indexNextLineEnd);
+              after = _textController.text
+                  .substring(indexNextLineEnd, _textController.text.length);
+            } else {
+              before = _textController.text;
+              after = "";
+            }
+
+            _textController.text = "$before$middle$after";
+            _textController.selection =
+                TextSelection.collapsed(offset: indexNextLineEnd);
+            return KeyEventResult.handled;
           default:
         }
         return KeyEventResult.ignored;
@@ -435,7 +458,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           autofocus: true,
           canRequestFocus: true,
           onKey: (node, event) {
-            return _handleKeyDown(event);
+            return _handleKey(event);
           },
           child: Focus(
             child: Column(
