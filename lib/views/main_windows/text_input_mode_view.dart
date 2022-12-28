@@ -383,11 +383,48 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           case "B":
             // make bold
             final before;
-            final middle = "\n";
+            final middle;
             final after;
 
-            final indexNextLineEnd = _textController.text
-                .indexOf("\n", _textController.selection.baseOffset);
+            final base = _textController.selection.baseOffset;
+            final extent = _textController.selection.extentOffset;
+            final indexStart;
+            final indexEnd;
+
+            if (base > extent) {
+              indexStart = extent;
+              indexEnd = base;
+            } else if (extent > base) {
+              indexStart = base;
+              indexEnd = extent;
+            } else {
+              int counter = base;
+              while (_textController.text[counter] != " " && counter > 0) {
+                counter--;
+              }
+
+              if (_textController.text[counter] == " ") {
+                indexStart = counter + 1;
+              } else {
+                indexStart = counter;
+              }
+
+              final nextSpace = _textController.text.indexOf(" ", base);
+              final nextLineBreak = _textController.text.indexOf("\n", base);
+              final x = (nextSpace < nextLineBreak) ? nextSpace : nextLineBreak;
+              if (x != -1) {
+                indexEnd = x;
+              } else {
+                indexEnd = _textController.text.length;
+              }
+            }
+
+            before = "${_textController.text.substring(0, indexStart)}**";
+            middle = _textController.text.substring(indexStart, indexEnd);
+            after =
+                "**${_textController.text.substring(indexEnd, _textController.text.length)}";
+
+            _textController.text = "$before$middle$after";
             break;
           case "Enter":
             // new line
