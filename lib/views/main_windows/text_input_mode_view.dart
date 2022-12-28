@@ -99,7 +99,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
     if (!input.contains(_stop)) sb.write(_stop);
 
-    return sb.toString().substring(0, sb.length);
+    return sb.toString().trim();
   }
 
   //LOOK UP---------------------------------------------------------------------
