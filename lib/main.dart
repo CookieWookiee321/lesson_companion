@@ -46,10 +46,42 @@ Future<void> initialSettings() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+
+  static _MyAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<_MyAppState>()!;
+}
+
+class _MyAppState extends State<MyApp> {
+  /// 1) our themeMode "state" field
+  ThemeMode _themeMode = ThemeMode.system;
+
+  /// 3) Call this to change theme from any context using "of" accessor
+  /// e.g.:
+  /// MyApp.of(context).changeTheme(ThemeMode.dark);
+  void changeTheme(ThemeMode themeMode) {
+    setState(() {
+      _themeMode = themeMode;
+    });
+  }
+
+  @override
+  void initState() {
+    Database.getSetting(SharedPrefOption.darkMode)!.then((value) {
+      if (value) {
+        _themeMode = ThemeMode.dark;
+      } else {
+        _themeMode = ThemeMode.light;
+      }
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -58,6 +90,8 @@ class MyApp extends StatelessWidget {
           ThemeData(useMaterial3: true, colorScheme: Styler.lightColorScheme),
       darkTheme:
           ThemeData(useMaterial3: true, colorScheme: Styler.darkColorScheme),
+      themeMode: _themeMode,
+      home: const BaseView(),
       // home: FutureBuilder(
       //     future: FreeDictionary.fetchJson(
       //         "https://api.dictionaryapi.dev/api/v2/entries/en/purple"),
@@ -67,7 +101,6 @@ class MyApp extends StatelessWidget {
       //       }
       //       return CircularProgressIndicator();
       //     }))
-      home: const BaseView(),
     );
   }
 }

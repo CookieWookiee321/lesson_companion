@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/database.dart';
 
+import '../../main.dart';
 import '../companion_widgets.dart';
 import 'snippets/snippet_list.dart';
 
@@ -101,36 +102,7 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
         await showDialog(
             context: context,
             builder: ((context) {
-              return AlertDialog(
-                title: Text("Appearance Options"),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(child: Text("Dark Mode")),
-                        FutureBuilder(
-                          future:
-                              Database.getSetting(SharedPrefOption.darkMode),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              return Switch(
-                                  value: snapshot.data,
-                                  onChanged: (value) async {
-                                    await Database.saveSetting(
-                                        SharedPrefOption.darkMode, value);
-                                    setState(() {});
-                                  });
-                            } else {
-                              return CircularProgressIndicator();
-                            }
-                          },
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-              );
+              return AppearanceMenu();
             }));
         break;
     }
@@ -225,6 +197,52 @@ class _MenuMainDialogState extends State<MenuMainDialog> {
               setState(() {});
             },
           )
+        ],
+      ),
+    );
+  }
+}
+
+class AppearanceMenu extends StatefulWidget {
+  const AppearanceMenu({super.key});
+
+  @override
+  State<AppearanceMenu> createState() => _AppearanceMenuState();
+}
+
+class _AppearanceMenuState extends State<AppearanceMenu> {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("Appearance Options"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text("Dark Mode")),
+              FutureBuilder(
+                future: Database.getSetting(SharedPrefOption.darkMode),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Switch(
+                        value: snapshot.data,
+                        onChanged: (value) async {
+                          await Database.saveSetting(
+                              SharedPrefOption.darkMode, value);
+                          setState(() {
+                            final theme =
+                                value ? ThemeMode.dark : ThemeMode.light;
+                            MyApp.of(context).changeTheme(theme);
+                          });
+                        });
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                },
+              )
+            ],
+          ),
         ],
       ),
     );
