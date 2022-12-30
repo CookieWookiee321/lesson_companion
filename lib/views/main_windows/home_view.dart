@@ -164,68 +164,75 @@ class _HomeViewState extends State<HomeView> {
         children: [
           if (_showDetails)
             Card(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                            flex: 3,
-                            child: FocusTraversalOrder(
-                                order: NumericFocusOrder(1),
-                                child: TextFieldOutlined(
-                                  hint: "Name",
-                                  size: 13.0,
-                                  controller: _nameController,
-                                  onTextChanged: (text) {
-                                    _name = text;
-                                    _currentFocus = 1;
-                                  },
-                                ))),
-                        Expanded(
-                          flex: 2,
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 0.0),
-                            child: FocusTraversalOrder(
-                                order: NumericFocusOrder(2),
-                                child: HomeTextField(
-                                    controller: _dateController,
-                                    hintText: "Date",
-                                    alignment: TextAlign.center,
-                                    edittable: false,
-                                    onTap: () async {
-                                      await _onTapDateField();
-                                    })),
-                          ),
-                        )
-                      ],
-                    ),
-                    FocusTraversalOrder(
-                        order: NumericFocusOrder(3),
-                        child: TextFieldOutlined(
-                          hint: "Topic",
-                          size: 13,
-                          controller: _topicController,
-                          onTextChanged: (text) {
-                            _topic = text;
-                            _currentFocus = 3;
-                          },
-                        )),
-                    FocusTraversalOrder(
-                        order: NumericFocusOrder(4),
-                        child: TextFieldOutlined(
-                          hint: "Homework",
-                          size: 13,
-                          controller: _homeworkController,
-                          onTextChanged: (text) {
-                            _homework = text;
-                            _currentFocus = 4;
-                          },
-                        )),
-                  ],
+              child: Container(
+                decoration: BoxDecoration(
+                    border: Border.all(
+                        color:
+                            Theme.of(context).colorScheme.secondaryContainer),
+                    borderRadius: const BorderRadius.all(Radius.circular(10))),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                              flex: 3,
+                              child: FocusTraversalOrder(
+                                  order: NumericFocusOrder(1),
+                                  child: TextFieldOutlined(
+                                    hint: "Name",
+                                    size: 13.0,
+                                    controller: _nameController,
+                                    onTextChanged: (text) {
+                                      _name = text;
+                                      _currentFocus = 1;
+                                    },
+                                  ))),
+                          Expanded(
+                            flex: 2,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 0.0),
+                              child: FocusTraversalOrder(
+                                  order: NumericFocusOrder(2),
+                                  child: HomeTextField(
+                                      controller: _dateController,
+                                      hintText: "Date",
+                                      alignment: TextAlign.center,
+                                      edittable: false,
+                                      onTap: () async {
+                                        await _onTapDateField();
+                                      })),
+                            ),
+                          )
+                        ],
+                      ),
+                      FocusTraversalOrder(
+                          order: NumericFocusOrder(3),
+                          child: TextFieldOutlined(
+                            hint: "Topic",
+                            size: 13,
+                            controller: _topicController,
+                            onTextChanged: (text) {
+                              _topic = text;
+                              _currentFocus = 3;
+                            },
+                          )),
+                      FocusTraversalOrder(
+                          order: NumericFocusOrder(4),
+                          child: TextFieldOutlined(
+                            hint: "Homework",
+                            size: 13,
+                            controller: _homeworkController,
+                            onTextChanged: (text) {
+                              _homework = text;
+                              _currentFocus = 4;
+                            },
+                          )),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -427,7 +434,7 @@ class _ReportTableState extends State<ReportTable> {
             border: Border.all(color: Theme.of(context).colorScheme.tertiary),
             borderRadius: const BorderRadius.all(Radius.circular(10))),
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-        margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+        margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
         clipBehavior: Clip.antiAlias,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           //HEADING-----------------------------------------------------------
@@ -440,7 +447,7 @@ class _ReportTableState extends State<ReportTable> {
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium!
-                      .copyWith(color: Colors.grey),
+                      .copyWith(color: Theme.of(context).colorScheme.onSurface),
                 ),
                 onDoubleTap: () async {
                   await showDialog(
@@ -501,8 +508,7 @@ class _ReportTableRowState extends State<ReportTableRow> {
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
         margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         decoration: BoxDecoration(
-            border: Border.all(
-                color: Theme.of(context).colorScheme.secondaryContainer),
+            border: Border.all(color: Theme.of(context).colorScheme.secondary),
             borderRadius: const BorderRadius.all(Radius.circular(4.0))),
         child: Row(
           children: [
