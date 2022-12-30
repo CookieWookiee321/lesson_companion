@@ -14,6 +14,8 @@ import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 
+import '../../controllers/styling/companion_lexer.dart';
+
 final _template = """=<
 # Name
 
@@ -53,8 +55,6 @@ class TextInputModeView extends StatefulWidget {
 }
 
 class _TextInputModeViewState extends State<TextInputModeView> {
-  static const _markers = <String>["*", "{", "(", "\"", "[", "_"];
-
   final _lookUps = <LookUp>[];
   final _lookUpCards = <LookUpCard>[];
   final _lookUpReturns = <LookUpReturn>[];
@@ -366,7 +366,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       final baseOffset = _textController.selection.baseOffset;
       final extentOffset = _textController.selection.extentOffset;
 
-      if (_markers.contains(k.keyLabel)) {
+      if (CompanionLexer.markers.contains(k.keyLabel)) {
         final baseOffset = _textController.selection.baseOffset;
         final extentOffset = _textController.selection.extentOffset;
         final newText = CompanionMethods.autoInsertBrackets(

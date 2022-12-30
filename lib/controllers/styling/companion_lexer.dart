@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 
 class CompanionLexer {
+  static const markers = <String>["*", "{", "(", "\"", "[", "_"];
+
   static Map<String, TextStyle> styles = {
     r"#[A-Za-z0-9]+": TextStyle(fontSize: 16),
     r"\*[A-Za-z0-9]+\*": TextStyle(fontStyle: FontStyle.italic),
