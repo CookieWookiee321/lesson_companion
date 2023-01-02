@@ -229,12 +229,12 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
 
     sb.writeln(" New Language");
-    lines.forEach((element) {
-      if (element.isNotEmpty && element[0] != "-") {
-        sb.writeln("- $element");
+    lines.forEach((line) {
+      if (line.isNotEmpty && line[0] != "-") {
+        sb.writeln("- $line");
       } else {
-        if (element != "- >=") {
-          sb.writeln("$element");
+        if (line != "- >=") {
+          sb.writeln("$line");
         }
       }
     });
@@ -246,7 +246,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     print(before + "\n");
     print(sb.toString() + "\n");
     print(after);
-    _textController.text = "$before ${sb.toString().trim()}\n\n$after";
+    _textController.text = "$before ${sb.toString().trim()}\n$after";
   }
 
   //OTHER-----------------------------------------------------------------------
