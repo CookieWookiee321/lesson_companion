@@ -13,6 +13,7 @@ class CompanionMethods {
     final before;
     final middle;
     final after;
+    final onBlank;
 
     final base = controller.selection.baseOffset;
     final extent = controller.selection.extentOffset;
@@ -27,6 +28,14 @@ class CompanionMethods {
       indexEnd = extent;
     } else {
       int counter = base;
+
+      if (fullText[counter] == " " && fullText[counter - 1] != " ") {
+        counter--;
+        onBlank = true;
+      } else {
+        onBlank = false;
+      }
+
       while (fullText[counter] != " " && counter > 0) {
         counter--;
       }
@@ -37,11 +46,17 @@ class CompanionMethods {
         indexStart = counter;
       }
 
-      final nextSpace = fullText.indexOf(" ", base);
-      final nextLineBreak = fullText.indexOf("\n", base);
-      final x = (nextSpace < nextLineBreak) ? nextSpace : nextLineBreak;
-      if (x != -1) {
-        indexEnd = x;
+      final stopper;
+      if (!onBlank) {
+        final nextSpace = fullText.indexOf(" ", base);
+        final nextLineBreak = fullText.indexOf("\n", base);
+        stopper = (nextSpace < nextLineBreak) ? nextSpace : nextLineBreak;
+      } else {
+        stopper = base;
+      }
+
+      if (stopper != -1) {
+        indexEnd = stopper;
       } else {
         indexEnd = fullText.length;
       }
