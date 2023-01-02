@@ -61,43 +61,48 @@ class _HomeViewState extends State<HomeView> {
   }
 
   String _convertTablesToText() {
-    final sb = StringBuffer();
+    if (_name != null && _topic != null) {
+      final sb = StringBuffer();
 
-    sb.writeln("=<");
-    sb.writeln("# Name\n- $_name\n");
-    sb.writeln("# Date\n- ${CompanionMethods.getShortDate(_date)}\n");
+      sb.writeln("=<");
+      sb.writeln("# Name\n- $_name\n");
+      sb.writeln("# Date\n- ${CompanionMethods.getShortDate(_date)}\n");
 
-    sb.writeln("# Topic");
-    _topic!.split("\n").forEach((t) {
-      sb.writeln("- ${t}");
-    });
-    sb.writeln();
-
-    if (_homework != null) {
-      sb.writeln("# Homework");
-      _homework!.split("\n").forEach((h) {
-        sb.writeln("- ${h}");
+      sb.writeln("# Topic");
+      _topic!.split("\n").forEach((t) {
+        sb.writeln("- ${t}");
       });
       sb.writeln();
-    }
 
-    for (final table in _tables) {
-      sb.writeln("# ${table.title}");
-      table.children.forEach((row) {
-        if (row.model.lhs != null) {
-          sb.write("- ${row.model.lhs}");
+      if (_homework != null) {
+        sb.writeln("# Homework");
+        _homework!.split("\n").forEach((h) {
+          sb.writeln("- ${h}");
+        });
+        sb.writeln();
+      }
 
-          if (row.model.rhs != null) {
-            sb.write(" || ${row.model.rhs}");
+      for (final table in _tables) {
+        sb.writeln("# ${table.title}");
+        table.children.forEach((row) {
+          if (row.model.lhs != null) {
+            sb.write("- ${row.model.lhs}");
+
+            if (row.model.rhs != null) {
+              sb.write(" || ${row.model.rhs}");
+            }
+
+            sb.writeln();
           }
+        });
+        sb.writeln();
+      }
 
-          sb.writeln();
-        }
-      });
-      sb.writeln();
+      return sb.toString();
+    } else {
+      throw new Exception(
+          "You have not filled in the basic information for the class, so it cannot be saved.");
     }
-
-    return sb.toString();
   }
 
   void _onPressedSubmit() async {
@@ -299,10 +304,12 @@ class _HomeViewState extends State<HomeView> {
               ],
             ),
           ),
-          ElevatedButton(
-            child: const Text("Submit"),
-            onPressed: () async => _onPressedSubmit(),
-          )
+          Padding(
+              padding: EdgeInsets.all(5.0),
+              child: ElevatedButton(
+                child: const Text("Submit"),
+                onPressed: () async => _onPressedSubmit(),
+              ))
         ],
       )),
       floatingActionButton: SpeedDial(
@@ -336,10 +343,21 @@ class _HomeViewState extends State<HomeView> {
           ),
           SpeedDialChild(
             label: "Hide/Show Header",
-            onTap: () async {
+            onTap: () {
               setState(() {
                 _showDetails ? _showDetails = false : _showDetails = true;
               });
+            },
+          ),
+          SpeedDialChild(
+            label: "Print Report to Console",
+            onTap: () {
+              try {
+                print(_convertTablesToText());
+              } catch (e) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(e.toString())));
+              }
             },
           )
         ],
@@ -561,28 +579,33 @@ class _ReportTableRowState extends State<ReportTableRow> {
   final _controllerLhs = TextEditingController();
 
   void _saveReportSync() {
-    final text = HomeView.of(context)._convertTablesToText();
-    var id = HomeView.of(context)._currentReportId;
+    try {
+      final text = HomeView.of(context)._convertTablesToText();
+      var id = HomeView.of(context)._currentReportId;
 
-    final report;
-    if (id != null) {
-      report = Report.getReportSync(id);
+      final report;
+      if (id != null) {
+        report = Report.getReportSync(id);
 
-      if (report == null) {
+        if (report == null) {
+          final newReport = Report(text);
+          Report.saveReportSync(newReport);
+          id = newReport.id;
+        } else {
+          report.text = text;
+          Report.saveReportSync(report);
+        }
+      } else {
         final newReport = Report(text);
         Report.saveReportSync(newReport);
         id = newReport.id;
-      } else {
-        report.text = text;
-        Report.saveReportSync(report);
       }
-    } else {
-      final newReport = Report(text);
-      Report.saveReportSync(newReport);
-      id = newReport.id;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Report saved")));
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text("Report saved")));
   }
 
   KeyEventResult _handleKey(

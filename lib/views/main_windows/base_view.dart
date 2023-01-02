@@ -41,8 +41,8 @@ class _BaseViewState extends State<BaseView> {
       appBar: AppBar(
         title: const Text("Lesson Companion"),
         //backgroundColor: Theme.of(context).colorScheme.secondary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
         actions: [
           TextButton(
               onPressed: () {
@@ -52,7 +52,7 @@ class _BaseViewState extends State<BaseView> {
               child: Text(
                 "Options",
                 style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer),
+                    color: Theme.of(context).colorScheme.onSecondaryContainer),
               ))
         ],
       ),

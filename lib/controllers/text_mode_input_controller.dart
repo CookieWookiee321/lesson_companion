@@ -1,7 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-class TextInputModeMethods extends ChangeNotifier {
+class TextModeMethods extends ChangeNotifier {
   static bool checkNeededHeadings(String text) {
     if (text.isEmpty) return false;
     if (text == "") return false;

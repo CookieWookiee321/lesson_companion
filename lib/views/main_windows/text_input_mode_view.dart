@@ -42,8 +42,6 @@ const _commentStart = "!@";
 const _start = "=<";
 const _stop = ">=";
 
-//TODO: Fix the auto-completion (in edit)
-
 //======================================================================
 //Text Input Mode View
 //======================================================================
@@ -248,7 +246,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     print(before + "\n");
     print(sb.toString() + "\n");
     print(after);
-    _textController.text = "$before${sb.toString().trim()}\n\n$after";
+    _textController.text = "$before ${sb.toString().trim()}\n\n$after";
   }
 
   //OTHER-----------------------------------------------------------------------
@@ -256,7 +254,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   void _onPressedSubmit() async {
     _textController.text = _autoFormatAll(_textController.text);
     String text = _textController.text;
-    if (TextInputModeMethods.checkNeededHeadings(text)) {
+    if (TextModeMethods.checkNeededHeadings(text)) {
       try {
         while (text.contains("=<") && text.contains(">=")) {
           final start = text.indexOf("=<");
@@ -605,7 +603,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                   ),
                 )),
                 Padding(
-                    padding: const EdgeInsets.fromLTRB(2, 5, 5, 2),
+                    padding: const EdgeInsets.all(5),
                     child: ElevatedButton(
                         onPressed: _onPressedSubmit,
                         child: const Text("Submit")))
