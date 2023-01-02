@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -29,6 +30,10 @@ class CompanionMethods {
     } else {
       int counter = base;
 
+      if (counter == fullText.length) {
+        counter--;
+      }
+
       if (fullText[counter] == " " && fullText[counter - 1] != " ") {
         counter--;
         onBlank = true;
@@ -50,7 +55,7 @@ class CompanionMethods {
       if (!onBlank) {
         final nextSpace = fullText.indexOf(" ", base);
         final nextLineBreak = fullText.indexOf("\n", base);
-        stopper = (nextSpace < nextLineBreak) ? nextSpace : nextLineBreak;
+        stopper = max(nextSpace, nextLineBreak);
       } else {
         stopper = base;
       }

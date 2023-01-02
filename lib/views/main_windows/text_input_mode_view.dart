@@ -384,19 +384,19 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             _textController.text =
                 CompanionMethods.insertStyleSyntax("**", _textController);
             _textController.selection = TextSelection(
-                baseOffset: baseOffset, extentOffset: extentOffset);
+                baseOffset: baseOffset + 2, extentOffset: extentOffset + 2);
             break;
           case "I":
             _textController.text =
                 CompanionMethods.insertStyleSyntax("*", _textController);
             _textController.selection = TextSelection(
-                baseOffset: baseOffset, extentOffset: extentOffset);
+                baseOffset: baseOffset + 1, extentOffset: extentOffset + 1);
             break;
           case "U":
             _textController.text =
                 CompanionMethods.insertStyleSyntax("_", _textController);
             _textController.selection = TextSelection(
-                baseOffset: baseOffset, extentOffset: extentOffset);
+                baseOffset: baseOffset + 1, extentOffset: extentOffset + 1);
             break;
           case "Enter":
             final fullText = _textController.text;
