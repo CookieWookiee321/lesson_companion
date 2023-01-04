@@ -64,6 +64,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   bool _loading = false;
   final _textNode = FocusNode();
 
+  double _fontSize = 11.0;
+
   //FORMATTING------------------------------------------------------------------
 
   String _autoFormatAll(String input) {
@@ -424,6 +426,18 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                 TextSelection.collapsed(offset: newSelectionIndex + 1);
 
             return KeyEventResult.handled;
+          case "Numpad Add":
+            //increase font size
+            setState(() {
+              _fontSize++;
+            });
+            break;
+          case "Numpad Subtract":
+            //decrease font size
+            setState(() {
+              _fontSize--;
+            });
+            break;
           default:
         }
         return KeyEventResult.ignored;
@@ -537,7 +551,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 13, vertical: 9),
                             ),
-                            style: const TextStyle(fontSize: 11),
+                            style: TextStyle(fontSize: _fontSize),
                             maxLines: null,
                             expands: true,
                           ),

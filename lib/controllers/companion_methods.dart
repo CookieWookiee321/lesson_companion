@@ -34,7 +34,8 @@ class CompanionMethods {
         counter--;
       }
 
-      if (fullText[counter] == " " && fullText[counter - 1] != " ") {
+      if (((fullText[counter] == " ") | (fullText[counter] == "\n")) &&
+          fullText[counter - 1] != " ") {
         counter--;
         onBlank = true;
       } else {
@@ -55,7 +56,15 @@ class CompanionMethods {
       if (!onBlank) {
         final nextSpace = fullText.indexOf(" ", base);
         final nextLineBreak = fullText.indexOf("\n", base);
-        stopper = max(nextSpace, nextLineBreak);
+        if (nextSpace == -1 || nextLineBreak == -1) {
+          if (nextSpace == -1 && nextLineBreak == -1) {
+            stopper = max(nextSpace, nextLineBreak);
+          } else {
+            stopper = min(nextSpace, nextLineBreak);
+          }
+        } else {
+          stopper = (nextSpace == -1) ? nextLineBreak : nextSpace;
+        }
       } else {
         stopper = base;
       }
