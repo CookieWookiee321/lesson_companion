@@ -91,9 +91,6 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
                       leading: Text(
                           CompanionMethods.getShortDate(_lessons![index].date)),
                       title: Text(_lessons![index].topic),
-                      subtitle: _lessons![index].homework != null
-                          ? Text(_lessons![index].homework!)
-                          : null,
                       onTap: () async {
                         final id = _students!
                             .where((s) => s.name! == _selectedStudent!)

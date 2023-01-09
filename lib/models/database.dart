@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum LCObjectType { student, lesson, report }
 
-enum SharedPrefOption { darkMode, footer, dictionary }
+enum SharedPrefOption { darkMode, footer, dictionary, fontSize }
 
 class Database {
   //============================================================================
@@ -116,6 +116,8 @@ class Database {
         return prefs.getString("footer");
       case SharedPrefOption.dictionary:
         return prefs.getStringList("dictionary");
+      case SharedPrefOption.fontSize:
+        return prefs.getDouble("fontSize");
     }
   }
 
@@ -179,6 +181,9 @@ class Database {
         proper = value as List<String>;
         await prefs.setString("dictionary", proper);
         break;
+      case SharedPrefOption.fontSize:
+        proper = value as double;
+        await prefs.setDouble("fontSize", proper);
     }
   }
 

@@ -12,6 +12,7 @@ import 'package:lesson_companion/models/dictionary/look_up.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
+import 'package:lesson_companion/views/dialogs/lookups/new_language_look_up.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 
 import '../../controllers/styling/companion_lexer.dart';
@@ -53,8 +54,8 @@ class TextInputModeView extends StatefulWidget {
 }
 
 class _TextInputModeViewState extends State<TextInputModeView> {
-  final _lookUps = <LookUp>[];
-  final _lookUpCards = <LookUpCard>[];
+  final _lookUps = <NewLanguageLookUp>[];
+  final _lookUpCards = <NewLanguageLookUpCard>[];
   final _lookUpReturns = <LookUpReturn>[];
 
   int? _currentReportId;
@@ -111,6 +112,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   }
 
   Future<bool> _lookUpWords() async {
+    List<String> temp = [];
+
     final connection = await Connectivity().checkConnectivity();
     if (connection == ConnectivityResult.none) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -119,7 +122,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       return false;
     }
 
-    List<LookUp> temp = [];
     _textController.text = _autoFormatAll(_textController.text);
     final indexStart = _textController.text.indexOf("# New Language");
     final indexEnd = (_textController.text.indexOf("#", indexStart + 1) != -1)
@@ -132,7 +134,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     for (int i = 1; i < terms.length; i++) {
       if (terms[i].trim().length == 0) continue;
 
-      final thisTerm;
+      final String thisTerm;
 
       if (terms[i].contains("||")) {
         thisTerm = terms[i].trim().substring(0, terms[i].trim().indexOf("||"));
@@ -140,115 +142,21 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         thisTerm = terms[i].trim();
       }
 
-      final url = "https://api.dictionaryapi.dev/api/v2/entries/en/${thisTerm}";
-      final dictionary = await FreeDictionary.fetchJson(url);
-
-      if (dictionary != null) {
-        temp.add(LookUp(dictionary));
+      if (thisTerm.isNotEmpty && thisTerm != "-") {
+        temp.add(thisTerm);
       }
     }
 
     if (temp.isNotEmpty) {
-      _lookUps.clear();
-      _lookUpCards.clear();
-      _lookUpReturns.clear();
-      _lookUps.addAll(temp);
-
-      for (final lu in _lookUps) {
-        final lur = LookUpReturn(lu.term);
-        if (lu.term.trim().isNotEmpty) _lookUpReturns.add(lur);
-        _lookUpCards.add(LookUpCard(
-          input: lu,
-          output: lur,
-        ));
-      }
-
-      await showDialog(
+      _lookUpReturns.addAll(await showDialog(
           context: context,
           builder: ((context) {
-            return _lookUpNewLanguageDialog();
-          }));
+            return NewLanguageLookUpDialog(
+                lookUpQueries: temp, controller: _textController);
+          })));
       return true;
     }
     return false;
-  }
-
-  AlertDialog _lookUpNewLanguageDialog() {
-    return AlertDialog(
-      title: Text("Dictionary Results"),
-      content: SingleChildScrollView(
-        child: Column(children: [
-          //List of entries
-          ..._lookUpCards.map((card) => card),
-          //Button
-          ElevatedButton(
-            child: Text("OK"),
-            onPressed: () {
-              _processLookUpNewLanguageResults();
-              Navigator.pop(context);
-            },
-          )
-        ]),
-      ),
-    );
-  }
-
-  void _processLookUpNewLanguageResults() {
-    final sb = StringBuffer();
-    final fullText = _textController.text;
-    final indexHeading = fullText.indexOf("# New Language");
-    int indexEnding = fullText.indexOf("#", indexHeading + 1);
-    if (indexEnding == -1) {
-      indexEnding = fullText.indexOf(">=");
-    }
-    final newLanguage = fullText.substring(
-        fullText.indexOf("\n", indexHeading) + 1, indexEnding);
-    final lines = newLanguage.split("\n");
-
-    for (int i = 0; i < lines.length; i++) {
-      if (lines[i].isEmpty || lines[i][0] != "-") continue;
-
-      final trueTerm = lines[i].substring(2, lines[i].length).trim();
-
-      if (trueTerm.isEmpty) continue;
-
-      final lur;
-      try {
-        lur = _lookUpReturns.where((element) => element.term == trueTerm).first;
-      } on StateError {
-        continue;
-      }
-
-      //TODO: Replace with style snippet - snippets must be applied to fields
-      String fullDefinition = "${lur.term} //pos{${lur.partOfSpeech}}";
-      if (lur.example != null) {
-        fullDefinition =
-            "$fullDefinition || ${lur.definition} //eg{${lur.example}}";
-      } else {
-        fullDefinition = "$fullDefinition || ${lur.definition}";
-      }
-      lines[i] = fullDefinition;
-    }
-
-    sb.writeln(" New Language");
-    lines.forEach((line) {
-      if (line.isNotEmpty && line[0] != "-") {
-        sb.writeln("- $line");
-      } else {
-        if (line != "- >=") {
-          sb.writeln("$line");
-        }
-      }
-    });
-    sb.writeln();
-
-    //highlight the whole original term and replace it
-    final before = fullText.substring(0, indexHeading + 1);
-    final after = fullText.substring(indexEnding);
-    print(before + "\n");
-    print(sb.toString() + "\n");
-    print(after);
-    _textController.text = "$before ${sb.toString().trim()}\n$after";
   }
 
   //OTHER-----------------------------------------------------------------------
@@ -513,6 +421,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   @override
   void dispose() {
+    Database.saveSetting(SharedPrefOption.fontSize, _fontSize);
+
     window.onKeyData = null;
     _textController.dispose();
     super.dispose();
@@ -607,131 +517,5 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                 }),
           ],
         ));
-  }
-}
-
-//======================================================================
-//Look Up Card
-//======================================================================
-class LookUpCard extends StatefulWidget {
-  final LookUp input;
-  final LookUpReturn output;
-
-  const LookUpCard({super.key, required this.input, required this.output});
-
-  @override
-  State<LookUpCard> createState() => _LookUpCardState();
-}
-
-class _LookUpCardState extends State<LookUpCard> {
-  String? _partOfSpeech;
-  String? _definition;
-  String? _example;
-  Map<String?, String?> _mapping = {};
-
-  final _exampleController = TextEditingController();
-
-  List<DropdownMenuItem> _definitionDropdownMenuItem(String partOfSpeech) {
-    List<DropdownMenuItem> output = [];
-
-    widget.input.lookUpDetails
-        .where((element) => element.partOfSpeech == partOfSpeech)
-        .toList()
-        .forEach((element) {
-      for (final e in element.definitionsAndExamples.entries) {
-        if (!output.contains(DropdownMenuItem(
-            value: e.key,
-            child: Text(e.key, overflow: TextOverflow.visible)))) {
-          output.add(DropdownMenuItem(
-              value: e.key,
-              child: Text(e.key, overflow: TextOverflow.visible)));
-          _mapping[e.key] = e.value;
-        }
-      }
-    });
-
-    return output;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-        child: Padding(
-      padding: EdgeInsets.all(6.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Term + Part of speech----------------------------------------------
-          Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, 0, 3),
-            child: Row(
-              children: [
-                Expanded(
-                    child: Text(
-                  widget.input.term.toUpperCase(),
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.tertiary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                )),
-                // Parts of speech------------------------------------------------
-                DropdownButton(
-                    style: TextStyle(fontSize: 13),
-                    isDense: true,
-                    items: [
-                      ...widget.input.lookUpDetails.map((e) {
-                        return DropdownMenuItem(
-                            value: e.partOfSpeech, child: Text(e.partOfSpeech));
-                      })
-                    ],
-                    value: _partOfSpeech,
-                    onChanged: (value) {
-                      setState(() {
-                        _partOfSpeech = value;
-                        widget.output.partOfSpeech = _partOfSpeech;
-                      });
-                    })
-              ],
-            ),
-          ),
-          // Definitions--------------------------------------------------------
-          Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, 0, 3),
-            child: DropdownButton(
-                isExpanded: true,
-                style: TextStyle(fontSize: 13),
-                hint: Text("Defintion"),
-                value: _definition,
-                items: _partOfSpeech != null
-                    ? _definitionDropdownMenuItem(_partOfSpeech!)
-                    : null,
-                onChanged: (value) {
-                  if (_partOfSpeech != null) {
-                    setState(() {
-                      _definition = value;
-                      widget.output.definition = _definition;
-                      _example = _mapping[_definition];
-                      _exampleController.text =
-                          _example ?? "[No example available]";
-                      widget.output.example = _example;
-                      if (widget.output.example != null) {
-                        widget.output.example!.replaceAll("; ", "//> ");
-                      }
-                    });
-                  }
-                }),
-          ),
-          // Examples-----------------------------------------------------------
-          TextField(
-            style: TextStyle(fontSize: 13),
-            decoration: InputDecoration(hintText: "example", isDense: true),
-            maxLines: null,
-            controller: _exampleController,
-            readOnly: _example != null ? false : true,
-          )
-        ],
-      ),
-    ));
   }
 }

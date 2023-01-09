@@ -44,6 +44,11 @@ Future<void> initialSettings() async {
     final fullText = utf8.decode(response.bodyBytes);
     await prefs.setStringList("dictionary", fullText.split("\r\n"));
   }
+
+  final fontSize = await db.Database.getSetting(SharedPrefOption.fontSize);
+  if (fontSize == null) {
+    await db.Database.saveSetting(SharedPrefOption.fontSize, 11.0);
+  }
 }
 
 class MyApp extends StatefulWidget {
