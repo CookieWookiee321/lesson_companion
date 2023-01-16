@@ -49,8 +49,8 @@ class _NewLanguageLookUpDialogState extends State<NewLanguageLookUpDialog> {
   void _processLookUpNewLanguageResults() {
     final sb = StringBuffer();
     final fullText = widget.controller.text;
-    final indexHeading = fullText.indexOf("# New Language");
-    int indexEnding = fullText.indexOf("#", indexHeading + 1);
+    final indexHeading = fullText.indexOf("@ New Language");
+    int indexEnding = fullText.indexOf("@", indexHeading + 1);
     if (indexEnding == -1) indexEnding = fullText.indexOf(">=");
     final newLanguage = fullText.substring(
         fullText.indexOf("\n", indexHeading) + 1, indexEnding);

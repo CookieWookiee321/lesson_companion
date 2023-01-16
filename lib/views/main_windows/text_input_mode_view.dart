@@ -18,28 +18,28 @@ import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 import '../../controllers/styling/companion_lexer.dart';
 
 final _template = """=<
-# Name
+@ Name
 
 
-# Date
+@ Date
 - ${CompanionMethods.getShortDate(DateTime.now())}
 
-# Topic
+@ Topic
 
 
-# New Language
+@ New Language
 
 
-# Pronunciation
+@ Pronunciation
 
 
-# Corrections
+@ Corrections
 
 >=""";
 
-const _rowStart = "- ";
-const _headingStart = "# ";
-const _commentStart = "!@";
+const _rowStart = "-";
+const _headingStart = "@";
+const _commentStart = "!!";
 const _start = "=<";
 const _stop = ">=";
 
@@ -69,36 +69,138 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   //FORMATTING------------------------------------------------------------------
 
-  String _autoFormatAll(String input) {
+  String _formatTextCell(String input) {
+    final preSplitterTabs = "\n\t\t\t";
+    final postSplitterTabs = "\n\t\t\t\t\t\t\t";
+    String firstString;
+    String? secondString;
+    bool afterSplitter = false;
+
+    if (input.contains("||")) {
+      final splitLine = input.split("||");
+      firstString = splitLine[0];
+      secondString = splitLine[1];
+    } else {
+      firstString = input;
+      secondString = null;
+    }
+
+    // LHS------------------------------------------------------------------
+    //handle LHS line breaks
+    if (firstString.contains("//")) {
+      int totalLineBreaks = 0;
+
+      int i = firstString.indexOf("/");
+      while ((i != -1) & (i != firstString.length - 2)) {
+        if (firstString[i] == "/" && firstString[i + 1] == "/") {
+          totalLineBreaks++;
+        }
+        i = firstString.indexOf("/", i + 2);
+      }
+
+      for (int i = 0; i < totalLineBreaks; i++) {
+        int indexOf = firstString.indexOf("//");
+        if (indexOf == firstString.length - 2) continue; //TODO: needed? line 93
+
+        if (firstString.substring(indexOf + 2, indexOf + 5) !=
+            preSplitterTabs) {
+          final aString = "${firstString.substring(0, indexOf)}";
+          final bString =
+              "${firstString.substring(indexOf + 2, firstString.length)}";
+          firstString = "$aString//$preSplitterTabs$bString";
+        }
+      }
+    }
+
+    // RHS------------------------------------------------------------------
+    if (secondString != null) {
+      //handle RHS line breaks
+      if (secondString.contains("//")) {
+        int totalLineBreaks = 0;
+
+        int i = secondString.indexOf("/");
+        while ((i != -1) & (i != secondString.length - 2)) {
+          if (secondString[i] == "/" && secondString[i + 1] == "/") {
+            totalLineBreaks++;
+          }
+          i = secondString.indexOf("/", i + 2);
+        }
+
+        for (int j = 0; j < totalLineBreaks; j++) {
+          int indexOf = secondString!.indexOf("//");
+
+          final aString = "${secondString.substring(0, indexOf)}";
+          final bString =
+              "${secondString.substring(indexOf + 2, secondString.length)}";
+          secondString = "$aString//$postSplitterTabs$bString";
+        }
+      }
+    }
+
+    if (secondString != null) {
+      return "$firstString||$postSplitterTabs$secondString";
+    } else {
+      return "$firstString";
+    }
+  }
+
+  void _unformat() {
+    String temp = _textController.text;
+    temp = temp.replaceAll("\n\t\t", "");
+    temp = temp.replaceAll("\n\t\t\t\t\t\t", "");
+    temp.replaceAll("\t", "");
+    _textController.text = temp;
+  }
+
+  String _autoFormat(String input) {
     final sb = StringBuffer();
+    final compiledLines = <String>[];
+    final lines = input.split("\n");
 
-    final lines = _textController.text.split("\n");
-
+    //add row start markers
+    String checker;
     for (int i = 0; i < lines.length; i++) {
-      if (lines[i].trim().length == 0 ||
-          lines[i].substring(0, 2) == _start ||
-          lines[i].substring(0, 2) == _stop ||
-          lines[i].substring(0, 2) == _headingStart ||
-          lines[i].substring(0, 2) == _rowStart ||
-          lines[i].substring(0, 2) == _commentStart) {
-        sb.write(lines[i]);
-        if (i != lines.length) sb.write("\n");
+      if (lines[i].trim().length == 0) {
+        compiledLines.add(lines[i]);
         continue;
       }
 
-      lines[i] = "$_rowStart${lines[i]}";
+      checker = lines[i].substring(0, 2);
+      if (checker[0] == "\t" ||
+          checker[0] == _rowStart ||
+          checker == _start ||
+          checker == _stop ||
+          checker[0] == _headingStart ||
+          checker.substring(0, 1) == _commentStart) {
+        compiledLines.add(lines[i].trimLeft());
+        continue;
+      }
 
-      sb.write(lines[i]);
-      if (i != lines.length) sb.write("\n");
+      lines[i] = "$_rowStart\t${lines[i]}";
+
+      if (lines[i].trim().length != 0) {
+        compiledLines.add(lines[i].trim());
+      }
     }
 
-    if (!input.contains(_start)) {
+    sb.clear();
+    for (final l in compiledLines) {
+      sb.writeln(_formatTextCell(l));
+    }
+
+    if (sb.toString().substring(0, 2) != _start) {
       final temp = sb.toString();
       sb.clear();
       sb.writeln(_start);
       sb.write(temp);
     }
-    if (!input.contains(_stop)) sb.write(_stop);
+
+    final stopper =
+        sb.toString().substring(sb.toString().length - 3, sb.toString().length);
+
+    if (stopper.trim() != _stop) {
+      sb.write(_stop);
+    }
 
     return sb.toString().trim();
   }
@@ -122,10 +224,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       return false;
     }
 
-    _textController.text = _autoFormatAll(_textController.text);
-    final indexStart = _textController.text.indexOf("# New Language");
-    final indexEnd = (_textController.text.indexOf("#", indexStart + 1) != -1)
-        ? _textController.text.indexOf("#", indexStart + 1)
+    _textController.text = _autoFormat(_textController.text);
+    final indexStart = _textController.text.indexOf("@ New Language");
+    final indexEnd = (_textController.text.indexOf("@", indexStart + 1) != -1)
+        ? _textController.text.indexOf("@", indexStart + 1)
         : _textController.text.indexOf(">=");
     final chunk = _textController.text.substring(indexStart, indexEnd);
     final terms = chunk.split("\n-");
@@ -162,7 +264,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   //OTHER-----------------------------------------------------------------------
 
   void _onPressedSubmit() async {
-    _textController.text = _autoFormatAll(_textController.text);
+    //_textController.text = _autoFormat(_textController.text);
+    _unformat();
     String text = _textController.text;
     if (TextModeMethods.checkNeededHeadings(text)) {
       try {
@@ -355,7 +458,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   }
 
   void _saveReportSync() {
-    _textController.text = _autoFormatAll(_textController.text);
+    _textController.text = _autoFormat(_textController.text);
 
     final report;
     if (_currentReportId != null) {
@@ -379,15 +482,15 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   }
 
   void _duplicateCorrections() {
-    _textController.text = _autoFormatAll(_textController.text);
+    _textController.text = _autoFormat(_textController.text);
 
     final fullText = _textController.text;
     final StringBuffer sb = StringBuffer();
 
-    final indexStart = fullText.indexOf("# Corrections") + 14;
+    final indexStart = fullText.indexOf("@ Corrections") + 14;
     final indexEnd;
-    if (fullText.indexOf("#", indexStart) != -1) {
-      indexEnd = fullText.indexOf("#", indexStart);
+    if (fullText.indexOf("@", indexStart) != -1) {
+      indexEnd = fullText.indexOf("@", indexStart);
     } else {
       indexEnd = fullText.indexOf(">=");
     }
@@ -447,13 +550,15 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                     child: Row(
                       children: [
                         Expanded(
-                            //TODO: auto-completion
                             child: RawKeyboardListener(
                           focusNode: _textNode,
                           autofocus: true,
                           child: TextField(
                             controller: _textController,
-                            onSubmitted: ((value) {}),
+                            onSubmitted: ((value) {
+                              _textController.selection =
+                                  TextSelection.collapsed(offset: 0);
+                            }),
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
                                   borderRadius:
@@ -512,7 +617,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                 label: "Format",
                 onTap: () {
                   setState(() {
-                    _textController.text = _autoFormatAll(_textController.text);
+                    _textController.text = _autoFormat(_textController.text);
                   });
                 }),
           ],
