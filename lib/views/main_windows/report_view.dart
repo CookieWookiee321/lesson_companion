@@ -91,13 +91,15 @@ class _ReportsListViewState extends State<ReportsListView> {
                   }),
             );
           } else {
-            return Container(
-                decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: const BorderRadius.all(Radius.circular(8))),
-                margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
-                padding: const EdgeInsets.all(6),
-                child: Text("Error. Failed to load reports."));
+            return Center(
+              child: Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(),
+                      borderRadius: const BorderRadius.all(Radius.circular(8))),
+                  margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
+                  padding: const EdgeInsets.all(6),
+                  child: Text("Error. Failed to load database.")),
+            );
           }
         } else {
           return Center(

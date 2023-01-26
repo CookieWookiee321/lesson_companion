@@ -7,7 +7,6 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/controllers/text_mode_input_controller.dart';
 import 'package:lesson_companion/models/database.dart';
-import 'package:lesson_companion/models/dictionary/free_dictionary.dart';
 import 'package:lesson_companion/models/dictionary/look_up.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
@@ -17,12 +16,14 @@ import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 
 import '../../controllers/styling/companion_lexer.dart';
 
+//TODO: saving crashes the app
+
 final _template = """=<
 @ Name
 
 
 @ Date
-- ${CompanionMethods.getShortDate(DateTime.now())}
+-\t${CompanionMethods.getShortDate(DateTime.now())}
 
 @ Topic
 
@@ -36,6 +37,38 @@ final _template = """=<
 @ Corrections
 
 >=""";
+
+final _nonAutoRowStartKeys = [
+  "Backspace",
+  "Delete",
+  "-",
+  "@",
+  "Arrow Left",
+  "Arrow Right",
+  "Arrow Up",
+  "Arrow Down",
+  "Alt Right",
+  "Alt Left",
+  "Shift Left",
+  "Shift Right",
+  "Control Left",
+  "Control Right",
+];
+
+final _nonSplitterKeys = [
+  "Backspace",
+  "Delete",
+  "Arrow Left",
+  "Arrow Right",
+  "Arrow Up",
+  "Arrow Down",
+  "Alt Right",
+  "Alt Left",
+  "Shift Left",
+  "Shift Right",
+  "Control Left",
+  "Control Right",
+];
 
 const _rowStart = "-";
 const _headingStart = "@";
@@ -69,140 +102,110 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   //FORMATTING------------------------------------------------------------------
 
-  String _formatTextCell(String input) {
-    final preSplitterTabs = "\n\t\t\t";
-    final postSplitterTabs = "\n\t\t\t\t\t\t\t";
-    String firstString;
-    String? secondString;
-    bool afterSplitter = false;
-
-    if (input.contains("||")) {
-      final splitLine = input.split("||");
-      firstString = splitLine[0];
-      secondString = splitLine[1];
-    } else {
-      firstString = input;
-      secondString = null;
-    }
-
-    // LHS------------------------------------------------------------------
-    //handle LHS line breaks
-    if (firstString.contains("//")) {
-      int totalLineBreaks = 0;
-
-      int i = firstString.indexOf("/");
-      while ((i != -1) & (i != firstString.length - 2)) {
-        if (firstString[i] == "/" && firstString[i + 1] == "/") {
-          totalLineBreaks++;
-        }
-        i = firstString.indexOf("/", i + 2);
-      }
-
-      for (int i = 0; i < totalLineBreaks; i++) {
-        int indexOf = firstString.indexOf("//");
-        if (indexOf == firstString.length - 2) continue; //TODO: needed? line 93
-
-        if (firstString.substring(indexOf + 2, indexOf + 5) !=
-            preSplitterTabs) {
-          final aString = "${firstString.substring(0, indexOf)}";
-          final bString =
-              "${firstString.substring(indexOf + 2, firstString.length)}";
-          firstString = "$aString//$preSplitterTabs$bString";
-        }
-      }
-    }
-
-    // RHS------------------------------------------------------------------
-    if (secondString != null) {
-      //handle RHS line breaks
-      if (secondString.contains("//")) {
-        int totalLineBreaks = 0;
-
-        int i = secondString.indexOf("/");
-        while ((i != -1) & (i != secondString.length - 2)) {
-          if (secondString[i] == "/" && secondString[i + 1] == "/") {
-            totalLineBreaks++;
-          }
-          i = secondString.indexOf("/", i + 2);
-        }
-
-        for (int j = 0; j < totalLineBreaks; j++) {
-          int indexOf = secondString!.indexOf("//");
-
-          final aString = "${secondString.substring(0, indexOf)}";
-          final bString =
-              "${secondString.substring(indexOf + 2, secondString.length)}";
-          secondString = "$aString//$postSplitterTabs$bString";
-        }
-      }
-    }
-
-    if (secondString != null) {
-      return "$firstString||$postSplitterTabs$secondString";
-    } else {
-      return "$firstString";
-    }
-  }
-
-  void _unformat() {
+  String _unformat() {
     String temp = _textController.text;
     temp = temp.replaceAll("\n\t\t", "");
-    temp = temp.replaceAll("\n\t\t\t\t\t\t", "");
-    temp.replaceAll("\t", "");
-    _textController.text = temp;
+    temp = temp.replaceAll("\n\t\t\t\t", "");
+    temp = temp.replaceAll("\t", "");
+    return temp;
   }
 
-  String _autoFormat(String input) {
+  String _format(String input) {
     final sb = StringBuffer();
-    final compiledLines = <String>[];
-    final lines = input.split("\n");
+    final whitespacePostSplit = "\t\t\t\t";
+    final whitespacePreSplit = "\t\t";
 
-    //add row start markers
-    String checker;
-    for (int i = 0; i < lines.length; i++) {
-      if (lines[i].trim().length == 0) {
-        compiledLines.add(lines[i]);
-        continue;
+    bool afterSplit = false;
+
+    for (int i = 0; i < input.length; i++) {
+      switch (input[i]) {
+        case "@":
+          sb.write("\n\n${input[i]}");
+          break;
+        case "|":
+          if (input[i - 1] == "|") {
+            if (!afterSplit) {
+              sb.write("${input[i]}\n$whitespacePostSplit");
+              afterSplit = true;
+            } else {
+              //only one splitter is allowed per row
+              sb.write(input[i]);
+            }
+          } else {
+            sb.write(input[i]);
+          }
+          break;
+        case "/":
+          if (input[i - 1] == "/") {
+            if (afterSplit) {
+              sb.write("${input[i]}\n$whitespacePostSplit");
+            } else {
+              sb.write("${input[i]}\n$whitespacePreSplit");
+            }
+          } else {
+            sb.write(input[i]);
+          }
+          break;
+        case "-":
+          if (input[i - 1] == "\n") {
+            sb.write("\n${input[i]}\t");
+            afterSplit = false;
+          } else {
+            sb.write(input[i]);
+          }
+          break;
+        case ">":
+          if (input[i - 1] == "\n" && input[i + 1] == "=") {
+            sb.write("\n\n${input[i]}");
+          } else {
+            sb.write(input[i]);
+          }
+          break;
+        case "\t":
+          //skip tabs
+          break;
+        case "\n":
+          //skip line breaks
+          break;
+        default:
+          sb.write(input[i]);
       }
-
-      checker = lines[i].substring(0, 2);
-      if (checker[0] == "\t" ||
-          checker[0] == _rowStart ||
-          checker == _start ||
-          checker == _stop ||
-          checker[0] == _headingStart ||
-          checker.substring(0, 1) == _commentStart) {
-        compiledLines.add(lines[i].trimLeft());
-        continue;
-      }
-
-      lines[i] = "$_rowStart\t${lines[i]}";
-
-      if (lines[i].trim().length != 0) {
-        compiledLines.add(lines[i].trim());
-      }
     }
+    return sb.toString().replaceAll("\n- ", "\n-\t");
+  }
 
-    sb.clear();
-    for (final l in compiledLines) {
-      sb.writeln(_formatTextCell(l));
+  String _autoStartRow(String keyLabel, int minOffset) {
+    final sb = StringBuffer();
+    sb.write(_textController.text);
+
+    final strA = sb.toString().substring(0, minOffset);
+    final strB = sb.toString().substring(minOffset, sb.toString().length);
+
+    return "$strA-\t$strB";
+  }
+
+  String _autoCellBreak(int caretIndex) {
+    final sb = StringBuffer();
+    sb.write(_textController.text);
+
+    final strA = sb.toString().substring(0, caretIndex);
+    final strB = sb.toString().substring(caretIndex, sb.toString().length);
+
+    return "$strA|\n\t\t\t\t$strB";
+  }
+
+  String _autoLineBreak(int caretIndex, bool afterSplitter) {
+    final sb = StringBuffer();
+    sb.write(_textController.text);
+
+    final strA = sb.toString().substring(0, caretIndex);
+    final strB = sb.toString().substring(caretIndex, sb.toString().length);
+
+    if (afterSplitter) {
+      return "$strA/\n\t\t\t\t$strB";
+    } else {
+      return "$strA/\n\t\t$strB";
     }
-
-    if (sb.toString().substring(0, 2) != _start) {
-      final temp = sb.toString();
-      sb.clear();
-      sb.writeln(_start);
-      sb.write(temp);
-    }
-
-    final stopper =
-        sb.toString().substring(sb.toString().length - 3, sb.toString().length);
-
-    if (stopper.trim() != _stop) {
-      sb.write(_stop);
-    }
-
-    return sb.toString().trim();
   }
 
   //LOOK UP---------------------------------------------------------------------
@@ -224,7 +227,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       return false;
     }
 
-    _textController.text = _autoFormat(_textController.text);
+    _textController.text = _format(_textController.text);
     final indexStart = _textController.text.indexOf("@ New Language");
     final indexEnd = (_textController.text.indexOf("@", indexStart + 1) != -1)
         ? _textController.text.indexOf("@", indexStart + 1)
@@ -265,8 +268,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   void _onPressedSubmit() async {
     //_textController.text = _autoFormat(_textController.text);
-    _unformat();
-    String text = _textController.text;
+    String text = _unformat();
     if (TextModeMethods.checkNeededHeadings(text)) {
       try {
         while (text.contains("=<") && text.contains(">=")) {
@@ -309,28 +311,24 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             mapping["Date"]!.first = "${tempList[0]}-${tempList[1]}-$tempDay";
           }
 
-          final date;
-          final topic;
-          final homework;
-
-          date = DateTime.parse(mapping["Date"]!.first);
-          topic = mapping["Topic"]!;
-          homework = mapping["Homework"];
+          final date = DateTime.parse(mapping["Date"]!.first);
+          final topic = mapping["Topic"]!;
+          final homework = mapping["Homework"];
 
           //Submit Lesson
           var less = await Database.getLesson(student.name, date);
           if (less != null) {
-            less.topic = CompanionMethods.convertListToString(topic!);
+            less.topic = CompanionMethods.convertListToString(topic);
             less.homework = homework != null
-                ? CompanionMethods.convertListToString(homework!)
+                ? CompanionMethods.convertListToString(homework)
                 : "";
           } else {
             less = Lesson(
                 studentId: studentId!,
-                date: date!,
-                topic: CompanionMethods.convertListToString(topic!),
+                date: date,
+                topic: CompanionMethods.convertListToString(topic),
                 homework: homework != null
-                    ? CompanionMethods.convertListToString(homework!)
+                    ? CompanionMethods.convertListToString(homework)
                     : "");
           }
 
@@ -374,42 +372,43 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     final k = value.logicalKey;
 
     if (value is RawKeyDownEvent) {
-      final baseOffset = _textController.selection.baseOffset;
-      final extentOffset = _textController.selection.extentOffset;
+      print(k.keyLabel);
+      final List<int> caretIndex = [
+        _textController.selection.baseOffset,
+        _textController.selection.extentOffset
+      ];
 
       if (CompanionLexer.markers.contains(k.keyLabel)) {
-        final baseOffset = _textController.selection.baseOffset;
-        final extentOffset = _textController.selection.extentOffset;
         final newText = CompanionMethods.autoInsertBrackets(
-            k.keyLabel, _textController, baseOffset, extentOffset);
+            k.keyLabel, _textController, caretIndex[0], caretIndex[1]);
 
         _textController.text = newText;
         _textController.selection = TextSelection(
-            baseOffset: baseOffset + 1, extentOffset: extentOffset + 1);
+            baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
 
         return KeyEventResult.handled;
       } else if (value.isControlPressed) {
         switch (k.keyLabel) {
           case "S":
-            _saveReportSync();
+            //_saveReportSync();
             break;
           case "B":
             _textController.text =
                 CompanionMethods.insertStyleSyntax("**", _textController);
             _textController.selection = TextSelection(
-                baseOffset: baseOffset + 2, extentOffset: extentOffset + 2);
+                baseOffset: caretIndex[0] + 2, extentOffset: caretIndex[1] + 2);
             break;
           case "I":
             _textController.text =
                 CompanionMethods.insertStyleSyntax("*", _textController);
             _textController.selection = TextSelection(
-                baseOffset: baseOffset + 1, extentOffset: extentOffset + 1);
+                baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
             break;
           case "U":
             _textController.text =
                 CompanionMethods.insertStyleSyntax("_", _textController);
             _textController.selection = TextSelection(
-                baseOffset: baseOffset + 1, extentOffset: extentOffset + 1);
+                baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
             break;
           case "Enter":
             final fullText = _textController.text;
@@ -452,13 +451,65 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           default:
         }
         return KeyEventResult.ignored;
+      } else {
+        if (!_nonAutoRowStartKeys.contains(k.keyLabel) && //auto-start row
+            _textController.text[caretIndex[0] - 1] == "\n") {
+          final indexMin =
+              (caretIndex[0] < caretIndex[1]) ? caretIndex[0] : caretIndex[1];
+
+          _textController.text = _autoStartRow(k.keyLabel, indexMin);
+          _textController.selection = TextSelection(
+              baseOffset: caretIndex[0] + 2, extentOffset: caretIndex[1] + 2);
+        } else if (k.keyLabel == "|" && //auto-go to new line for RHS cell entry
+            (_textController.text[caretIndex[0] - 1] == "|")) {
+          _textController.text = _autoCellBreak(caretIndex[0]);
+          _textController.selection = TextSelection(
+              baseOffset: caretIndex[0] + 4, extentOffset: caretIndex[1] + 4);
+          return KeyEventResult.handled;
+        } else if (k.keyLabel == "/" && //auto-make line break in cell
+            (_textController.text[caretIndex[0] - 1] == "/")) {
+          int lineStartIndex = 0;
+          int thisIndex;
+
+          if (_textController.text.contains("\n-")) {
+            thisIndex = _textController.text.indexOf("\n-");
+
+            while (thisIndex < caretIndex[0]) {
+              lineStartIndex = thisIndex;
+              thisIndex =
+                  _textController.text.indexOf("\n-", lineStartIndex + 1);
+
+              if (thisIndex == -1) {
+                lineStartIndex = _textController.text.indexOf("\n-");
+                break;
+              }
+            }
+          } else {
+            thisIndex = _textController.text.indexOf("\n");
+          }
+
+          final start = lineStartIndex;
+          final end = caretIndex[0];
+
+          final line = _textController.text.substring(start, end);
+          if (line.contains("||") && (line.indexOf("||") < caretIndex[0])) {
+            _textController.text = _autoLineBreak(caretIndex[0], true);
+            _textController.selection = TextSelection(
+                baseOffset: caretIndex[0] + 6, extentOffset: caretIndex[1] + 6);
+          } else {
+            _textController.text = _autoLineBreak(caretIndex[0], false);
+            _textController.selection = TextSelection(
+                baseOffset: caretIndex[0] + 4, extentOffset: caretIndex[1] + 4);
+          }
+          return KeyEventResult.handled;
+        }
       }
     }
     return KeyEventResult.ignored;
   }
 
   void _saveReportSync() {
-    _textController.text = _autoFormat(_textController.text);
+    _textController.text = _format(_textController.text);
 
     final report;
     if (_currentReportId != null) {
@@ -482,7 +533,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   }
 
   void _duplicateCorrections() {
-    _textController.text = _autoFormat(_textController.text);
+    _textController.text = _format(_textController.text);
 
     final fullText = _textController.text;
     final StringBuffer sb = StringBuffer();
@@ -566,7 +617,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 13, vertical: 9),
                             ),
-                            style: TextStyle(fontSize: _fontSize),
+                            style: TextStyle(
+                                fontSize: _fontSize, fontFamily: "Roboto"),
                             maxLines: null,
                             expands: true,
                           ),
@@ -605,6 +657,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                 label: "Duplicate Corrections",
                 onTap: () {
                   _duplicateCorrections();
+                  _textController.text = _format(_textController.text);
                 }),
             SpeedDialChild(
                 label: "Reset",
@@ -614,10 +667,17 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                   });
                 }),
             SpeedDialChild(
+                label: "Unformat",
+                onTap: () {
+                  setState(() {
+                    _textController.text = _unformat();
+                  });
+                }),
+            SpeedDialChild(
                 label: "Format",
                 onTap: () {
                   setState(() {
-                    _textController.text = _autoFormat(_textController.text);
+                    _textController.text = _format(_textController.text);
                   });
                 }),
           ],

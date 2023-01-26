@@ -4,13 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/database.dart';
-import 'package:printing/printing.dart';
 
 import '../../models/pdf_document/pdf_doc.dart';
 
 class PdfPreviewPage extends StatelessWidget {
   final PdfDoc _pdfDocument;
-  late Uint8List _bytes;
+  Uint8List? _bytes;
 
   PdfPreviewPage({super.key, required PdfDoc pdfDocument})
       : _pdfDocument = pdfDocument;
@@ -22,10 +21,10 @@ class PdfPreviewPage extends StatelessWidget {
           title: Text("Pdf Preview"),
         ),
         body: Column(mainAxisSize: MainAxisSize.min, children: [
-          Expanded(child: PdfPreview(build: (format) async {
-            _bytes = await _pdfDocument.create();
-            return _bytes;
-          })),
+          // Expanded(child: PdfPreview(build: (format) async {
+          //   _bytes = await _pdfDocument.create();
+          //   return _bytes;
+          // })),
           Padding(
             padding: EdgeInsets.all(10.0),
             child: Row(
@@ -45,7 +44,7 @@ class PdfPreviewPage extends StatelessWidget {
                     final saveDest =
                         "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await Database.getStudentId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
                     final file = File(saveDest);
-                    await file.writeAsBytes(_bytes);
+                    await file.writeAsBytes(await _pdfDocument.create());
 
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text("Report PDF file saved successfully")));

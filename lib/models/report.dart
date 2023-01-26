@@ -132,9 +132,9 @@ class Report {
 
   Map<String, List<String>> toMap(String text) {
     String currentHeading = "";
-    final headingPrefix = "# ";
-    final linePrefix = "- ";
-    final commentPrefix = "!@";
+    final headingPrefix = "@ ";
+    final linePrefix = "-";
+    final commentPrefix = "!!";
     final mappings = <String, List<String>>{};
     var currentEntryList = <String>[];
 
@@ -147,7 +147,7 @@ class Report {
 
       //check if the line contains a heading or not
       if (line.substring(0, 2) != headingPrefix) {
-        if (line.substring(0, 2) == linePrefix) {
+        if (line[0] == linePrefix) {
           final temp = line.substring(1).trim();
           //add the line to the housing List obj
           currentEntryList.add(temp);

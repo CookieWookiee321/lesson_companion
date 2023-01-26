@@ -31,8 +31,6 @@ class Styler {
     inversePrimary: Color(0xFFFFB4A4),
     shadow: Color(0xFF000000),
     surfaceTint: Color(0xFFB52706),
-    outlineVariant: Color(0xFFD8C2BD),
-    scrim: Color(0xFF000000),
   );
 
   static const darkColorScheme = ColorScheme(
@@ -65,8 +63,6 @@ class Styler {
     inversePrimary: Color(0xFFB52706),
     shadow: Color(0xFF000000),
     surfaceTint: Color(0xFFFFB4A4),
-    outlineVariant: Color(0xFF534340),
-    scrim: Color(0xFF000000),
   );
 }
 
