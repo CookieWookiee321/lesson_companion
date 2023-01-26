@@ -143,8 +143,6 @@ class _HomeViewState extends State<HomeView> {
     //counter checks tables are not empty
     final counter = HomeController.areTablesPopulated(_tables);
     if (counter > 0) {
-      final dateSplit = _dateController.text.split(" ");
-
       //build report text
       final sb = StringBuffer();
       sb.writeln("# Name");

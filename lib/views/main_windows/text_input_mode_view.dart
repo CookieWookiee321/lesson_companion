@@ -16,28 +16,6 @@ import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 
 import '../../controllers/styling/companion_lexer.dart';
 
-//TODO: saving crashes the app
-
-final _template = """=<
-@ Name
-
-
-@ Date
--\t${CompanionMethods.getShortDate(DateTime.now())}
-
-@ Topic
-
-
-@ New Language
-
-
-@ Pronunciation
-
-
-@ Corrections
-
->=""";
-
 final _nonAutoRowStartKeys = [
   "Backspace",
   "Delete",
@@ -76,9 +54,9 @@ const _commentStart = "!!";
 const _start = "=<";
 const _stop = ">=";
 
-//======================================================================
-//Text Input Mode View
-//======================================================================
+//==============================================================================
+// Text Input Mode View
+//==============================================================================
 class TextInputModeView extends StatefulWidget {
   const TextInputModeView({Key? key}) : super(key: key);
 
@@ -690,3 +668,27 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     _textController.text = "$before\n$middle\n\n$after";
   }
 }
+
+// The storage area-------------------------------------------------------------
+
+final _template = """=<
+
+@ Name
+
+
+@ Date
+-\t${CompanionMethods.getShortDate(DateTime.now())}
+
+@ Topic
+
+
+@ New Language
+
+
+@ Pronunciation
+
+
+@ Corrections
+
+
+>=""";

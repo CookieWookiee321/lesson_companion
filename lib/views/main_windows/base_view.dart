@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lesson_companion/views/main_windows/report_view.dart';
 import 'package:lesson_companion/views/main_windows/student_view.dart';
 import 'package:lesson_companion/views/main_windows/text_input_mode_view.dart';
 import 'package:lesson_companion/views/main_windows/text_input_mode_view_copy.dart';

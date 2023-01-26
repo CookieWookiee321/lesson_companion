@@ -61,7 +61,6 @@ class PdfLexer {
     return output;
   }
 
-  //TODO: disallow '^' from textfields
   static Future<Map<int, PdfTextSpan>> _mapSeperateStyles(
       String text, PdfSection section) async {
     final _replaceMarker = "^";

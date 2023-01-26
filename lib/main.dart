@@ -1,4 +1,3 @@
-//TODO: message on look up no results
 //TODO: style functions
 import 'dart:convert';
 import 'dart:io';
