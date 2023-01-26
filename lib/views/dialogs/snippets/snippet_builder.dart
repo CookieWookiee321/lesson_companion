@@ -196,20 +196,45 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
                             children: [
                               Text("Size"),
                               Expanded(
-                                  child: TextFieldOutlined(
-                                controller: _sizeController,
-                                keyboardType: TextInputType.number,
-                                textAlign: TextAlign.center,
-                                onTextChanged: (text) {
-                                  setState(() {
-                                    final temp = double.tryParse(text);
-                                    if (temp == null) {
-                                      _size = 14.0;
-                                      _sizeController.text = "11";
-                                    } else {
-                                      _size = temp;
-                                    }
-                                  });
+                                  child: Focus(
+                                child: TextFieldOutlined(
+                                  controller: _sizeController,
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  onTextChanged: (text) {
+                                    setState(() {
+                                      if (text.length != 0) {
+                                        final temp = double.tryParse(text);
+                                        if (temp == null) {
+                                          _size = 11.0;
+                                          _sizeController.text = "11";
+                                          _sizeController.selection =
+                                              TextSelection(
+                                                  baseOffset: 0,
+                                                  extentOffset: _sizeController
+                                                      .text.length);
+                                        } else {
+                                          _size = temp;
+                                        }
+                                      } else {
+                                        _size = 11.0;
+                                        _sizeController.text = "11";
+                                        _sizeController.selection =
+                                            TextSelection(
+                                                baseOffset: 0,
+                                                extentOffset: _sizeController
+                                                    .text.length);
+                                      }
+                                    });
+                                  },
+                                ),
+                                onFocusChange: (isFocussed) {
+                                  if (isFocussed) {
+                                    _sizeController.selection = TextSelection(
+                                        baseOffset: 0,
+                                        extentOffset:
+                                            _sizeController.text.length);
+                                  }
                                 },
                               ))
                             ],
