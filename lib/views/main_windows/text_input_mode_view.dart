@@ -100,6 +100,125 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   double _fontSize = 11.0;
 
+  //MAIN------------------------------------------------------------------------
+
+  @override
+  initState() {
+    _textController.text = _template;
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    Database.saveSetting(SharedPrefOption.fontSize, _fontSize);
+
+    window.onKeyData = null;
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: FocusScope(
+          autofocus: true,
+          canRequestFocus: true,
+          onKey: (node, event) {
+            return _handleKey(event);
+          },
+          child: Focus(
+            child: Column(
+              children: [
+                Expanded(
+                    child: Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: RawKeyboardListener(
+                          focusNode: _textNode,
+                          autofocus: true,
+                          child: TextField(
+                            controller: _textController,
+                            onSubmitted: ((value) {
+                              _textController.selection =
+                                  TextSelection.collapsed(offset: 0);
+                            }),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10.0))),
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 13, vertical: 9),
+                            ),
+                            style: TextStyle(
+                                fontSize: _fontSize, fontFamily: "Roboto"),
+                            maxLines: null,
+                            expands: true,
+                          ),
+                          onKey: null,
+                        )),
+                      ],
+                    ),
+                  ),
+                )),
+                Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: ElevatedButton(
+                        onPressed: _onPressedSubmit,
+                        child: const Text("Submit")))
+              ],
+            ),
+            onFocusChange: (value) {
+              setState(() {
+                _inFocus = value;
+              });
+            },
+          ),
+        ),
+        floatingActionButton: SpeedDial(
+          icon: Icons.more,
+          children: [
+            SpeedDialChild(
+                label: "Look Up New Language",
+                onTap: () async {
+                  _switchLoading();
+                  _lookUpWords().then((value) {
+                    _switchLoading();
+                  });
+                }),
+            SpeedDialChild(
+                label: "Duplicate Corrections",
+                onTap: () {
+                  _duplicateCorrections();
+                  _textController.text = _format(_textController.text);
+                }),
+            SpeedDialChild(
+                label: "Reset",
+                onTap: () {
+                  setState(() {
+                    _textController.text = _template;
+                  });
+                }),
+            SpeedDialChild(
+                label: "Unformat",
+                onTap: () {
+                  setState(() {
+                    _textController.text = _unformat();
+                  });
+                }),
+            SpeedDialChild(
+                label: "Format",
+                onTap: () {
+                  setState(() {
+                    _textController.text = _format(_textController.text);
+                  });
+                }),
+          ],
+        ));
+  }
+
   //FORMATTING------------------------------------------------------------------
 
   String _unformat() {
@@ -563,124 +682,5 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     final after = fullText.substring(indexEnd, fullText.length);
 
     _textController.text = "$before\n$middle\n\n$after";
-  }
-
-  //MAIN------------------------------------------------------------------------
-
-  @override
-  initState() {
-    _textController.text = _template;
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    Database.saveSetting(SharedPrefOption.fontSize, _fontSize);
-
-    window.onKeyData = null;
-    _textController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        body: FocusScope(
-          autofocus: true,
-          canRequestFocus: true,
-          onKey: (node, event) {
-            return _handleKey(event);
-          },
-          child: Focus(
-            child: Column(
-              children: [
-                Expanded(
-                    child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: RawKeyboardListener(
-                          focusNode: _textNode,
-                          autofocus: true,
-                          child: TextField(
-                            controller: _textController,
-                            onSubmitted: ((value) {
-                              _textController.selection =
-                                  TextSelection.collapsed(offset: 0);
-                            }),
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(10.0))),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 13, vertical: 9),
-                            ),
-                            style: TextStyle(
-                                fontSize: _fontSize, fontFamily: "Roboto"),
-                            maxLines: null,
-                            expands: true,
-                          ),
-                          onKey: null,
-                        )),
-                      ],
-                    ),
-                  ),
-                )),
-                Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: ElevatedButton(
-                        onPressed: _onPressedSubmit,
-                        child: const Text("Submit")))
-              ],
-            ),
-            onFocusChange: (value) {
-              setState(() {
-                _inFocus = value;
-              });
-            },
-          ),
-        ),
-        floatingActionButton: SpeedDial(
-          icon: Icons.more,
-          children: [
-            SpeedDialChild(
-                label: "Look Up New Language",
-                onTap: () async {
-                  _switchLoading();
-                  _lookUpWords().then((value) {
-                    _switchLoading();
-                  });
-                }),
-            SpeedDialChild(
-                label: "Duplicate Corrections",
-                onTap: () {
-                  _duplicateCorrections();
-                  _textController.text = _format(_textController.text);
-                }),
-            SpeedDialChild(
-                label: "Reset",
-                onTap: () {
-                  setState(() {
-                    _textController.text = _template;
-                  });
-                }),
-            SpeedDialChild(
-                label: "Unformat",
-                onTap: () {
-                  setState(() {
-                    _textController.text = _unformat();
-                  });
-                }),
-            SpeedDialChild(
-                label: "Format",
-                onTap: () {
-                  setState(() {
-                    _textController.text = _format(_textController.text);
-                  });
-                }),
-          ],
-        ));
   }
 }

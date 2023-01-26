@@ -24,13 +24,12 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
   bool _italic = false;
   bool _underline = false;
   bool _strikethrough = false;
-  //TODO: Add links functionality
 
   final List<DropdownMenuItem> _colours = [
     DropdownMenuItem(value: Colors.black, child: Text("black")),
     DropdownMenuItem(value: Color(0xFF0066B3), child: Text("blue")),
     DropdownMenuItem(value: Colors.blueGrey, child: Text("blue grey")),
-    DropdownMenuItem(value: Color(0xFF4AD24E), child: Text("green")),
+    DropdownMenuItem(value: Color(0xFF00992B), child: Text("green")),
     DropdownMenuItem(value: Colors.grey[600]!, child: Text("grey")),
     DropdownMenuItem(value: Color(0xFFFF9900), child: Text("orange")),
     DropdownMenuItem(value: Color(0xFFD90BCD), child: Text("pink")),
@@ -39,83 +38,7 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
     DropdownMenuItem(value: Color(0xFFCCCC29), child: Text("yellow")),
   ];
 
-  List<TextSpan> _buildPreview() {
-    TextDecoration? _handleDecor() {
-      if (_underline && _strikethrough) {
-        return TextDecoration.combine(
-            [TextDecoration.lineThrough, TextDecoration.underline]);
-      } else if (_underline) {
-        return TextDecoration.underline;
-      } else if (_strikethrough) {
-        return TextDecoration.lineThrough;
-      } else {
-        return null;
-      }
-    }
-
-    return [
-      TextSpan(
-          text: "sample text",
-          style: TextStyle(
-              fontSize: _size * 1.5,
-              color: _colour,
-              fontStyle: _italic ? FontStyle.italic : FontStyle.normal,
-              fontWeight: _bold ? FontWeight.bold : FontWeight.normal,
-              decoration: _handleDecor()))
-    ];
-  }
-
-  List<int> _buildStyleList() {
-    final output = <int>[];
-
-    if (_bold) {
-      output.add(StyleSnippet.bold);
-    }
-    if (_italic) {
-      output.add(StyleSnippet.italic);
-    }
-    if (_strikethrough) {
-      output.add(StyleSnippet.strikethough);
-    }
-    if (_underline) {
-      output.add(StyleSnippet.underline);
-    }
-
-    return output;
-  }
-
-  void _onPressedSubmit() async {
-    if (_snippetName != null) {
-      //build the snippet
-      final storedSnippet = await StyleSnippet.getSnippet(_snippetName!);
-      final StyleSnippet snippet;
-
-      if (storedSnippet == null) {
-        snippet = StyleSnippet(
-            null,
-            _snippetName!,
-            _size,
-            StyleSnippet.colourMap.keys
-                .firstWhere((k) => StyleSnippet.colourMap[k] == _colour),
-            _buildStyleList());
-      } else {
-        snippet = storedSnippet;
-        snippet.marker = _snippetName!;
-        snippet.size = _size;
-        snippet.colour = StyleSnippet.colourMap.keys
-            .firstWhere((k) => StyleSnippet.colourMap[k] == _colour);
-        snippet.styles = _buildStyleList();
-      }
-
-      await StyleSnippet.saveSnippet(snippet);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("The snippet has been saved.")));
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Please enter a name for the snippet.")));
-    }
-  }
+  //TODO: Add links functionality
 
   @override
   void initState() {
@@ -352,5 +275,83 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
         ],
       ),
     );
+  }
+
+  List<TextSpan> _buildPreview() {
+    TextDecoration? _handleDecor() {
+      if (_underline && _strikethrough) {
+        return TextDecoration.combine(
+            [TextDecoration.lineThrough, TextDecoration.underline]);
+      } else if (_underline) {
+        return TextDecoration.underline;
+      } else if (_strikethrough) {
+        return TextDecoration.lineThrough;
+      } else {
+        return null;
+      }
+    }
+
+    return [
+      TextSpan(
+          text: "sample text",
+          style: TextStyle(
+              fontSize: _size * 1.5,
+              color: _colour,
+              fontStyle: _italic ? FontStyle.italic : FontStyle.normal,
+              fontWeight: _bold ? FontWeight.bold : FontWeight.normal,
+              decoration: _handleDecor()))
+    ];
+  }
+
+  List<int> _buildStyleList() {
+    final output = <int>[];
+
+    if (_bold) {
+      output.add(StyleSnippet.bold);
+    }
+    if (_italic) {
+      output.add(StyleSnippet.italic);
+    }
+    if (_strikethrough) {
+      output.add(StyleSnippet.strikethough);
+    }
+    if (_underline) {
+      output.add(StyleSnippet.underline);
+    }
+
+    return output;
+  }
+
+  void _onPressedSubmit() async {
+    if (_snippetName != null) {
+      //build the snippet
+      final storedSnippet = await StyleSnippet.getSnippet(_snippetName!);
+      final StyleSnippet snippet;
+
+      if (storedSnippet == null) {
+        snippet = StyleSnippet(
+            null,
+            _snippetName!,
+            _size,
+            StyleSnippet.colourMap.keys
+                .firstWhere((k) => StyleSnippet.colourMap[k] == _colour),
+            _buildStyleList());
+      } else {
+        snippet = storedSnippet;
+        snippet.marker = _snippetName!;
+        snippet.size = _size;
+        snippet.colour = StyleSnippet.colourMap.keys
+            .firstWhere((k) => StyleSnippet.colourMap[k] == _colour);
+        snippet.styles = _buildStyleList();
+      }
+
+      await StyleSnippet.saveSnippet(snippet);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("The snippet has been saved.")));
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Please enter a name for the snippet.")));
+    }
   }
 }
