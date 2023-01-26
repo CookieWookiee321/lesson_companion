@@ -37,6 +37,10 @@ class PdfLexer {
     final output = <PdfTextSpan>[];
     //separate
 
+    if (text == "u{Every day} u{at midnight}") {
+      print("here");
+    }
+
     final tempMap = await _mapSeperateStyles(text, section);
     //order
     if (tempMap.length > 1) {

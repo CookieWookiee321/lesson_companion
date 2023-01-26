@@ -490,8 +490,14 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   KeyEventResult _handleKey(RawKeyEvent value) {
     final k = value.logicalKey;
 
+    // this character is used to format the final report
+    if (k.keyLabel == "^") {
+      return KeyEventResult.handled;
+    }
+
     if (value is RawKeyDownEvent) {
       print(k.keyLabel);
+
       final List<int> caretIndex = [
         _textController.selection.baseOffset,
         _textController.selection.extentOffset

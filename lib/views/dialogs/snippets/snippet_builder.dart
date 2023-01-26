@@ -31,14 +31,18 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
     DropdownMenuItem(value: Colors.blueGrey, child: Text("blue grey")),
     DropdownMenuItem(value: Color(0xFF00992B), child: Text("green")),
     DropdownMenuItem(value: Colors.grey[600]!, child: Text("grey")),
-    DropdownMenuItem(value: Color(0xFF995B00), child: Text("orange")),
     DropdownMenuItem(value: Color(0xFF980095), child: Text("magenta")),
+    DropdownMenuItem(value: Color(0xFF995B00), child: Text("orange")),
     DropdownMenuItem(value: Color(0xFF5E09B3), child: Text("purple")),
     DropdownMenuItem(value: Color(0xFFCC1714), child: Text("red")),
     DropdownMenuItem(value: Color(0xFF988F01), child: Text("yellow")),
   ];
 
   //TODO: Add links functionality
+
+  //----------------------------------------------------------------------------
+  // MAIN
+  //-----------------------------------------------------------------------------
 
   @override
   void initState() {
@@ -276,6 +280,10 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
       ),
     );
   }
+
+  //----------------------------------------------------------------------------
+  // METHODS
+  //-----------------------------------------------------------------------------
 
   List<TextSpan> _buildPreview() {
     TextDecoration? _handleDecor() {
