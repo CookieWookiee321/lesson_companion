@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class Styler {
+class Theme {
   static const lightColorScheme = ColorScheme(
     brightness: Brightness.light,
     primary: Color(0xFFB52706),
