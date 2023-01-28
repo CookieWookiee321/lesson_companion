@@ -13,6 +13,7 @@ import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/dialogs/lookups/new_language_look_up.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
+import 'package:rich_text_controller/rich_text_controller.dart';
 
 import '../../controllers/styling/companion_lexer.dart';
 
@@ -71,7 +72,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   int? _currentReportId;
 
-  final _textController = TextEditingController();
+  late RichTextController _textController;
   bool _inFocus = false;
   bool _loading = false;
   final _textNode = FocusNode();
@@ -82,6 +83,50 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   @override
   initState() {
+    _textController = RichTextController(
+        patternMatchMap: {
+          // row cell splitter
+          RegExp(r"\s\|{2}"):
+              TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
+          // cell line break
+          RegExp(r"\s\/{2}\s"):
+              TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
+          // heading marker
+          RegExp(r"^[\@] .+"): TextStyle(
+              color: Color.fromARGB(255, 189, 180, 51),
+              fontWeight: FontWeight.bold),
+          // row start marker
+          RegExp(r"\^-\s"): TextStyle(
+              color: Color.fromARGB(255, 176, 144, 56),
+              fontWeight: FontWeight.bold),
+          // report start marker
+          RegExp(r"\^[=<]"):
+              TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+          //report end marker
+          RegExp(r"\^[>=]"):
+              TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+          //TODO: account for bold, and others
+          //TODO: make sure all of them match
+          RegExp(r"\s\*{1}[a-zA-z0-9 ]+\*{1}\s"):
+              TextStyle(fontStyle: FontStyle.italic),
+          RegExp(r"\s\*{2}[a-zA-z0-9 ]+\*{2}\s"):
+              TextStyle(fontWeight: FontWeight.bold),
+          RegExp(r"\s\*{3}[a-zA-z0-9 ]+\*{3}\s"): TextStyle(
+              fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+          RegExp(r"\~{2}[A-Za-z0-9 ]+\~{2}"):
+              TextStyle(decoration: TextDecoration.lineThrough),
+          RegExp(r"\s\_[A-Za-z0-9 ]+\_"):
+              TextStyle(decoration: TextDecoration.underline),
+          RegExp(r"\<sub [A-Za-z0-9 ]+\>"): TextStyle(fontSize: 10),
+          // RegExp(r"[A-Za-z0-9 ]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue)
+          RegExp(r"\s[A-z0-9]\{[^\{\}]*\}"): TextStyle(color: Colors.lightBlue)
+          //r"<sup [A-Za-z0-9]+>": TextStyle(fontSize: 10),
+          //r"col\([A-Za-z0-9]+, [A-Za-z0-9]+\)": TextStyle(fontStyle: FontStyle.italic),
+          //r"lnk\([A-Za-z0-9]+, [A-Za-z0-9]+\) ": TextStyle(fontStyle: FontStyle.italic),
+        },
+        // stringMatchMap: {r"//": TextStyle(color: Colors.purple)},
+        onMatch: (matches) {},
+        deleteOnBack: false);
     _textController.text = _template;
     super.initState();
   }
@@ -567,7 +612,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             (_textController.text[caretIndex[0] - 1] == "|")) {
           _textController.text = _autoCellBreak(caretIndex[0]);
           _textController.selection = TextSelection(
-              baseOffset: caretIndex[0] + 4, extentOffset: caretIndex[1] + 4);
+              baseOffset: caretIndex[0] + 6, extentOffset: caretIndex[1] + 6);
           return KeyEventResult.handled;
         } else if (k.keyLabel == "/" && //auto-make line break in cell
             (_textController.text[caretIndex[0] - 1] == "/")) {

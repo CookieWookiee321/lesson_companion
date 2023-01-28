@@ -7,7 +7,7 @@ class CompanionLexer {
     r"#[A-Za-z0-9]+": TextStyle(fontSize: 16),
     r"\*[A-Za-z0-9]+\*": TextStyle(fontStyle: FontStyle.italic),
     r"\**[A-Za-z0-9]+\**": TextStyle(fontWeight: FontWeight.bold),
-    r"\***[A-Za-z0-9]+\***":
+    r"\*{3}[A-Za-z0-9]+\*{3}":
         TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
     r"\~~[A-Za-z0-9]+\~~": TextStyle(decoration: TextDecoration.lineThrough),
     r"\_[A-Za-z0-9]+\_": TextStyle(decoration: TextDecoration.underline),
