@@ -92,34 +92,33 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           RegExp(r"\s\/{2}\s"):
               TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
           // heading marker
-          RegExp(r"^[\@] .+"): TextStyle(
+          RegExp(r"\n\@ .+"): TextStyle(
               color: Color.fromARGB(255, 189, 180, 51),
               fontWeight: FontWeight.bold),
           // row start marker
-          RegExp(r"\^-\s"): TextStyle(
+          RegExp(r"\n\-\s"): TextStyle(
               color: Color.fromARGB(255, 176, 144, 56),
               fontWeight: FontWeight.bold),
-          // report start marker
-          RegExp(r"\^[=<]"):
-              TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-          //report end marker
-          RegExp(r"\^[>=]"):
-              TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+          // comments
+          RegExp(r"\!\![.]+\n"): TextStyle(color: Colors.grey),
           //TODO: account for bold, and others
           //TODO: make sure all of them match
+          //italic, bold, bold and italic
           RegExp(r"\s\*{1}[a-zA-z0-9 ]+\*{1}\s"):
               TextStyle(fontStyle: FontStyle.italic),
           RegExp(r"\s\*{2}[a-zA-z0-9 ]+\*{2}\s"):
               TextStyle(fontWeight: FontWeight.bold),
           RegExp(r"\s\*{3}[a-zA-z0-9 ]+\*{3}\s"): TextStyle(
               fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+          // strikethrough
           RegExp(r"\~{2}[A-Za-z0-9 ]+\~{2}"):
               TextStyle(decoration: TextDecoration.lineThrough),
-          RegExp(r"\s\_[A-Za-z0-9 ]+\_"):
+          // underline
+          RegExp(r"\_[A-Za-z0-9 ]+\_"):
               TextStyle(decoration: TextDecoration.underline),
-          RegExp(r"\<sub [A-Za-z0-9 ]+\>"): TextStyle(fontSize: 10),
-          // RegExp(r"[A-Za-z0-9 ]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue)
-          RegExp(r"\s[A-z0-9]\{[^\{\}]*\}"): TextStyle(color: Colors.lightBlue)
+          //subtext
+          // RegExp(r"\<sub [A-Za-z0-9 ]+\>"): TextStyle(fontSize: 10),
+          RegExp(r"[A-Za-z0-9 ]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue)
           //r"<sup [A-Za-z0-9]+>": TextStyle(fontSize: 10),
           //r"col\([A-Za-z0-9]+, [A-Za-z0-9]+\)": TextStyle(fontStyle: FontStyle.italic),
           //r"lnk\([A-Za-z0-9]+, [A-Za-z0-9]+\) ": TextStyle(fontStyle: FontStyle.italic),
