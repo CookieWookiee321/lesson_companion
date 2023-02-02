@@ -47,7 +47,10 @@ class PdfPreviewPage extends StatelessWidget {
                     await file.writeAsBytes(await _pdfDocument.create());
 
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text("Report PDF file saved successfully")));
+                      content: Text("Report PDF file saved successfully"),
+                      clipBehavior: Clip.antiAlias,
+                      showCloseIcon: true,
+                    ));
                   },
                 )
               ],

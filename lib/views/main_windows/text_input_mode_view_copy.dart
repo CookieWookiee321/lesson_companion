@@ -21,7 +21,7 @@ final _template = """=<
 
 
 @ Date
--\t${CompanionMethods.getShortDate(DateTime.now())}
+- ${CompanionMethods.getShortDate(DateTime.now())}
 
 @ Topic
 
@@ -295,8 +295,11 @@ class _CopyTextInputModeViewState extends State<CopyTextInputModeView> {
           print(
               "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}");
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                  "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}")));
+            content: Text(
+                "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}"),
+            clipBehavior: Clip.antiAlias,
+            showCloseIcon: true,
+          ));
 
           if (mapping.keys.length > 4 ||
               (mapping.keys.length == 4 &&
@@ -310,8 +313,11 @@ class _CopyTextInputModeViewState extends State<CopyTextInputModeView> {
               ));
             } on Exception {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(
-                      "Report could not be made.\nYou may have made a mistake with you notation markers.\nPlease check them again")));
+                content: Text(
+                    "Report could not be made.\nYou may have made a mistake with you notation markers.\nPlease check them again"),
+                clipBehavior: Clip.antiAlias,
+                showCloseIcon: true,
+              ));
             }
           }
         }
@@ -322,8 +328,11 @@ class _CopyTextInputModeViewState extends State<CopyTextInputModeView> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              "Failed to submit lesson.\nThere is a problem with the text format.")));
+        content: Text(
+            "Failed to submit lesson.\nThere is a problem with the text format."),
+        clipBehavior: Clip.antiAlias,
+        showCloseIcon: true,
+      ));
     }
   }
 
@@ -487,8 +496,11 @@ class _CopyTextInputModeViewState extends State<CopyTextInputModeView> {
       Report.saveReportSync(newReport);
       _currentReportId = newReport.id;
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text("Report saved")));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text("Report saved"),
+      clipBehavior: Clip.antiAlias,
+      showCloseIcon: true,
+    ));
   }
 
   //MAIN------------------------------------------------------------------------

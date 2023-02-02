@@ -108,8 +108,11 @@ class _HomeViewState extends State<HomeView> {
   void _onPressedSubmit() async {
     if (_name == null || _topic == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text(
-              "A name and topic are required at least to submit a lesson")));
+        content: const Text(
+            "A name and topic are required at least to submit a lesson"),
+        clipBehavior: Clip.antiAlias,
+        showCloseIcon: true,
+      ));
       return;
     }
 
@@ -174,8 +177,11 @@ class _HomeViewState extends State<HomeView> {
       }));
     }
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text("Lesson submitted successfully")));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text("Lesson submitted successfully"),
+      clipBehavior: Clip.antiAlias,
+      showCloseIcon: true,
+    ));
   }
 
   Future<void> _onTapDateField() async {
@@ -353,8 +359,11 @@ class _HomeViewState extends State<HomeView> {
               try {
                 print(_convertTablesToText());
               } catch (e) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(e.toString())));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(e.toString()),
+                  clipBehavior: Clip.antiAlias,
+                  showCloseIcon: true,
+                ));
               }
             },
           )
@@ -598,11 +607,17 @@ class _ReportTableRowState extends State<ReportTableRow> {
         Report.saveReportSync(newReport);
         id = newReport.id;
       }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Report saved")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Report saved"),
+        clipBehavior: Clip.antiAlias,
+        showCloseIcon: true,
+      ));
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.toString()),
+        clipBehavior: Clip.antiAlias,
+        showCloseIcon: true,
+      ));
     }
   }
 

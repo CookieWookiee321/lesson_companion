@@ -354,12 +354,20 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
       }
 
       await StyleSnippet.saveSnippet(snippet);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("The snippet has been saved.")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+          "The snippet has been saved.",
+        ),
+        clipBehavior: Clip.antiAlias,
+        showCloseIcon: true,
+      ));
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Please enter a name for the snippet.")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Please enter a name for the snippet."),
+        clipBehavior: Clip.antiAlias,
+        showCloseIcon: true,
+      ));
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -66,14 +67,11 @@ class TextInputModeView extends StatefulWidget {
 }
 
 class _TextInputModeViewState extends State<TextInputModeView> {
-  final _lookUps = <NewLanguageLookUp>[];
-  final _lookUpCards = <NewLanguageLookUpCard>[];
   final _lookUpReturns = <LookUpReturn>[];
 
   int? _currentReportId;
 
   late RichTextController _textController;
-  bool _inFocus = false;
   bool _loading = false;
   final _textNode = FocusNode();
 
@@ -83,49 +81,45 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   @override
   initState() {
-    _textController = RichTextController(
-        patternMatchMap: {
-          // row cell splitter
-          RegExp(r"\s\|{2}"):
-              TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
-          // cell line break
-          RegExp(r"\s\/{2}\s"):
-              TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
-          // heading marker
-          RegExp(r"\n\@ .+"): TextStyle(
-              color: Color.fromARGB(255, 189, 180, 51),
-              fontWeight: FontWeight.bold),
-          // row start marker
-          RegExp(r"\n\-\s"): TextStyle(
-              color: Color.fromARGB(255, 176, 144, 56),
-              fontWeight: FontWeight.bold),
-          // comments
-          RegExp(r"\!\![.]+\n"): TextStyle(color: Colors.grey),
-          //TODO: account for bold, and others
-          //TODO: make sure all of them match
-          //italic, bold, bold and italic
-          RegExp(r"\s\*{1}[a-zA-z0-9 ]+\*{1}\s"):
-              TextStyle(fontStyle: FontStyle.italic),
-          RegExp(r"\s\*{2}[a-zA-z0-9 ]+\*{2}\s"):
-              TextStyle(fontWeight: FontWeight.bold),
-          RegExp(r"\s\*{3}[a-zA-z0-9 ]+\*{3}\s"): TextStyle(
-              fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
-          // strikethrough
-          RegExp(r"\~{2}[A-Za-z0-9 ]+\~{2}"):
-              TextStyle(decoration: TextDecoration.lineThrough),
-          // underline
-          RegExp(r"\_[A-Za-z0-9 ]+\_"):
-              TextStyle(decoration: TextDecoration.underline),
-          //subtext
-          // RegExp(r"\<sub [A-Za-z0-9 ]+\>"): TextStyle(fontSize: 10),
-          RegExp(r"[A-Za-z0-9 ]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue)
-          //r"<sup [A-Za-z0-9]+>": TextStyle(fontSize: 10),
-          //r"col\([A-Za-z0-9]+, [A-Za-z0-9]+\)": TextStyle(fontStyle: FontStyle.italic),
-          //r"lnk\([A-Za-z0-9]+, [A-Za-z0-9]+\) ": TextStyle(fontStyle: FontStyle.italic),
-        },
-        // stringMatchMap: {r"//": TextStyle(color: Colors.purple)},
-        onMatch: (matches) {},
-        deleteOnBack: false);
+    _textController = RichTextController(patternMatchMap: {
+      // row cell splitter
+      RegExp(r"\s\|{2}"):
+          TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
+      // cell line break
+      RegExp(r"\s\/{2}\s"):
+          TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
+      // heading marker
+      RegExp(r"\n\@ .+"): TextStyle(
+          color: Color.fromARGB(255, 189, 180, 51),
+          fontWeight: FontWeight.bold),
+      // row start marker
+      RegExp(r"\n\-\s"): TextStyle(
+          color: Color.fromARGB(255, 176, 144, 56),
+          fontWeight: FontWeight.bold),
+      // comments
+      RegExp(r"\!\![.]+\n"): TextStyle(color: Colors.grey),
+      //TODO: account for bold, and others
+      //TODO: make sure all of them match
+      //italic, bold, bold and italic
+      RegExp(r"\s\*{1}[a-zA-z0-9 ]+\*{1}\s"):
+          TextStyle(fontStyle: FontStyle.italic),
+      RegExp(r"\s\*{2}[a-zA-z0-9 ]+\*{2}\s"):
+          TextStyle(fontWeight: FontWeight.bold),
+      RegExp(r"\s\*{3}[a-zA-z0-9 ]+\*{3}\s"):
+          TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+      // strikethrough
+      RegExp(r"\~{2}[A-Za-z0-9 ]+\~{2}"):
+          TextStyle(decoration: TextDecoration.lineThrough),
+      // underline
+      RegExp(r"\_[A-Za-z0-9 ]+\_"):
+          TextStyle(decoration: TextDecoration.underline),
+      //subtext
+      // RegExp(r"\<sub [A-Za-z0-9 ]+\>"): TextStyle(fontSize: 10),
+      RegExp(r"[A-Za-z0-9]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue)
+      //r"<sup [A-Za-z0-9]+>": TextStyle(fontSize: 10),
+      //r"col\([A-Za-z0-9]+, [A-Za-z0-9]+\)": TextStyle(fontStyle: FontStyle.italic),
+      //r"lnk\([A-Za-z0-9]+, [A-Za-z0-9]+\) ": TextStyle(fontStyle: FontStyle.italic),
+    }, onMatch: (matches) {}, deleteOnBack: false);
     _textController.text = _template;
     super.initState();
   }
@@ -192,11 +186,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                         child: const Text("Submit")))
               ],
             ),
-            onFocusChange: (value) {
-              setState(() {
-                _inFocus = value;
-              });
-            },
           ),
         ),
         floatingActionButton: SpeedDial(
@@ -245,16 +234,15 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   String _unformat() {
     String temp = _textController.text;
-    temp = temp.replaceAll("\n\t\t", "");
-    temp = temp.replaceAll("\n\t\t\t\t", "");
-    temp = temp.replaceAll("\t", "");
+    temp = temp.replaceAll("\n  ", "");
+    temp = temp.replaceAll("\n    ", "");
     return temp;
   }
 
   String _format(String input) {
     final sb = StringBuffer();
-    final whitespacePostSplit = "\t\t\t\t";
-    final whitespacePreSplit = "\t\t";
+    final whitespacePostSplit = "    ";
+    final whitespacePreSplit = "  ";
 
     bool afterSplit = false;
 
@@ -289,7 +277,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           break;
         case "-":
           if (input[i - 1] == "\n") {
-            sb.write("\n${input[i]}\t");
+            sb.write("\n${input[i]} ");
             afterSplit = false;
           } else {
             sb.write(input[i]);
@@ -302,7 +290,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             sb.write(input[i]);
           }
           break;
-        case "\t":
+        case " ":
           //skip tabs
           break;
         case "\n":
@@ -312,7 +300,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           sb.write(input[i]);
       }
     }
-    return sb.toString().replaceAll("\n- ", "\n-\t");
+    return sb.toString();
   }
 
   String _autoStartRow(String keyLabel, int minOffset) {
@@ -322,7 +310,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     final strA = sb.toString().substring(0, minOffset);
     final strB = sb.toString().substring(minOffset, sb.toString().length);
 
-    return "$strA-\t$strB";
+    return "$strA- $strB";
   }
 
   String _autoCellBreak(int caretIndex) {
@@ -332,7 +320,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     final strA = sb.toString().substring(0, caretIndex);
     final strB = sb.toString().substring(caretIndex, sb.toString().length);
 
-    return "$strA|\n\t\t\t\t$strB";
+    return "$strA|\n    $strB";
   }
 
   String _autoLineBreak(int caretIndex, bool afterSplitter) {
@@ -343,9 +331,9 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     final strB = sb.toString().substring(caretIndex, sb.toString().length);
 
     if (afterSplitter) {
-      return "$strA/\n\t\t\t\t$strB";
+      return "$strA/\n    $strB";
     } else {
-      return "$strA/\n\t\t$strB";
+      return "$strA/\n  $strB";
     }
   }
 
@@ -363,8 +351,11 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     final connection = await Connectivity().checkConnectivity();
     if (connection == ConnectivityResult.none) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text(
-              "No Internet connection detected. Please make sure you are connected to use this feature.")));
+        content: const Text(
+            "No Internet connection detected. Please make sure you are connected to use this feature."),
+        clipBehavior: Clip.antiAlias,
+        showCloseIcon: true,
+      ));
       return false;
     }
 
@@ -477,8 +468,11 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           print(
               "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}");
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                  "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}")));
+            content: Text(
+                "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}"),
+            clipBehavior: Clip.antiAlias,
+            showCloseIcon: true,
+          ));
 
           if (mapping.keys.length > 4 ||
               (mapping.keys.length == 4 &&
@@ -504,8 +498,11 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              "Failed to submit lesson.\nThere is a problem with the text format.")));
+        content: Text(
+            "Error:\nPlease ensure the basic headings \"@ Name\", \"@ Date\", and \"@ Topic\" are present before continuing."),
+        clipBehavior: Clip.antiAlias,
+        showCloseIcon: true,
+      ));
     }
   }
 
@@ -595,6 +592,35 @@ class _TextInputModeViewState extends State<TextInputModeView> {
               _fontSize--;
             });
             break;
+          //TODO: this is just a copy from "Enter"'s body
+          case "V":
+            final fullText = _textController.text;
+
+            final startInd = min(caretIndex[0], caretIndex[1]);
+            final endInd = max(caretIndex[0], caretIndex[1]);
+
+            // final before;
+            // final after;
+            // final newSelectionIndex;
+
+            // final indexNextLineEnd =
+            //     fullText.indexOf("\n", _textController.selection.baseOffset);
+
+            // if (indexNextLineEnd != -1) {
+            //   before = fullText.substring(0, indexNextLineEnd);
+            //   after = fullText.substring(indexNextLineEnd, fullText.length);
+            //   newSelectionIndex = indexNextLineEnd;
+            // } else {
+            //   before = fullText;
+            //   after = "";
+            //   newSelectionIndex = fullText.length + 1;
+            // }
+
+            // _textController.text = "$before- $after";
+            // _textController.selection =
+            //     TextSelection.collapsed(offset: newSelectionIndex + 1);
+
+            return KeyEventResult.ignored;
           default:
         }
         return KeyEventResult.ignored;
@@ -675,8 +701,11 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       Report.saveReportSync(newReport);
       _currentReportId = newReport.id;
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text("Report saved")));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text("Report saved"),
+      clipBehavior: Clip.antiAlias,
+      showCloseIcon: true,
+    ));
   }
 
   void _duplicateCorrections() {
@@ -721,7 +750,7 @@ final _template = """=<
 
 
 @ Date
--\t${CompanionMethods.getShortDate(DateTime.now())}
+- ${CompanionMethods.getShortDate(DateTime.now())}
 
 @ Topic
 
