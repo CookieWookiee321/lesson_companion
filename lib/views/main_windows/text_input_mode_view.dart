@@ -254,7 +254,11 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         case "|":
           if (input[i - 1] == "|") {
             if (!afterSplit) {
-              sb.write("${input[i]}\n$whitespacePostSplit");
+              if (input.substring(i + 1, i + 6) != "\n    ") {
+                sb.write("${input[i]}\n$whitespacePostSplit");
+              } else {
+                sb.write("${input[i]}\n");
+              }
               afterSplit = true;
             } else {
               //only one splitter is allowed per row
@@ -267,9 +271,17 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         case "/":
           if (input[i - 1] == "/") {
             if (afterSplit) {
-              sb.write("${input[i]}\n$whitespacePostSplit");
+              if (input.substring(i + 1, i + 6) != "\n    ") {
+                sb.write("${input[i]}\n$whitespacePostSplit");
+              } else {
+                sb.write("${input[i]}\n");
+              }
             } else {
-              sb.write("${input[i]}\n$whitespacePreSplit");
+              if (input.substring(i + 1, i + 4) != "\n  ") {
+                sb.write("${input[i]}\n$whitespacePreSplit");
+              } else {
+                sb.write("${input[i]}\n");
+              }
             }
           } else {
             sb.write(input[i]);
@@ -277,7 +289,11 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           break;
         case "-":
           if (input[i - 1] == "\n") {
-            sb.write("\n${input[i]} ");
+            if (input[1 + 1] != " ") {
+              sb.write("\n${input[i]} ");
+            } else {
+              sb.write("\n${input[i]}");
+            }
             afterSplit = false;
           } else {
             sb.write(input[i]);
@@ -290,7 +306,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             sb.write(input[i]);
           }
           break;
-        case " ":
+        case "\t":
           //skip tabs
           break;
         case "\n":
@@ -413,26 +429,17 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           final mapping = report.toMap(singleEntry);
 
           //check if Student exists
-          final student = Student();
-          final studentId;
-          if (!await Database.checkStudentExistsByName(
-              mapping["Name"]!.first)) {
+          final student =
+              await Student.getStudentByName(mapping["Name"]!.first);
+
+          if (student == null) {
             //if not, create new Hive entry
-            student.name = mapping["Name"]!.first;
+            student!.name = mapping["Name"]!.first;
             student.active = true;
-            await Database.saveStudent(student);
-          }
-          studentId = await Database.getStudentId(mapping["Name"]!.first);
-
-          if (student.name != null) {
-            student.id = studentId!;
-          } else {
-            student.name = mapping["Name"]!.first;
-            student.active = true;
-            student.id = studentId!;
+            await Student.saveStudent(student);
           }
 
-          //format the Date string
+          //format the DATE string
           if (mapping["Date"]!.first.toString().contains('/')) {
             mapping["Date"]!.first =
                 mapping["Date"]!.first.replaceAll('/', '-');
@@ -442,31 +449,34 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             final tempDay = "0${tempList[2]}";
             mapping["Date"]!.first = "${tempList[0]}-${tempList[1]}-$tempDay";
           }
-
           final date = DateTime.parse(mapping["Date"]!.first);
-          final topic = mapping["Topic"]!;
-          final homework = mapping["Homework"];
 
-          //Submit Lesson
-          var less = await Database.getLesson(student.name, date);
-          if (less != null) {
-            less.topic = CompanionMethods.convertListToString(topic);
-            less.homework = homework != null
-                ? CompanionMethods.convertListToString(homework)
-                : "";
+          //format TOPIC
+          String topic =
+              CompanionMethods.convertListToString(mapping["Topic"])!;
+
+          //format HOMEWORK
+          String? homework;
+          if (mapping.containsKey("Homework") == true) {
+            homework =
+                CompanionMethods.convertListToString(mapping["Homework"]);
           } else {
-            less = Lesson(
-                studentId: studentId!,
-                date: date,
-                topic: CompanionMethods.convertListToString(topic),
-                homework: homework != null
-                    ? CompanionMethods.convertListToString(homework)
-                    : "");
+            homework = null;
           }
 
-          await Database.saveLesson(less);
-          print(
-              "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}");
+          var lesson = await Lesson.getLesson(student.name, date);
+          if (lesson != null) {
+            lesson.topic = topic;
+            lesson.homework = homework;
+          } else {
+            lesson = Lesson(
+                studentId: student.id,
+                date: date,
+                topic: topic,
+                homework: homework);
+          }
+          await Lesson.saveLesson(lesson);
+
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
                 "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}"),
@@ -484,7 +494,8 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                   return PdfPreviewPage(pdfDocument: pdfDoc);
                 },
               ));
-            } on Exception {
+            } catch (e) {
+              print(e.toString());
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(
                       "Report could not be made.\nYou may have made a mistake with you notation markers.\nPlease check them again")));

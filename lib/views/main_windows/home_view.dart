@@ -124,9 +124,9 @@ class _HomeViewState extends State<HomeView> {
       thisStudent = Student();
       thisStudent.name = _name!;
       thisStudent.active = true;
-      await Database.saveStudent(thisStudent);
+      await Student.saveStudent(thisStudent);
     }
-    thisStudent = await Database.getStudentByName(_name!);
+    thisStudent = await Student.getStudentByName(_name!);
 
     Lesson thisLesson = Lesson(
         studentId: thisStudent!.id,
@@ -138,10 +138,10 @@ class _HomeViewState extends State<HomeView> {
     if (await Database.checkLessonExists(
         thisLesson.studentId, thisLesson.date)) {
       //update details of existing entry
-      final id = await Database.getLessonId(_name, thisLesson.date);
+      final id = await Lesson.getLessonId(_name, thisLesson.date);
       thisLesson.id = id!;
     }
-    await Database.saveLesson(thisLesson);
+    await Lesson.saveLesson(thisLesson);
 
     //counter checks tables are not empty
     final counter = HomeController.areTablesPopulated(_tables);

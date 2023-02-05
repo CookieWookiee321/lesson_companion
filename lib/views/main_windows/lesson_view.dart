@@ -25,13 +25,13 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
 
   Future<void> _getLessons() async {
     if (_selectedStudent != null) {
-      _lessons = await Database.getAllLessonsOfStudent(_selectedStudent!);
+      _lessons = await Lesson.getAllLessonsOfStudent(_selectedStudent!);
     }
   }
 
   Future<void> _getNames(bool onlyActive) async {
     if (_students == null) {
-      _students = await Database.getAllStudents();
+      _students = await Student.getAllStudents();
     }
 
     if (onlyActive) {
@@ -218,7 +218,7 @@ class _EditDialogState extends State<EditDialog> {
                 topic: _selectedTopic ?? widget.initialTopic,
                 homework: _selectedHomework ?? widget.initialHomework);
 
-            await Database.saveLesson(lesson);
+            await Lesson.saveLesson(lesson);
             Navigator.pop(context);
           },
         ))

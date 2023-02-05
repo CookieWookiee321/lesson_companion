@@ -161,18 +161,16 @@ class CompanionMethods {
     return "$dayStr $monthStr ${dateTime.year}";
   }
 
-  static String convertListToString(List<String> input) {
+  static String? convertListToString(List<String>? input) {
+    if (input == null || input.isEmpty) return null;
+
     var output = StringBuffer();
 
-    int counter = 0;
-    for (var t in input) {
-      output.write(t);
-      if (counter != (input.length - 1)) {
-        output.write("//");
-      }
+    for (final tLine in input) {
+      output.writeln(tLine);
     }
 
-    return output.toString();
+    return output.toString().trim();
   }
 
   static List<TextPart> _seperateParts(String input) {

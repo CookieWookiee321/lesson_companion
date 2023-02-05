@@ -44,7 +44,7 @@ class Report {
     final _date = PdfText();
     await _date.process(date, PdfSection.h1);
     final _topic = PdfText();
-    await _topic.process(topics, PdfSection.h2);
+    await _topic.process(topics!, PdfSection.h2);
     PdfText _homework = PdfText();
     if (map["Homework"] != null && map["Homework"]!.first != "") {
       await _homework.process(homework!, PdfSection.h2);
@@ -71,8 +71,10 @@ class Report {
           final cellLhs = PdfText();
           final cellRhs = PdfText();
           final text = row.split("||");
+
           await cellLhs.process(text[0].trim(), PdfSection.body);
           await cellRhs.process(text[1].trim(), PdfSection.body);
+
           r.lhs = cellLhs;
           r.rhs = cellRhs;
         } else {
@@ -101,7 +103,43 @@ class Report {
   //METHODS---------------------------------------------------------------------
   //============================================================================
 
-  Future<List<PdfTableRowModel>> cnvtStringToTableRows(
+  String _removeSpaces(String input) {
+    final output = StringBuffer();
+    bool skippingMode = false;
+
+    print("Input contains \"\\n\": ${input.contains("\n")}");
+
+    for (int i = 0; i < input.length; i++) {
+      print(input[i]);
+
+      if (skippingMode) {
+        if (input[i] == " " ||
+            input[i] ==
+                """
+""") {
+          continue;
+        } else {
+          skippingMode = false;
+        }
+      }
+
+      if (input[i] == "|" && input[i - 1] == "|") {
+        skippingMode = true;
+      }
+
+      if (input[i] == "/" && input[i - 1] == "/") {
+        skippingMode = true;
+      }
+
+      output.write(input[i]);
+    }
+
+    // String temp = output.toString().replaceAll("//", "//\n");
+    // temp = temp.replaceAll("||", "||\n");
+    return output.toString().trim();
+  }
+
+  Future<List<PdfTableRowModel>> convertToTableRows(
       List<String> entries) async {
     List<PdfTableRowModel> output = [];
 
@@ -131,88 +169,79 @@ class Report {
   }
 
   Map<String, List<String>> toMap(String text) {
-    String currentHeading = "";
-    final headingPrefix = "@ ";
-    final linePrefix = "-";
-    final commentPrefix = "!!";
-    final mappings = <String, List<String>>{};
-    var currentEntryList = <String>[];
+    final headingPrefix = "@";
+    final linePrefix = "\n-";
+    final output = <String, List<String>>{};
 
-    //loop through each line in text
-    for (var line in text.split("\n")) {
-      //don't read blank lines
-      if (line.trim().isEmpty || line.trim().length == 0) continue;
-      if (line.trim().substring(0, 2) == commentPrefix) continue;
-      if (line.trim() == "=<" || line.trim() == ">=") continue;
+    int iStart;
+    int iEnd;
+    String tChunk;
+    List<String> tLines;
+    String tHeading;
 
-      //check if the line contains a heading or not
-      if (line.substring(0, 2) != headingPrefix) {
-        if (line[0] == linePrefix) {
-          final temp = line.substring(1).trim();
-          //add the line to the housing List obj
-          currentEntryList.add(temp);
-        }
-      } else {
-        //add the list of entries for the heading which was just processed
-        if (currentEntryList.isNotEmpty) {
-          mappings[currentHeading] = currentEntryList;
-          currentEntryList = [];
-        }
-
-        //if a new heading is detected
-        final currentHeadingUnchecked = line.substring(1).trim();
-        //determine if the heading is pre-defined + update the currentHeading var
-        switch (currentHeadingUnchecked.toUpperCase()) {
-          case "NAME":
-            currentHeading = "Name";
-            break;
-          case "DATE":
-            currentHeading = "Date";
-            break;
-          case "TOPIC":
-            currentHeading = "Topic";
-            break;
-          case "HOMEWORK":
-            currentHeading = "Homework";
-            break;
-          default:
-            currentHeading = currentHeadingUnchecked;
-            break;
-        }
+    while (text.contains(headingPrefix)) {
+      tLines = [];
+      iStart = text.indexOf(headingPrefix);
+      iEnd = text.indexOf(headingPrefix, iStart + 1);
+      if (iEnd == -1) {
+        iEnd = text.length;
       }
-    }
-    if (currentEntryList.isNotEmpty) {
-      mappings[currentHeading] = currentEntryList;
+      tChunk = text.substring(iStart, iEnd).trim();
+      tHeading = tChunk
+          .substring(0, tChunk.indexOf("\n"))
+          .replaceFirst(headingPrefix, "")
+          .trim();
+
+      final tempList = tChunk.split(linePrefix);
+      tempList.removeAt(0);
+      tLines.addAll(tempList);
+
+      int counter = 0;
+      for (final line in tLines) {
+        tLines[counter] = _removeSpaces(line).trimLeft();
+        counter++;
+      }
+
+      output[tHeading] = tLines;
+      //remove the processed text from the input string
+      text = text.substring(iEnd, text.length);
     }
 
-    return mappings;
+    return output;
   }
 
   //DATABASE
   static Future<Report?> getReport(int id) async {
     final isar = Isar.getInstance("report_db") ??
         await Isar.open([ReportSchema], name: "report_db");
+
     final report = isar.reports.filter().idEqualTo(id).findFirst();
+
     return report;
   }
 
   static Future<List<Report>> getAllReports() async {
     final isar = Isar.getInstance("report_db") ??
         await Isar.open([ReportSchema], name: "report_db");
+
     final results = await isar.reports.where().findAll();
+
     return results.toList();
   }
 
   static Report? getReportSync(int id) {
     final isar = Isar.getInstance("report_db") ??
         Isar.openSync([ReportSchema], name: "report_db");
+
     final report = isar.reports.filter().idEqualTo(id).findFirstSync();
+
     return report;
   }
 
   static Future<void> saveReport(Report report) async {
     final isar = Isar.getInstance("report_db") ??
         await Isar.open([ReportSchema], name: "report_db");
+
     await isar.writeTxn(() async {
       await isar.reports.put(report);
     });
@@ -221,6 +250,7 @@ class Report {
   static void saveReportSync(Report report) {
     final isar = Isar.getInstance("report_db") ??
         Isar.openSync([ReportSchema], name: "report_db");
+
     isar.writeTxnSync(() => isar.reports.putSync(report));
   }
 

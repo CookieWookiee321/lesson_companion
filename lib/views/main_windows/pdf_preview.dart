@@ -6,6 +6,7 @@ import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/database.dart';
 
 import '../../models/pdf_document/pdf_doc.dart';
+import '../../models/student.dart';
 
 class PdfPreviewPage extends StatelessWidget {
   final PdfDoc _pdfDocument;
@@ -42,7 +43,7 @@ class PdfPreviewPage extends StatelessWidget {
                   child: Text("Save"),
                   onPressed: () async {
                     final saveDest =
-                        "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await Database.getStudentId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
+                        "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await Student.getStudentId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
                     final file = File(saveDest);
                     await file.writeAsBytes(await _pdfDocument.create());
 
