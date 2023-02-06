@@ -426,67 +426,51 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           text = text.substring(stop + 2, text.length);
 
           final report = Report(singleEntry);
-          final mapping = report.toMap(singleEntry);
+          final reportData = report.toDataObj(singleEntry);
 
           //check if Student exists
-          final student =
-              await Student.getStudentByName(mapping["Name"]!.first);
+          final student = await Student.getStudentByName(reportData.name);
 
           if (student == null) {
             //if not, create new Hive entry
-            student!.name = mapping["Name"]!.first;
+            student!.name = reportData.name;
             student.active = true;
             await Student.saveStudent(student);
           }
 
-          //format the DATE string
-          if (mapping["Date"]!.first.toString().contains('/')) {
-            mapping["Date"]!.first =
-                mapping["Date"]!.first.replaceAll('/', '-');
-          }
-          if (mapping["Date"]!.first.toString().split('-')[2].length == 1) {
-            final tempList = mapping["Date"]!.first.toString().split('-');
-            final tempDay = "0${tempList[2]}";
-            mapping["Date"]!.first = "${tempList[0]}-${tempList[1]}-$tempDay";
-          }
-          final date = DateTime.parse(mapping["Date"]!.first);
-
           //format TOPIC
           String topic =
-              CompanionMethods.convertListToString(mapping["Topic"])!;
+              CompanionMethods.convertListToString(reportData.topic)!;
 
           //format HOMEWORK
           String? homework;
-          if (mapping.containsKey("Homework") == true) {
+          if (reportData.homework != null) {
             homework =
-                CompanionMethods.convertListToString(mapping["Homework"]);
+                CompanionMethods.convertListToString(reportData.homework);
           } else {
             homework = null;
           }
 
-          var lesson = await Lesson.getLesson(student.name, date);
+          var lesson = await Lesson.getLesson(reportData.name, reportData.date);
           if (lesson != null) {
             lesson.topic = topic;
             lesson.homework = homework;
           } else {
             lesson = Lesson(
                 studentId: student.id,
-                date: date,
+                date: reportData.date,
                 topic: topic,
                 homework: homework);
           }
           await Lesson.saveLesson(lesson);
 
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                "Lesson saved: ${mapping["Name"]!.first} >> ${mapping["Topic"]!.first}"),
+            content: Text("Lesson saved: ${reportData.name} >> ${topic}"),
             clipBehavior: Clip.antiAlias,
             showCloseIcon: true,
           ));
 
-          if (mapping.keys.length > 4 ||
-              (mapping.keys.length == 4 &&
-                  !mapping.keys.contains("Homework"))) {
+          if (reportData.tables.length > 0) {
             try {
               final pdfDoc = await report.toPdfDoc();
               Navigator.push(context, MaterialPageRoute(
@@ -514,6 +498,46 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         clipBehavior: Clip.antiAlias,
         showCloseIcon: true,
       ));
+    }
+  }
+
+  String _shiftRow(String keyLabel) {
+    final text = _textController.text;
+
+    int counterStart = _textController.selection.baseOffset;
+    while (true) {
+      if (text[counterStart] == "\n-" || text[counterStart] == "\n@") {
+        counterStart++;
+        break;
+      }
+      counterStart--;
+    }
+
+    int counterEnd = text.indexOf("\n-", counterStart + 1);
+
+    final chunkAct = text.substring(counterStart, counterEnd);
+
+    if (keyLabel == "Arrow Up") {
+      //shift up
+      final counterOldEnd = counterEnd;
+      counterEnd = counterStart;
+
+      while (true) {
+        if (text[counterStart] == "\n-" || text[counterStart] == "\n@") {
+          counterStart++;
+          break;
+        }
+        counterStart--;
+      }
+
+      final chunkReact = text.substring(counterStart, counterEnd);
+
+      return text.substring(0, counterStart) +
+          chunkAct +
+          chunkReact +
+          text.substring(counterOldEnd, text.length);
+    } else {
+      //shift down
     }
   }
 
@@ -635,6 +659,16 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           default:
         }
         return KeyEventResult.ignored;
+      } else if (value.isAltPressed) {
+        switch (k.keyLabel) {
+          case "Arrow Up":
+            _shiftRow(k.keyLabel);
+            break;
+          case "Arrow Down":
+            _shiftRow(k.keyLabel);
+            break;
+          default:
+        }
       } else {
         if (!_nonAutoRowStartKeys.contains(k.keyLabel) && //auto-start row
             _textController.text[caretIndex[0] - 1] == "\n") {

@@ -25,62 +25,47 @@ class Report {
     assert(text != null,
         "The Report object's 'text' field has not been initialized");
 
-    final map = toMap(text!);
+    final dataObj = toDataObj(text!);
 
     // transform string vars into the right from to be printed
-    final name = map["Name"]!.first.contains("[")
-        ? map["Name"]!.first.substring(0, map["Name"]!.first.indexOf("[") - 1)
-        : map["Name"]!.first;
-    final date = CompanionMethods.getDateString(
-        DateTime.parse(map["Date"]!.first.replaceAll("/", "-")));
-    final topics = CompanionMethods.convertListToString(map["Topic"]!);
-    final homework = map["Homework"] != null
-        ? CompanionMethods.convertListToString(map["Homework"]!)
+    final topics = CompanionMethods.convertListToString(dataObj.topic);
+    final homework = dataObj.homework != null
+        ? CompanionMethods.convertListToString(dataObj.homework)
         : null;
 
     //header
     final _name = PdfText();
-    await _name.process(name, PdfSection.h1);
+    await _name.process(dataObj.name, PdfSection.h1);
     final _date = PdfText();
-    await _date.process(date, PdfSection.h1);
+    await _date.process(
+        CompanionMethods.getDateString(dataObj.date), PdfSection.h1);
     final _topic = PdfText();
     await _topic.process(topics!, PdfSection.h2);
     PdfText _homework = PdfText();
-    if (map["Homework"] != null && map["Homework"]!.first != "") {
-      await _homework.process(homework!, PdfSection.h2);
+    if (homework != null && homework != "") {
+      await _homework.process(homework, PdfSection.h2);
     }
 
     //body
     final _tables = <PdfTableModel>[];
-    for (final t in map.entries.where((element) =>
-        element.key != "Name" &&
-        element.key != "Date" &&
-        element.key != "Topic" &&
-        element.key != "Homework")) {
+    for (final t in dataObj.tables) {
       final thisTable = PdfTableModel();
 
       final heading = PdfText();
-      await heading.process(t.key, PdfSection.h3);
+      await heading.process(t.heading, PdfSection.h3);
       thisTable.heading = heading;
 
       final temp = <PdfTableRowModel>[];
-      for (final row in t.value) {
+      for (final row in t.rows) {
         final r = PdfTableRowModel();
+        final cellLhs = PdfText();
+        await cellLhs.process(row.lhs, PdfSection.body);
+        r.lhs = cellLhs;
 
-        if (row.contains("||")) {
-          final cellLhs = PdfText();
+        if (row.rhs != null) {
           final cellRhs = PdfText();
-          final text = row.split("||");
-
-          await cellLhs.process(text[0].trim(), PdfSection.body);
-          await cellRhs.process(text[1].trim(), PdfSection.body);
-
-          r.lhs = cellLhs;
+          await cellRhs.process(row.rhs!, PdfSection.body);
           r.rhs = cellRhs;
-        } else {
-          final cell = PdfText();
-          await cell.process(row, PdfSection.body);
-          r.lhs = cell;
         }
 
         temp.add(r);
@@ -168,10 +153,10 @@ class Report {
     return output;
   }
 
-  Map<String, List<String>> toMap(String text) {
+  ReportData toDataObj(String text) {
     final headingPrefix = "@";
     final linePrefix = "\n-";
-    final output = <String, List<String>>{};
+    final ReportData output = ReportData.empty();
 
     int iStart;
     int iEnd;
@@ -202,7 +187,42 @@ class Report {
         counter++;
       }
 
-      output[tHeading] = tLines;
+      switch (tHeading.toUpperCase()) {
+        case "NAME":
+          output.name = tLines.first;
+          break;
+        case "DATE":
+          //format the DATE string
+          if (tLines.first.toString().contains('/')) {
+            tLines.first = tLines.first.replaceAll('/', '-');
+          }
+          if (tLines.first.toString().split('-')[2].length == 1) {
+            final tempList = tLines.first.toString().split('-');
+            final tempDay = "0${tempList[2]}";
+            tLines.first = "${tempList[0]}-${tempList[1]}-$tempDay";
+          }
+          output.date = DateTime.parse(tLines.first);
+          break;
+        case "TOPIC":
+          output.topic = tLines;
+          break;
+        case "HOMEWORK":
+          output.homework = tLines;
+          break;
+        default:
+          final List<ReportTableRowData> rows = [];
+
+          tLines.forEach((line) {
+            if (line.contains("||")) {
+              final arr = line.split("||");
+              rows.add(ReportTableRowData(arr[0].trim(), arr[1].trim()));
+            }
+          });
+
+          output.tables.add(ReportTableData(tHeading, rows));
+          break;
+      }
+
       //remove the processed text from the input string
       text = text.substring(iEnd, text.length);
     }
@@ -262,6 +282,31 @@ class Report {
       isar.reports.delete(id);
     });
   }
+}
+
+class ReportData {
+  late final String name;
+  late final DateTime date;
+  late final List<String> topic;
+  late final List<String>? homework;
+  late final List<ReportTableData> tables;
+
+  ReportData.empty();
+  ReportData(this.name, this.date, this.topic, this.homework, this.tables);
+}
+
+class ReportTableData {
+  String heading;
+  List<ReportTableRowData> rows;
+
+  ReportTableData(this.heading, this.rows);
+}
+
+class ReportTableRowData {
+  final String lhs;
+  final String? rhs;
+
+  ReportTableRowData(this.lhs, this.rhs);
 }
 
 class InputException implements Exception {
