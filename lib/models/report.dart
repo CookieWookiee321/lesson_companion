@@ -156,7 +156,9 @@ class Report {
   ReportData toDataObj(String text) {
     final headingPrefix = "@";
     final linePrefix = "\n-";
-    final ReportData output = ReportData.empty();
+
+    final tables = <ReportTableData>[];
+    final output = ReportData.late(null, tables);
 
     int iStart;
     int iEnd;
@@ -285,13 +287,13 @@ class Report {
 }
 
 class ReportData {
-  late final String name;
-  late final DateTime date;
-  late final List<String> topic;
-  late final List<String>? homework;
-  late final List<ReportTableData> tables;
+  late String name;
+  late DateTime date;
+  late List<String> topic;
+  List<String>? homework;
+  List<ReportTableData> tables;
 
-  ReportData.empty();
+  ReportData.late(this.homework, this.tables);
   ReportData(this.name, this.date, this.topic, this.homework, this.tables);
 }
 

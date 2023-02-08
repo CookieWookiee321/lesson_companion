@@ -506,24 +506,41 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
     int counterStart = _textController.selection.baseOffset;
     while (true) {
-      if (text[counterStart] == "\n-" || text[counterStart] == "\n@") {
+      if (text.substring(counterStart, counterStart + 2) == "\n-" ||
+          text.substring(counterStart, counterStart + 2) == "\n@") {
         counterStart++;
         break;
       }
       counterStart--;
     }
 
-    int counterEnd = text.indexOf("\n-", counterStart + 1);
+    String tMarker = "-";
+    int counterEnd = text.indexOf(tMarker, counterStart + 1);
+    if (counterEnd == -1) {
+      tMarker = "@";
+      counterEnd = text.indexOf(tMarker, counterStart + 1);
+    }
+    while (true) {
+      if (text[counterEnd - 1] == "\n") {
+        break;
+      }
+      counterEnd = text.indexOf(tMarker, counterStart + 1);
+    }
 
     final chunkAct = text.substring(counterStart, counterEnd);
 
     if (keyLabel == "Arrow Up") {
       //shift up
+      return "";
+    } else {
+      //shift down
       final counterOldEnd = counterEnd;
       counterEnd = counterStart;
+      counterStart = counterStart - 2;
 
       while (true) {
-        if (text[counterStart] == "\n-" || text[counterStart] == "\n@") {
+        final substring = text.substring(counterStart, counterStart + 2);
+        if (substring == "\n-" || substring == "\n@") {
           counterStart++;
           break;
         }
@@ -533,11 +550,11 @@ class _TextInputModeViewState extends State<TextInputModeView> {
       final chunkReact = text.substring(counterStart, counterEnd);
 
       return text.substring(0, counterStart) +
-          chunkAct +
-          chunkReact +
+          chunkAct.trim() +
+          "\n" +
+          chunkReact.trim() +
+          "\n" +
           text.substring(counterOldEnd, text.length);
-    } else {
-      //shift down
     }
   }
 
@@ -568,6 +585,12 @@ class _TextInputModeViewState extends State<TextInputModeView> {
         return KeyEventResult.handled;
       } else if (value.isControlPressed) {
         switch (k.keyLabel) {
+          case "Arrow Up":
+          case "Arrow Down":
+            _textController.text = _shiftRow(k.keyLabel);
+            _textController.selection = TextSelection(
+                baseOffset: caretIndex[0], extentOffset: caretIndex[1]);
+            break;
           case "S":
             //_saveReportSync();
             break;
@@ -659,16 +682,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           default:
         }
         return KeyEventResult.ignored;
-      } else if (value.isAltPressed) {
-        switch (k.keyLabel) {
-          case "Arrow Up":
-            _shiftRow(k.keyLabel);
-            break;
-          case "Arrow Down":
-            _shiftRow(k.keyLabel);
-            break;
-          default:
-        }
       } else {
         if (!_nonAutoRowStartKeys.contains(k.keyLabel) && //auto-start row
             _textController.text[caretIndex[0] - 1] == "\n") {
