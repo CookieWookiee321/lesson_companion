@@ -414,6 +414,14 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   //OTHER-----------------------------------------------------------------------
 
+  Future<void> _saveStudent(String name) async {
+    //if not, create new Hive entry
+    final student = Student();
+    student.name = name;
+    student.active = true;
+    await Student.saveStudent(student);
+  }
+
   void _onPressedSubmit() async {
     //_textController.text = _autoFormat(_textController.text);
     String text = _unformat();
@@ -430,18 +438,13 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
           //check if Student exists
           final student = await Student.getStudentByName(reportData.name);
-
           if (student == null) {
-            //if not, create new Hive entry
-            student!.name = reportData.name;
-            student.active = true;
-            await Student.saveStudent(student);
+            await _saveStudent(reportData.name);
           }
 
           //format TOPIC
           String topic =
               CompanionMethods.convertListToString(reportData.topic)!;
-
           //format HOMEWORK
           String? homework;
           if (reportData.homework != null) {
@@ -457,7 +460,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             lesson.homework = homework;
           } else {
             lesson = Lesson(
-                studentId: student.id,
+                studentId: student!.id,
                 date: reportData.date,
                 topic: topic,
                 homework: homework);
@@ -465,7 +468,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           await Lesson.saveLesson(lesson);
 
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("Lesson saved: ${reportData.name} >> ${topic}"),
+            content: Text("Lesson saved: ${reportData.name}"),
             clipBehavior: Clip.antiAlias,
             showCloseIcon: true,
           ));

@@ -89,39 +89,45 @@ class Report {
   //============================================================================
 
   String _removeSpaces(String input) {
-    final output = StringBuffer();
-    bool skippingMode = false;
+//     final output = StringBuffer();
+//     bool skippingMode = false;
 
-    print("Input contains \"\\n\": ${input.contains("\n")}");
+//     print("Input contains \"\\n\": ${input.contains("\n")}");
 
-    for (int i = 0; i < input.length; i++) {
-      print(input[i]);
+//     for (int i = 0; i < input.length; i++) {
+//       print(input[i]);
 
-      if (skippingMode) {
-        if (input[i] == " " ||
-            input[i] ==
-                """
-""") {
-          continue;
-        } else {
-          skippingMode = false;
-        }
-      }
+//       if (skippingMode) {
+//         if (input[i] == " " ||
+//             input[i] ==
+//                 """
+// """) {
+//           continue;
+//         } else {
+//           skippingMode = false;
+//         }
+//       }
 
-      if (input[i] == "|" && input[i - 1] == "|") {
-        skippingMode = true;
-      }
+//       if (input[i] == "|" && input[i - 1] == "|") {
+//         skippingMode = true;
+//       }
 
-      if (input[i] == "/" && input[i - 1] == "/") {
-        skippingMode = true;
-      }
+//       if (input[i] == "/" && input[i - 1] == "/") {
+//         skippingMode = true;
+//       }
 
-      output.write(input[i]);
-    }
+//       output.write(input[i]);
+//     }
 
     // String temp = output.toString().replaceAll("//", "//\n");
     // temp = temp.replaceAll("||", "||\n");
-    return output.toString().trim();
+    var marker = "//";
+    var regExp = RegExp(r'\s*(\/\/)\s*');
+    input = input.replaceAll(regExp, marker);
+    marker = "||";
+    regExp = RegExp(r'\s*(\|\|)\s*');
+    input = input.replaceAll(regExp, marker);
+    return input;
   }
 
   Future<List<PdfTableRowModel>> convertToTableRows(

@@ -37,9 +37,9 @@ class PdfLexer {
     final output = <PdfTextSpan>[];
     //separate
 
-    if (text == "u{Every day} u{at midnight}") {
-      print("here");
-    }
+    //TODO: REMOVE -> if (text == "u{Every day} u{at midnight}") {
+    //   print("here");
+    // }
 
     final tempMap = await _mapSeperateStyles(text, section);
     //order
@@ -182,37 +182,55 @@ class PdfLexer {
       }
     }
     // process non-snippeted text at the end of the loop
-    bool skippingMode = false;
-    for (final c in sb.toString().characters) {
-      if (c != _replaceMarker) {
-        if (skippingMode) {
-          skippingMode = false;
-          if (newText == "") {
-            newText = " ";
-          }
-          output[indexEnd] = PdfTextSpan(text: newText);
-          newText = "";
-          indexEnd++;
-          continue;
+    var sbTwo = StringBuffer();
+    int counterStart = 0;
+    int counter = 0;
+    bool firstSkip = false;
+    for (final char in sb.toString().characters) {
+      if (char != _replaceMarker) {
+        sbTwo.write(char);
+        if (firstSkip) {
+          firstSkip = false;
+          counterStart = counter;
         }
-        newText = "$newText$c";
-        indexEnd++;
-      } else {
-        if (!skippingMode && newText.isNotEmpty) {
-          //add to ouput[]
-          if (newText == "") {
-            newText = " ";
-          }
-          output[sb.toString().indexOf(newText)] = PdfTextSpan(text: newText);
-          newText = "";
-          skippingMode = true;
-          indexEnd++;
-        } else {
-          indexEnd++;
-          continue;
-        }
+      } else if (!firstSkip) {
+        firstSkip = true;
+        output[counterStart] = PdfTextSpan(text: sbTwo.toString());
+        sbTwo = StringBuffer();
       }
+      counter++;
     }
+    // bool skippingMode = false;
+    // for (final c in sb.toString().characters) {
+    //   if (c != _replaceMarker) {
+    //     if (skippingMode) {
+    //       skippingMode = false;
+    //       if (newText == "") {
+    //         newText = " ";
+    //       }
+    //       output[indexEnd] = PdfTextSpan(text: newText);
+    //       newText = "";
+    //       indexEnd++;
+    //       continue;
+    //     }
+    //     newText = "$newText$c";
+    //     indexEnd++;
+    //   } else {
+    //     if (!skippingMode && newText.isNotEmpty) {
+    //       //add to ouput[]
+    //       if (newText == "") {
+    //         newText = " ";
+    //       }
+    //       output[sb.toString().indexOf(newText)] = PdfTextSpan(text: newText);
+    //       newText = "";
+    //       skippingMode = true;
+    //       indexEnd++;
+    //     } else {
+    //       indexEnd++;
+    //       continue;
+    //     }
+    //   }
+    // }
 
     if (numMatches == 0) {
       if (newText == "") {
