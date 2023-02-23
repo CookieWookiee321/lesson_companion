@@ -81,45 +81,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
   @override
   initState() {
-    _textController = RichTextController(patternMatchMap: {
-      // row cell splitter
-      RegExp(r"\s\|{2}"):
-          TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
-      // cell line break
-      RegExp(r"\s\/{2}\s"):
-          TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
-      // heading marker
-      RegExp(r"\n\@ .+"): TextStyle(
-          color: Color.fromARGB(255, 189, 180, 51),
-          fontWeight: FontWeight.bold),
-      // row start marker
-      RegExp(r"\n\-\s"): TextStyle(
-          color: Color.fromARGB(255, 176, 144, 56),
-          fontWeight: FontWeight.bold),
-      // comments
-      RegExp(r"\!\![.]+\n"): TextStyle(color: Colors.grey),
-      //TODO: account for bold, and others
-      //TODO: make sure all of them match
-      //italic, bold, bold and italic
-      RegExp(r"\s\*{1}[a-zA-z0-9 ]+\*{1}\s"):
-          TextStyle(fontStyle: FontStyle.italic),
-      RegExp(r"\s\*{2}[a-zA-z0-9 ]+\*{2}\s"):
-          TextStyle(fontWeight: FontWeight.bold),
-      RegExp(r"\s\*{3}[a-zA-z0-9 ]+\*{3}\s"):
-          TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
-      // strikethrough
-      RegExp(r"\~{2}[A-Za-z0-9 ]+\~{2}"):
-          TextStyle(decoration: TextDecoration.lineThrough),
-      // underline
-      RegExp(r"\_[A-Za-z0-9 ]+\_"):
-          TextStyle(decoration: TextDecoration.underline),
-      //subtext
-      // RegExp(r"\<sub [A-Za-z0-9 ]+\>"): TextStyle(fontSize: 10),
-      RegExp(r"[A-Za-z0-9]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue)
-      //r"<sup [A-Za-z0-9]+>": TextStyle(fontSize: 10),
-      //r"col\([A-Za-z0-9]+, [A-Za-z0-9]+\)": TextStyle(fontStyle: FontStyle.italic),
-      //r"lnk\([A-Za-z0-9]+, [A-Za-z0-9]+\) ": TextStyle(fontStyle: FontStyle.italic),
-    }, onMatch: (matches) {}, deleteOnBack: false);
+    _textController = RichTextController(
+        patternMatchMap: CompanionLexer.highlighter,
+        onMatch: (matches) {},
+        deleteOnBack: false);
     _textController.text = _template;
     super.initState();
   }
@@ -423,7 +388,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   }
 
   void _onPressedSubmit() async {
-    //_textController.text = _autoFormat(_textController.text);
     String text = _unformat();
     if (TextModeMethods.checkNeededHeadings(text)) {
       try {
@@ -433,6 +397,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           final singleEntry = text.substring(start + 2, stop);
           text = text.substring(stop + 2, text.length);
 
+          // divide reports into data by section
           final report = Report(singleEntry);
           final reportData = report.toDataObj(singleEntry);
 
@@ -570,7 +535,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     }
 
     if (value is RawKeyDownEvent) {
-      print(k.keyLabel);
+      // print(k.keyLabel);
 
       final List<int> caretIndex = [
         _textController.selection.baseOffset,
@@ -775,6 +740,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     final fullText = _textController.text;
     final StringBuffer sb = StringBuffer();
 
+    // get the full "Corrections" text chunk
     final indexStart = fullText.indexOf("@ Corrections") + 14;
     final indexEnd;
     if (fullText.indexOf("@", indexStart) != -1) {
@@ -787,6 +753,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 
     for (final line in nl) {
       if (line.isEmpty || line.trim().length == 0) continue;
+      if (line.endsWith(" ??")) {
+        sb.writeln(line.substring(0, line.length - 3));
+        continue;
+      }
 
       if (!line.contains("||")) {
         sb.writeln("${line.trim()} || ${line.substring(2)}");

@@ -89,38 +89,6 @@ class Report {
   //============================================================================
 
   String _removeSpaces(String input) {
-//     final output = StringBuffer();
-//     bool skippingMode = false;
-
-//     print("Input contains \"\\n\": ${input.contains("\n")}");
-
-//     for (int i = 0; i < input.length; i++) {
-//       print(input[i]);
-
-//       if (skippingMode) {
-//         if (input[i] == " " ||
-//             input[i] ==
-//                 """
-// """) {
-//           continue;
-//         } else {
-//           skippingMode = false;
-//         }
-//       }
-
-//       if (input[i] == "|" && input[i - 1] == "|") {
-//         skippingMode = true;
-//       }
-
-//       if (input[i] == "/" && input[i - 1] == "/") {
-//         skippingMode = true;
-//       }
-
-//       output.write(input[i]);
-//     }
-
-    // String temp = output.toString().replaceAll("//", "//\n");
-    // temp = temp.replaceAll("||", "||\n");
     var marker = "//";
     var regExp = RegExp(r'\s*(\/\/)\s*');
     input = input.replaceAll(regExp, marker);
@@ -190,8 +158,13 @@ class Report {
       tLines.addAll(tempList);
 
       int counter = 0;
-      for (final line in tLines) {
-        tLines[counter] = _removeSpaces(line).trimLeft();
+      for (var line in tLines) {
+        line = _removeSpaces(line).trimLeft();
+        if (line.endsWith(" ??")) {
+          // remove skip markers from text
+          line = line.substring(0, tLines[counter].length - 3);
+        }
+        tLines[counter] = line;
         counter++;
       }
 
@@ -224,6 +197,8 @@ class Report {
             if (line.contains("||")) {
               final arr = line.split("||");
               rows.add(ReportTableRowData(arr[0].trim(), arr[1].trim()));
+            } else {
+              rows.add(ReportTableRowData(line, null));
             }
           });
 

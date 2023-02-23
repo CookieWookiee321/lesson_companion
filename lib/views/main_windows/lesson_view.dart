@@ -90,7 +90,8 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
                     return ListTile(
                       leading: Text(
                           CompanionMethods.getShortDate(_lessons![index].date)),
-                      title: Text(_lessons![index].topic),
+                      title:
+                          Text(_lessons![index].topic.replaceAll("//", "\n")),
                       onTap: () async {
                         final id = _students!
                             .where((s) => s.name! == _selectedStudent!)

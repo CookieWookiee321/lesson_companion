@@ -32,40 +32,25 @@ class PdfLexer {
     //     StylingOption.link,
   };
 
-  static Future<List<PdfTextSpan>> parseText(
+  static Future<List<PdfTextSpan>> toPdfTextSpanList(
       String text, PdfSection section) async {
-    final output = <PdfTextSpan>[];
-    //separate
-
-    //TODO: REMOVE -> if (text == "u{Every day} u{at midnight}") {
-    //   print("here");
-    // }
-
-    final tempMap = await _mapSeperateStyles(text, section);
-    //order
-    if (tempMap.length > 1) {
-      // sort the map by index (key)
-      final temp = tempMap.entries.toList();
-      temp.sort((a, b) => a.key.compareTo(b.key));
-      final placementMap = Map.fromEntries(temp);
-
-      // get and order the regular text
-      for (final index in placementMap.keys) {
-        output.add(placementMap[index]!);
-      }
+    // SEPERATE
+    final unorderedStyleMap = await _mapPositionToStyle(text, section);
+    // ORDER
+    if (unorderedStyleMap.length > 1) {
+      final styleMapEntryList = unorderedStyleMap.entries.toList();
+      styleMapEntryList.sort((a, b) => a.key.compareTo(b.key));
+      final orderedStyleMap = Map.fromEntries(styleMapEntryList);
+      return orderedStyleMap.values.toList();
     } else {
       // if no styling present, full text added with default settings
-      output.add(tempMap.values.first);
+      return [unorderedStyleMap.values.first];
     }
-
-    return output;
   }
 
-  static Future<Map<int, PdfTextSpan>> _mapSeperateStyles(
+  static Future<Map<int, PdfTextSpan>> _mapPositionToStyle(
       String text, PdfSection section) async {
     final _replaceMarker = "^";
-    String newText = "";
-    int indexEnd = 0;
 
     var output = <int, PdfTextSpan>{};
     final sb = StringBuffer();
@@ -137,7 +122,7 @@ class PdfLexer {
             thisPdfTextSpan.underline = true;
             thisPdfTextSpan.color = p.PdfColors.blue;
             break;
-          default:
+          default: // snippet
             final snippetName = match.input
                 .substring(match.start, match.input.indexOf("{", match.start));
             final snippet = await StyleSnippet.getSnippet(snippetName);
@@ -181,7 +166,7 @@ class PdfLexer {
         sb.write(temp);
       }
     }
-    // process non-snippeted text at the end of the loop
+    // process non-styled text at the end of the loop
     var sbTwo = StringBuffer();
     int counterStart = 0;
     int counter = 0;
@@ -195,53 +180,18 @@ class PdfLexer {
         }
       } else if (!firstSkip) {
         firstSkip = true;
-        output[counterStart] = PdfTextSpan(text: sbTwo.toString());
-        sbTwo = StringBuffer();
+        if (sbTwo.isNotEmpty) {
+          output[counterStart] = PdfTextSpan(text: sbTwo.toString());
+          sbTwo = StringBuffer();
+        }
       }
       counter++;
     }
-    // bool skippingMode = false;
-    // for (final c in sb.toString().characters) {
-    //   if (c != _replaceMarker) {
-    //     if (skippingMode) {
-    //       skippingMode = false;
-    //       if (newText == "") {
-    //         newText = " ";
-    //       }
-    //       output[indexEnd] = PdfTextSpan(text: newText);
-    //       newText = "";
-    //       indexEnd++;
-    //       continue;
-    //     }
-    //     newText = "$newText$c";
-    //     indexEnd++;
-    //   } else {
-    //     if (!skippingMode && newText.isNotEmpty) {
-    //       //add to ouput[]
-    //       if (newText == "") {
-    //         newText = " ";
-    //       }
-    //       output[sb.toString().indexOf(newText)] = PdfTextSpan(text: newText);
-    //       newText = "";
-    //       skippingMode = true;
-    //       indexEnd++;
-    //     } else {
-    //       indexEnd++;
-    //       continue;
-    //     }
-    //   }
-    // }
 
     if (numMatches == 0) {
-      if (newText == "") {
-        newText = " ";
-      }
       output[0] = PdfTextSpan(text: text, size: baseHeight);
-    } else if (newText.isNotEmpty) {
-      if (newText == "") {
-        newText = " ";
-      }
-      output[indexEnd] = PdfTextSpan(text: newText);
+    } else if (sbTwo.isNotEmpty) {
+      output[counterStart] = PdfTextSpan(text: sbTwo.toString());
     }
 
     return output;
@@ -265,6 +215,7 @@ class PdfLexer {
         return input.substring(4, input.indexOf("::")).trim();
       case r"[A-Za-z0-9]+\{[^}]*\}":
         return input.substring(input.indexOf("{") + 1, input.indexOf("}"));
+
       default:
         return input;
     }

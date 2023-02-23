@@ -33,12 +33,13 @@ class _NewLanguageLookUpDialogState extends State<NewLanguageLookUpDialog> {
     }
 
     if (tempLookUps.isNotEmpty) {
-      for (final lu in tempLookUps) {
-        final lur = LookUpReturn(lu.term);
-        if (lu.term.trim().isNotEmpty) _lookUpReturns.add(lur);
+      for (final lookUpQuery in tempLookUps) {
+        final lookUpReturn = LookUpReturn(lookUpQuery.term);
+        if (lookUpQuery.term.trim().isNotEmpty)
+          _lookUpReturns.add(lookUpReturn);
         _lookUpCards.add(NewLanguageLookUpCard(
-          input: lu,
-          output: lur,
+          input: lookUpQuery,
+          output: lookUpReturn,
         ));
       }
     }
@@ -70,12 +71,15 @@ class _NewLanguageLookUpDialogState extends State<NewLanguageLookUpDialog> {
       }
 
       //TODO: Replace with style snippet - snippets must be applied to fields
-      String fullDefinition = "${lur.term} //pos{${lur.partOfSpeech}}";
+      String fullDefinition = "${lur.term} //\n  pos{${lur.partOfSpeech}}";
       if (lur.example != null) {
         fullDefinition =
-            "$fullDefinition || ${lur.definition} //eg{${lur.example}}";
+            "$fullDefinition ||\n    ${lur.definition} //\n    eg{${lur.example}}";
       } else {
-        fullDefinition = "$fullDefinition || ${lur.definition}";
+        fullDefinition = "$fullDefinition ||\n    ${lur.definition}";
+      }
+      if (fullDefinition.contains("’")) {
+        fullDefinition.replaceAll("’", "'");
       }
       lines[i] = fullDefinition;
     }
@@ -90,7 +94,7 @@ class _NewLanguageLookUpDialogState extends State<NewLanguageLookUpDialog> {
         }
       }
     });
-    sb.writeln("\n");
+    sb.writeln("\n\n");
 
     //highlight the whole original term and replace it
     final before = fullText.substring(0, indexHeading + 1);

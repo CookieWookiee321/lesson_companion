@@ -55,20 +55,22 @@ class CompanionLexer {
   }
 
   static Map<RegExp, TextStyle> highlighter = {
-    // row cell splitter "||"
+    // row cell splitter
     RegExp(r"\s\|{2}"):
         TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
-    // cell line break "//"
+    // cell line break
     RegExp(r"\s\/{2}\s"):
         TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
-    // heading marker "@"
+    // heading marker
     RegExp(r"\n\@ .+"): TextStyle(
         color: Color.fromARGB(255, 189, 180, 51), fontWeight: FontWeight.bold),
-    // row start marker "-"
+    // row start marker
     RegExp(r"\n\-\s"): TextStyle(
         color: Color.fromARGB(255, 176, 144, 56), fontWeight: FontWeight.bold),
-    // comments "!!"
+    // comments
     RegExp(r"\!\![.]+\n"): TextStyle(color: Colors.grey),
+    //TODO: account for bold, and others
+    //TODO: make sure all of them match
     //italic, bold, bold and italic
     RegExp(r"\s\*{1}[a-zA-z0-9 ]+\*{1}\s"):
         TextStyle(fontStyle: FontStyle.italic),
@@ -82,14 +84,16 @@ class CompanionLexer {
     // underline
     RegExp(r"\_[A-Za-z0-9 ]+\_"):
         TextStyle(decoration: TextDecoration.underline),
-    // style snippet
-    RegExp(r"[A-Za-z0-9]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue)
-    // style method
-    // TODO: style method
     //subtext
     // RegExp(r"\<sub [A-Za-z0-9 ]+\>"): TextStyle(fontSize: 10),
-    //TODO: r"<sup [A-Za-z0-9]+>": TextStyle(fontSize: 10),
-    //TODO: r"col\([A-Za-z0-9]+, [A-Za-z0-9]+\)": TextStyle(fontStyle: FontStyle.italic),
-    //TODO: r"lnk\([A-Za-z0-9]+, [A-Za-z0-9]+\) ": TextStyle(fontStyle: FontStyle.italic),
+    RegExp(r"[A-Za-z0-9]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue),
+    // skip marker
+    RegExp(r"^\?\?"): TextStyle(
+        color: Colors.indigoAccent,
+        fontWeight: FontWeight.bold,
+        fontStyle: FontStyle.italic)
+    //r"<sup [A-Za-z0-9]+>": TextStyle(fontSize: 10),
+    //r"col\([A-Za-z0-9]+, [A-Za-z0-9]+\)": TextStyle(fontStyle: FontStyle.italic),
+    //r"lnk\([A-Za-z0-9]+, [A-Za-z0-9]+\) ": TextStyle(fontStyle: FontStyle.italic),
   };
 }
