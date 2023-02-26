@@ -1,10 +1,10 @@
 import 'package:lesson_companion/models/dictionary/free_dictionary.dart';
 
-class LookUp {
+class NewLanguageLookUp {
   late final String term;
   late final List<LookUpDetails> lookUpDetails = [];
 
-  LookUp(List<FreeDictionary> freeDictionaryEntries) {
+  NewLanguageLookUp(List<FreeDictionary> freeDictionaryEntries) {
     this.term = freeDictionaryEntries.first.word.toString();
 
     for (final entry in freeDictionaryEntries) {

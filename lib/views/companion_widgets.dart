@@ -18,8 +18,6 @@ class TextFieldOutlined extends StatefulWidget {
       this.keyboardType})
       : super(key: key);
 
-  //TODO: Must assert no init value with controller
-
   final String initialText;
   final TextEditingController? controller;
   final String? hint;

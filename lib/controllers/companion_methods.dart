@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,6 +14,7 @@ class CompanionMethods {
     final before;
     final middle;
     final after;
+    final onBlank;
 
     final base = controller.selection.baseOffset;
     final extent = controller.selection.extentOffset;
@@ -27,6 +29,19 @@ class CompanionMethods {
       indexEnd = extent;
     } else {
       int counter = base;
+
+      if (counter == fullText.length) {
+        counter--;
+      }
+
+      if (((fullText[counter] == " ") | (fullText[counter] == "\n")) &&
+          fullText[counter - 1] != " ") {
+        counter--;
+        onBlank = true;
+      } else {
+        onBlank = false;
+      }
+
       while (fullText[counter] != " " && counter > 0) {
         counter--;
       }
@@ -37,11 +52,25 @@ class CompanionMethods {
         indexStart = counter;
       }
 
-      final nextSpace = fullText.indexOf(" ", base);
-      final nextLineBreak = fullText.indexOf("\n", base);
-      final x = (nextSpace < nextLineBreak) ? nextSpace : nextLineBreak;
-      if (x != -1) {
-        indexEnd = x;
+      final stopper;
+      if (!onBlank) {
+        final nextSpace = fullText.indexOf(" ", base);
+        final nextLineBreak = fullText.indexOf("\n", base);
+        if (nextSpace == -1 || nextLineBreak == -1) {
+          if (nextSpace == -1 && nextLineBreak == -1) {
+            stopper = max(nextSpace, nextLineBreak);
+          } else {
+            stopper = min(nextSpace, nextLineBreak);
+          }
+        } else {
+          stopper = (nextSpace == -1) ? nextLineBreak : nextSpace;
+        }
+      } else {
+        stopper = base;
+      }
+
+      if (stopper != -1) {
+        indexEnd = stopper;
       } else {
         indexEnd = fullText.length;
       }
@@ -132,18 +161,16 @@ class CompanionMethods {
     return "$dayStr $monthStr ${dateTime.year}";
   }
 
-  static String convertListToString(List<String> input) {
+  static String? convertListToString(List<String>? input) {
+    if (input == null || input.isEmpty) return null;
+
     var output = StringBuffer();
 
-    int counter = 0;
-    for (var t in input) {
-      output.write(t);
-      if (counter != (input.length - 1)) {
-        output.write("//");
-      }
+    for (final tLine in input) {
+      output.writeln(tLine);
     }
 
-    return output.toString();
+    return output.toString().trim();
   }
 
   static List<TextPart> _seperateParts(String input) {

@@ -23,28 +23,14 @@ class StyleSnippet {
     0: Colors.black,
     1: Color(0xFF0066B3),
     2: Colors.blueGrey,
-    3: Color(0xFF4AD24E),
+    3: Color(0xFF00992B),
     4: Colors.grey[600]!,
-    5: Color(0xFFFF9900),
-    6: Color(0xFFD90BCD),
+    5: Color(0xFF980095),
+    6: Color(0xFF995B00),
     7: Color(0xFF5E09B3),
     8: Color(0xFFCC1714),
-    9: Color(0xFFCCCC29),
+    9: Color(0xFF988F01),
   };
-
-  ///Avaliable colour options are: [0: Colors.black], [1: Colors.blue],
-  ///[2: Colors.blueGrey], [3: Colors.green], [4: Colors.grey],
-  ///[5: Colors.orange], [6: Colors.pink], [7: Colors.purple],
-  ///[8: Colors.red], and [9: Colors.yellow]
-  // void setColour(Color color) {
-  //   if (_colourMap.containsValue(color)) {
-  //     colour = _colourMap.keys
-  //         .where((element) => _colourMap[element] == color)
-  //         .first;
-  //   } else {
-  //     throw Exception("This is not a valid choice of colour.");
-  //   }
-  // }
 
   Color? getColour() {
     return colourMap[colour];

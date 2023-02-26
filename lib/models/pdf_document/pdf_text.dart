@@ -13,7 +13,7 @@ class PdfText {
     String text = input;
     //handle new lines
     text = text.replaceAll("//", "\n");
-    components = await PdfLexer.parseText(text, section);
+    components = await PdfLexer.toPdfTextSpanList(text, section);
   }
 
   ///Returns a plain text version of the substrings which make up the PdfText object

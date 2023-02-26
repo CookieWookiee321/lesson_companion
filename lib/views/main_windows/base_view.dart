@@ -41,14 +41,19 @@ class _BaseViewState extends State<BaseView> {
       appBar: AppBar(
         title: const Text("Lesson Companion"),
         //backgroundColor: Theme.of(context).colorScheme.secondary,
-        foregroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
         actions: [
           TextButton(
               onPressed: () {
                 showDialog(
                     context: context, builder: (context) => MenuMainDialog());
               },
-              child: const Text("Options"))
+              child: Text(
+                "Options",
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSecondaryContainer),
+              ))
         ],
       ),
       body: IndexedStack(

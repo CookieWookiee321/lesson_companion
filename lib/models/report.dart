@@ -25,60 +25,47 @@ class Report {
     assert(text != null,
         "The Report object's 'text' field has not been initialized");
 
-    final map = toMap(text!);
+    final dataObj = toDataObj(text!);
 
     // transform string vars into the right from to be printed
-    final name = map["Name"]!.first.contains("[")
-        ? map["Name"]!.first.substring(0, map["Name"]!.first.indexOf("[") - 1)
-        : map["Name"]!.first;
-    final date = CompanionMethods.getDateString(
-        DateTime.parse(map["Date"]!.first.replaceAll("/", "-")));
-    final topics = CompanionMethods.convertListToString(map["Topic"]!);
-    final homework = map["Homework"] != null
-        ? CompanionMethods.convertListToString(map["Homework"]!)
+    final topics = CompanionMethods.convertListToString(dataObj.topic);
+    final homework = dataObj.homework != null
+        ? CompanionMethods.convertListToString(dataObj.homework)
         : null;
 
     //header
     final _name = PdfText();
-    await _name.process(name, PdfSection.h1);
+    await _name.process(dataObj.name, PdfSection.h1);
     final _date = PdfText();
-    await _date.process(date, PdfSection.h1);
+    await _date.process(
+        CompanionMethods.getDateString(dataObj.date), PdfSection.h1);
     final _topic = PdfText();
-    await _topic.process(topics, PdfSection.h2);
+    await _topic.process(topics!, PdfSection.h2);
     PdfText _homework = PdfText();
-    if (map["Homework"] != null && map["Homework"]!.first != "") {
-      await _homework.process(homework!, PdfSection.h2);
+    if (homework != null && homework != "") {
+      await _homework.process(homework, PdfSection.h2);
     }
 
     //body
     final _tables = <PdfTableModel>[];
-    for (final t in map.entries.where((element) =>
-        element.key != "Name" &&
-        element.key != "Date" &&
-        element.key != "Topic" &&
-        element.key != "Homework")) {
+    for (final t in dataObj.tables) {
       final thisTable = PdfTableModel();
 
       final heading = PdfText();
-      await heading.process(t.key, PdfSection.h3);
+      await heading.process(t.heading, PdfSection.h3);
       thisTable.heading = heading;
 
       final temp = <PdfTableRowModel>[];
-      for (final row in t.value) {
+      for (final row in t.rows) {
         final r = PdfTableRowModel();
+        final cellLhs = PdfText();
+        await cellLhs.process(row.lhs, PdfSection.body);
+        r.lhs = cellLhs;
 
-        if (row.contains("||")) {
-          final cellLhs = PdfText();
+        if (row.rhs != null) {
           final cellRhs = PdfText();
-          final text = row.split("||");
-          await cellLhs.process(text[0].trim(), PdfSection.body);
-          await cellRhs.process(text[1].trim(), PdfSection.body);
-          r.lhs = cellLhs;
+          await cellRhs.process(row.rhs!, PdfSection.body);
           r.rhs = cellRhs;
-        } else {
-          final cell = PdfText();
-          await cell.process(row, PdfSection.body);
-          r.lhs = cell;
         }
 
         temp.add(r);
@@ -101,7 +88,17 @@ class Report {
   //METHODS---------------------------------------------------------------------
   //============================================================================
 
-  Future<List<PdfTableRowModel>> cnvtStringToTableRows(
+  String _removeSpaces(String input) {
+    var marker = "//";
+    var regExp = RegExp(r'\s*(\/\/)\s*');
+    input = input.replaceAll(regExp, marker);
+    marker = "||";
+    regExp = RegExp(r'\s*(\|\|)\s*');
+    input = input.replaceAll(regExp, marker);
+    return input;
+  }
+
+  Future<List<PdfTableRowModel>> convertToTableRows(
       List<String> entries) async {
     List<PdfTableRowModel> output = [];
 
@@ -130,89 +127,124 @@ class Report {
     return output;
   }
 
-  Map<String, List<String>> toMap(String text) {
-    String currentHeading = "";
-    final headingPrefix = "# ";
-    final linePrefix = "- ";
-    final commentPrefix = "!@";
-    final mappings = <String, List<String>>{};
-    var currentEntryList = <String>[];
+  ReportData toDataObj(String text) {
+    final headingPrefix = "@";
+    final linePrefix = "\n-";
 
-    //loop through each line in text
-    for (var line in text.split("\n")) {
-      //don't read blank lines
-      if (line.trim().isEmpty || line.trim().length == 0) continue;
-      if (line.trim().substring(0, 2) == commentPrefix) continue;
-      if (line.trim() == "=<" || line.trim() == ">=") continue;
+    final tables = <ReportTableData>[];
+    final output = ReportData.late(null, tables);
 
-      //check if the line contains a heading or not
-      if (line.substring(0, 2) != headingPrefix) {
-        if (line.substring(0, 2) == linePrefix) {
-          final temp = line.substring(1).trim();
-          //add the line to the housing List obj
-          currentEntryList.add(temp);
-        }
-      } else {
-        //add the list of entries for the heading which was just processed
-        if (currentEntryList.isNotEmpty) {
-          mappings[currentHeading] = currentEntryList;
-          currentEntryList = [];
-        }
+    int iStart;
+    int iEnd;
+    String tChunk;
+    List<String> tLines;
+    String tHeading;
 
-        //if a new heading is detected
-        final currentHeadingUnchecked = line.substring(1).trim();
-        //determine if the heading is pre-defined + update the currentHeading var
-        switch (currentHeadingUnchecked.toUpperCase()) {
-          case "NAME":
-            currentHeading = "Name";
-            break;
-          case "DATE":
-            currentHeading = "Date";
-            break;
-          case "TOPIC":
-            currentHeading = "Topic";
-            break;
-          case "HOMEWORK":
-            currentHeading = "Homework";
-            break;
-          default:
-            currentHeading = currentHeadingUnchecked;
-            break;
-        }
+    while (text.contains(headingPrefix)) {
+      tLines = [];
+      iStart = text.indexOf(headingPrefix);
+      iEnd = text.indexOf(headingPrefix, iStart + 1);
+      if (iEnd == -1) {
+        iEnd = text.length;
       }
-    }
-    if (currentEntryList.isNotEmpty) {
-      mappings[currentHeading] = currentEntryList;
+      tChunk = text.substring(iStart, iEnd).trim();
+      tHeading = tChunk
+          .substring(0, tChunk.indexOf("\n"))
+          .replaceFirst(headingPrefix, "")
+          .trim();
+
+      final tempList = tChunk.split(linePrefix);
+      tempList.removeAt(0);
+      tLines.addAll(tempList);
+
+      int counter = 0;
+      for (var line in tLines) {
+        line = _removeSpaces(line).trimLeft();
+        if (line.endsWith(" ??")) {
+          // remove skip markers from text
+          line = line.substring(0, tLines[counter].length - 3);
+        }
+        tLines[counter] = line;
+        counter++;
+      }
+
+      switch (tHeading.toUpperCase()) {
+        case "NAME":
+          output.name = tLines.first;
+          break;
+        case "DATE":
+          //format the DATE string
+          if (tLines.first.toString().contains('/')) {
+            tLines.first = tLines.first.replaceAll('/', '-');
+          }
+          if (tLines.first.toString().split('-')[2].length == 1) {
+            final tempList = tLines.first.toString().split('-');
+            final tempDay = "0${tempList[2]}";
+            tLines.first = "${tempList[0]}-${tempList[1]}-$tempDay";
+          }
+          output.date = DateTime.parse(tLines.first);
+          break;
+        case "TOPIC":
+          output.topic = tLines;
+          break;
+        case "HOMEWORK":
+          output.homework = tLines;
+          break;
+        default:
+          final List<ReportTableRowData> rows = [];
+
+          tLines.forEach((line) {
+            if (line.contains("||")) {
+              final arr = line.split("||");
+              rows.add(ReportTableRowData(arr[0].trim(), arr[1].trim()));
+            } else {
+              rows.add(ReportTableRowData(line, null));
+            }
+          });
+
+          output.tables.add(ReportTableData(tHeading, rows));
+          break;
+      }
+
+      //remove the processed text from the input string
+      text = text.substring(iEnd, text.length);
     }
 
-    return mappings;
+    return output;
   }
 
   //DATABASE
   static Future<Report?> getReport(int id) async {
     final isar = Isar.getInstance("report_db") ??
         await Isar.open([ReportSchema], name: "report_db");
+
     final report = isar.reports.filter().idEqualTo(id).findFirst();
+
     return report;
   }
 
   static Future<List<Report>> getAllReports() async {
     final isar = Isar.getInstance("report_db") ??
         await Isar.open([ReportSchema], name: "report_db");
+
     final results = await isar.reports.where().findAll();
+
     return results.toList();
   }
 
   static Report? getReportSync(int id) {
     final isar = Isar.getInstance("report_db") ??
         Isar.openSync([ReportSchema], name: "report_db");
+
     final report = isar.reports.filter().idEqualTo(id).findFirstSync();
+
     return report;
   }
 
   static Future<void> saveReport(Report report) async {
     final isar = Isar.getInstance("report_db") ??
         await Isar.open([ReportSchema], name: "report_db");
+
     await isar.writeTxn(() async {
       await isar.reports.put(report);
     });
@@ -221,6 +253,7 @@ class Report {
   static void saveReportSync(Report report) {
     final isar = Isar.getInstance("report_db") ??
         Isar.openSync([ReportSchema], name: "report_db");
+
     isar.writeTxnSync(() => isar.reports.putSync(report));
   }
 
@@ -232,6 +265,31 @@ class Report {
       isar.reports.delete(id);
     });
   }
+}
+
+class ReportData {
+  late String name;
+  late DateTime date;
+  late List<String> topic;
+  List<String>? homework;
+  List<ReportTableData> tables;
+
+  ReportData.late(this.homework, this.tables);
+  ReportData(this.name, this.date, this.topic, this.homework, this.tables);
+}
+
+class ReportTableData {
+  String heading;
+  List<ReportTableRowData> rows;
+
+  ReportTableData(this.heading, this.rows);
+}
+
+class ReportTableRowData {
+  final String lhs;
+  final String? rhs;
+
+  ReportTableRowData(this.lhs, this.rhs);
 }
 
 class InputException implements Exception {

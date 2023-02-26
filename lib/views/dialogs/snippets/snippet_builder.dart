@@ -24,98 +24,25 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
   bool _italic = false;
   bool _underline = false;
   bool _strikethrough = false;
-  //TODO: Add links functionality
 
   final List<DropdownMenuItem> _colours = [
     DropdownMenuItem(value: Colors.black, child: Text("black")),
     DropdownMenuItem(value: Color(0xFF0066B3), child: Text("blue")),
     DropdownMenuItem(value: Colors.blueGrey, child: Text("blue grey")),
-    DropdownMenuItem(value: Color(0xFF4AD24E), child: Text("green")),
+    DropdownMenuItem(value: Color(0xFF00992B), child: Text("green")),
     DropdownMenuItem(value: Colors.grey[600]!, child: Text("grey")),
-    DropdownMenuItem(value: Color(0xFFFF9900), child: Text("orange")),
-    DropdownMenuItem(value: Color(0xFFD90BCD), child: Text("pink")),
+    DropdownMenuItem(value: Color(0xFF980095), child: Text("magenta")),
+    DropdownMenuItem(value: Color(0xFF995B00), child: Text("orange")),
     DropdownMenuItem(value: Color(0xFF5E09B3), child: Text("purple")),
     DropdownMenuItem(value: Color(0xFFCC1714), child: Text("red")),
-    DropdownMenuItem(value: Color(0xFFCCCC29), child: Text("yellow")),
+    DropdownMenuItem(value: Color(0xFF988F01), child: Text("yellow")),
   ];
 
-  List<TextSpan> _buildPreview() {
-    TextDecoration? _handleDecor() {
-      if (_underline && _strikethrough) {
-        return TextDecoration.combine(
-            [TextDecoration.lineThrough, TextDecoration.underline]);
-      } else if (_underline) {
-        return TextDecoration.underline;
-      } else if (_strikethrough) {
-        return TextDecoration.lineThrough;
-      } else {
-        return null;
-      }
-    }
+  //TODO: Add links functionality
 
-    return [
-      TextSpan(
-          text: "sample text",
-          style: TextStyle(
-              fontSize: _size * 1.5,
-              color: _colour,
-              fontStyle: _italic ? FontStyle.italic : FontStyle.normal,
-              fontWeight: _bold ? FontWeight.bold : FontWeight.normal,
-              decoration: _handleDecor()))
-    ];
-  }
-
-  List<int> _buildStyleList() {
-    final output = <int>[];
-
-    if (_bold) {
-      output.add(StyleSnippet.bold);
-    }
-    if (_italic) {
-      output.add(StyleSnippet.italic);
-    }
-    if (_strikethrough) {
-      output.add(StyleSnippet.strikethough);
-    }
-    if (_underline) {
-      output.add(StyleSnippet.underline);
-    }
-
-    return output;
-  }
-
-  void _onPressedSubmit() async {
-    if (_snippetName != null) {
-      //build the snippet
-      final storedSnippet = await StyleSnippet.getSnippet(_snippetName!);
-      final StyleSnippet snippet;
-
-      if (storedSnippet == null) {
-        snippet = StyleSnippet(
-            null,
-            _snippetName!,
-            _size,
-            StyleSnippet.colourMap.keys
-                .firstWhere((k) => StyleSnippet.colourMap[k] == _colour),
-            _buildStyleList());
-      } else {
-        snippet = storedSnippet;
-        snippet.marker = _snippetName!;
-        snippet.size = _size;
-        snippet.colour = StyleSnippet.colourMap.keys
-            .firstWhere((k) => StyleSnippet.colourMap[k] == _colour);
-        snippet.styles = _buildStyleList();
-      }
-
-      await StyleSnippet.saveSnippet(snippet);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("The snippet has been saved.")));
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Please enter a name for the snippet.")));
-    }
-  }
+  //----------------------------------------------------------------------------
+  // MAIN
+  //-----------------------------------------------------------------------------
 
   @override
   void initState() {
@@ -196,20 +123,45 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
                             children: [
                               Text("Size"),
                               Expanded(
-                                  child: TextFieldOutlined(
-                                controller: _sizeController,
-                                keyboardType: TextInputType.number,
-                                textAlign: TextAlign.center,
-                                onTextChanged: (text) {
-                                  setState(() {
-                                    final temp = double.tryParse(text);
-                                    if (temp == null) {
-                                      _size = 14.0;
-                                      _sizeController.text = "11";
-                                    } else {
-                                      _size = temp;
-                                    }
-                                  });
+                                  child: Focus(
+                                child: TextFieldOutlined(
+                                  controller: _sizeController,
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  onTextChanged: (text) {
+                                    setState(() {
+                                      if (text.length != 0) {
+                                        final temp = double.tryParse(text);
+                                        if (temp == null) {
+                                          _size = 11.0;
+                                          _sizeController.text = "11";
+                                          _sizeController.selection =
+                                              TextSelection(
+                                                  baseOffset: 0,
+                                                  extentOffset: _sizeController
+                                                      .text.length);
+                                        } else {
+                                          _size = temp;
+                                        }
+                                      } else {
+                                        _size = 11.0;
+                                        _sizeController.text = "11";
+                                        _sizeController.selection =
+                                            TextSelection(
+                                                baseOffset: 0,
+                                                extentOffset: _sizeController
+                                                    .text.length);
+                                      }
+                                    });
+                                  },
+                                ),
+                                onFocusChange: (isFocussed) {
+                                  if (isFocussed) {
+                                    _sizeController.selection = TextSelection(
+                                        baseOffset: 0,
+                                        extentOffset:
+                                            _sizeController.text.length);
+                                  }
                                 },
                               ))
                             ],
@@ -327,5 +279,95 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
         ],
       ),
     );
+  }
+
+  //----------------------------------------------------------------------------
+  // METHODS
+  //-----------------------------------------------------------------------------
+
+  List<TextSpan> _buildPreview() {
+    TextDecoration? _handleDecor() {
+      if (_underline && _strikethrough) {
+        return TextDecoration.combine(
+            [TextDecoration.lineThrough, TextDecoration.underline]);
+      } else if (_underline) {
+        return TextDecoration.underline;
+      } else if (_strikethrough) {
+        return TextDecoration.lineThrough;
+      } else {
+        return null;
+      }
+    }
+
+    return [
+      TextSpan(
+          text: "sample text",
+          style: TextStyle(
+              fontSize: _size * 1.5,
+              color: _colour,
+              fontStyle: _italic ? FontStyle.italic : FontStyle.normal,
+              fontWeight: _bold ? FontWeight.bold : FontWeight.normal,
+              decoration: _handleDecor()))
+    ];
+  }
+
+  List<int> _buildStyleList() {
+    final output = <int>[];
+
+    if (_bold) {
+      output.add(StyleSnippet.bold);
+    }
+    if (_italic) {
+      output.add(StyleSnippet.italic);
+    }
+    if (_strikethrough) {
+      output.add(StyleSnippet.strikethough);
+    }
+    if (_underline) {
+      output.add(StyleSnippet.underline);
+    }
+
+    return output;
+  }
+
+  void _onPressedSubmit() async {
+    if (_snippetName != null) {
+      //build the snippet
+      final storedSnippet = await StyleSnippet.getSnippet(_snippetName!);
+      final StyleSnippet snippet;
+
+      if (storedSnippet == null) {
+        snippet = StyleSnippet(
+            null,
+            _snippetName!,
+            _size,
+            StyleSnippet.colourMap.keys
+                .firstWhere((k) => StyleSnippet.colourMap[k] == _colour),
+            _buildStyleList());
+      } else {
+        snippet = storedSnippet;
+        snippet.marker = _snippetName!;
+        snippet.size = _size;
+        snippet.colour = StyleSnippet.colourMap.keys
+            .firstWhere((k) => StyleSnippet.colourMap[k] == _colour);
+        snippet.styles = _buildStyleList();
+      }
+
+      await StyleSnippet.saveSnippet(snippet);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+          "The snippet has been saved.",
+        ),
+        clipBehavior: Clip.antiAlias,
+        showCloseIcon: true,
+      ));
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Please enter a name for the snippet."),
+        clipBehavior: Clip.antiAlias,
+        showCloseIcon: true,
+      ));
+    }
   }
 }
