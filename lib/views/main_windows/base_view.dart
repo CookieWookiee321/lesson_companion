@@ -70,10 +70,7 @@ class _BaseViewState extends State<BaseView> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.note), label: "Text Mode"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Students"),
           BottomNavigationBarItem(icon: Icon(Icons.school), label: "Lessons"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.document_scanner), label: "Reports")
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
