@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lesson_companion/controllers/companion_methods.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/report_details.dart';
 
@@ -49,12 +50,14 @@ class _ReportsListViewState extends State<ReportsListView> {
     final output = <Report, ReportDetails>{};
     final reports = await Report.getAllReports();
     for (final r in reports) {
-      final map = r.toMap(r.text!);
+      final dataObj = r.toDataObj(r.text!);
       output[r] = ReportDetails(
-          map["Name"]!.first,
-          map["Date"]!.first,
-          map["Topic"]!.first,
-          (map["Homework"] != null) ? map["Homework"]!.first : "");
+          dataObj.name,
+          CompanionMethods.getShortDate(dataObj.date),
+          CompanionMethods.convertListToString(dataObj.topic)!,
+          (dataObj.homework != null)
+              ? CompanionMethods.convertListToString(dataObj.homework)!
+              : "");
     }
     return output;
   }
@@ -91,13 +94,15 @@ class _ReportsListViewState extends State<ReportsListView> {
                   }),
             );
           } else {
-            return Container(
-                decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: const BorderRadius.all(Radius.circular(8))),
-                margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
-                padding: const EdgeInsets.all(6),
-                child: Text("Error. Failed to load reports."));
+            return Center(
+              child: Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(),
+                      borderRadius: const BorderRadius.all(Radius.circular(8))),
+                  margin: const EdgeInsets.fromLTRB(13.0, 6, 13, 0),
+                  padding: const EdgeInsets.all(6),
+                  child: Text("Error. Failed to load database.")),
+            );
           }
         } else {
           return Center(

@@ -1,16 +1,5 @@
-# lesson_companion
+# Lesson Companion
 
-A new Flutter project.
+Lesson Companion is a work-in-progress made by myself, Michael Cullen. 
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Lesson Companion was built with language instructors specifically in mind. This resulted in two primary goals, to record and retrieve information about past lessons and students, and to quickly and efficiently print PDF reports based on the lessons for students if needbe.  

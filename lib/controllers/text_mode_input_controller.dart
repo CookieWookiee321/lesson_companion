@@ -1,7 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-class TextInputModeMethods extends ChangeNotifier {
+class TextModeMethods extends ChangeNotifier {
   static bool checkNeededHeadings(String text) {
     if (text.isEmpty) return false;
     if (text == "") return false;
@@ -14,7 +14,7 @@ class TextInputModeMethods extends ChangeNotifier {
     int counter = 0;
 
     for (var line in text.split("\n")) {
-      if (line.trim() == "===") {
+      if (line.trim() == ">=") {
         results[counter] = [hasName, hasDate, hasTopic];
 
         counter++;
@@ -23,18 +23,18 @@ class TextInputModeMethods extends ChangeNotifier {
         hasTopic = false;
       }
       if (line.isEmpty) continue;
-      if (line[0] != '*') continue;
+      if (line[0] != '@') continue;
 
       final lineConvert = line.toUpperCase().trim();
 
       switch (lineConvert) {
-        case "* NAME":
+        case "@ NAME":
           hasName = true;
           break;
-        case "* DATE":
+        case "@ DATE":
           hasDate = true;
           break;
-        case "* TOPIC":
+        case "@ TOPIC":
           hasTopic = true;
           break;
       }
