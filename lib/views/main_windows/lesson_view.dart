@@ -113,6 +113,16 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
                             });
                         setState(() {});
                       },
+                      onLongPress: () async {
+                        final id = _students!
+                            .where((s) => s.name! == _selectedStudent!)
+                            .first
+                            .id;
+                        final date = _lessons![index].date;
+
+                        await Database.deleteLessonByDetails(id, date);
+                        setState(() {});
+                      },
                     );
                   },
                 )
