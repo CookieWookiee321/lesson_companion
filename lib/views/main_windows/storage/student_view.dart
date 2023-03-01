@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/student.dart';
 
-import '../companion_widgets.dart';
-
 //==============================================================================
 //Student View
 //==============================================================================
@@ -39,20 +37,6 @@ class StudentsListView extends StatefulWidget {
 class _StudentsListViewState extends State<StudentsListView> {
   List<Student>? _students;
   Map<String, int>? _namesAndCountMap;
-<<<<<<< HEAD
-
-  final _scrollController = ScrollController(keepScrollOffset: true);
-
-  Future<void> _getStudentDetails() async {
-    _students = await Database.getAllStudents();
-
-    final Map<String, int> temp = {};
-    for (final s in _students!) {
-      temp[s.name!] = await Database.getLessonCountOfStudent(s.id);
-    }
-    _namesAndCountMap = Map.fromEntries(
-        temp.entries.toList()..sort((a, b) => a.key.compareTo(b.key)));
-=======
   Map<String, bool>? _namesAndActiveMap;
 
   final _scrollController = ScrollController(keepScrollOffset: true);
@@ -62,7 +46,6 @@ class _StudentsListViewState extends State<StudentsListView> {
     _namesAndActiveMap = {};
 
     super.initState();
->>>>>>> b899af28b3096b3502132959f24449376b4a3f4c
   }
 
   @override
@@ -99,13 +82,6 @@ class _StudentsListViewState extends State<StudentsListView> {
                     title: Text(_namesAndCountMap!.keys.elementAt(index)),
                     subtitle: Text(
                         "Total Lessons: ${_namesAndCountMap!.values.elementAt(index)}"),
-<<<<<<< HEAD
-                    onLongPress: () async {
-                      await showDialog(
-                        context: context,
-                        builder: (context) {
-                          return _menuDialog(index);
-=======
                     trailing: _namesAndActiveMap!.keys.elementAt(index) == true
                         ? Icon(
                             Icons.star,
@@ -127,7 +103,6 @@ class _StudentsListViewState extends State<StudentsListView> {
                                 .first,
                             map: _namesAndActiveMap!,
                           );
->>>>>>> b899af28b3096b3502132959f24449376b4a3f4c
                         },
                       );
                     },
@@ -143,9 +118,6 @@ class _StudentsListViewState extends State<StudentsListView> {
     );
   }
 
-<<<<<<< HEAD
-  AlertDialog _menuDialog(int index) {
-=======
   // METHODS--------------------------------------------------------------------
 
   Future<void> _getStudentDetails() async {
@@ -174,107 +146,11 @@ class StudentsViewMenu extends StatefulWidget {
 class _StudentsViewMenuState extends State<StudentsViewMenu> {
   @override
   Widget build(BuildContext context) {
->>>>>>> b899af28b3096b3502132959f24449376b4a3f4c
     return AlertDialog(
       title: Text("Student Menu"),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-<<<<<<< HEAD
-          OutlinedButton(
-              child: Text("Edit"),
-              onPressed: () async {
-                await showDialog(
-                        context: context,
-                        builder: (context) => _editDialog(index))
-                    .then((value) => Navigator.pop(context));
-              }),
-          Padding(padding: EdgeInsets.symmetric(vertical: 4)),
-          OutlinedButton(
-              child: Text("Delete"),
-              onPressed: () async {
-                await showDialog(
-                        context: context,
-                        builder: (context) => _deleteDialog(index))
-                    .then((value) => Navigator.pop(context));
-              })
-        ],
-      ),
-    );
-  }
-
-  AlertDialog _editDialog(int index) {
-    final __initialName = _namesAndCountMap!.keys.elementAt(index);
-    String __name = __initialName;
-
-    return AlertDialog(
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-      Row(children: [
-        Expanded(child: Text("Name:")),
-        Expanded(
-            flex: 2,
-            child: TextFieldOutlined(
-              initialText: __name,
-              onTextChanged: (text) => __name = text,
-            ))
-      ]),
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextButton(
-              onPressed: () => Navigator.pop(context), child: Text("Close")),
-          TextButton(
-            child: Text("Save"),
-            onPressed: () async {
-              //check if name is not already taken
-              if (!_namesAndCountMap!.keys.contains(__name)) {
-                final student = _students!
-                    .where((element) => element.name == __initialName)
-                    .first;
-                student.name = __name;
-                await Database.saveStudent(student);
-              }
-
-              setState(() {});
-
-              //Return
-              Navigator.pop(context);
-            },
-          )
-        ],
-      )
-    ]));
-  }
-
-  AlertDialog _deleteDialog(int index) {
-    return AlertDialog(
-      content: Text(
-        "Are you sure you want to delete this student?\n(All lessons for this student will be deleted too)",
-        style: Theme.of(context).textTheme.labelSmall,
-      ),
-      actions: [
-        TextButton(
-            child: Text("Yes"),
-            onPressed: () async {
-              final s = _students!
-                  .where((element) =>
-                      element.name == _namesAndCountMap!.keys.elementAt(index))
-                  .first;
-
-              await Database.deleteStudent(s.id).then((value) {
-                setState(() {});
-                Navigator.pop(context);
-              });
-            }),
-        TextButton(
-            child: Text("No"),
-            onPressed: () {
-              Navigator.pop(context);
-            })
-      ],
-    );
-  }
-=======
           // OutlinedButton(
           //     child: Text("Edit"),
           //     onPressed: () async {
@@ -383,5 +259,4 @@ class _StudentsViewMenuState extends State<StudentsViewMenu> {
   //           })
   //     ],
   //   );
->>>>>>> b899af28b3096b3502132959f24449376b4a3f4c
 }
