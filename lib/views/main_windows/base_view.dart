@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lesson_companion/views/main_windows/student_view.dart';
 import 'package:lesson_companion/views/main_windows/text_input_mode_view.dart';
 
 import '../dialogs/main_menu_dialog.dart';
-import 'home_view.dart';
 import 'lesson_view.dart';
 
 class BaseView extends StatefulWidget {
@@ -23,11 +21,8 @@ class _BaseViewState extends State<BaseView> {
   }
 
   static const List<Widget> _pages = [
-    HomeView(),
     TextInputModeView(),
-    StudentsView(),
     LessonHistoryView(),
-    HomeView()
   ];
 
   @override
@@ -41,39 +36,37 @@ class _BaseViewState extends State<BaseView> {
       appBar: AppBar(
         title: const Text("Lesson Companion"),
         //backgroundColor: Theme.of(context).colorScheme.secondary,
-        foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
-        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        foregroundColor: Theme.of(context).colorScheme.primary,
         actions: [
           TextButton(
               onPressed: () {
                 showDialog(
                     context: context, builder: (context) => MenuMainDialog());
               },
-              child: Text(
-                "Options",
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSecondaryContainer),
-              ))
+              child: const Text("Options"))
         ],
       ),
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.shifting,
-        selectedIconTheme:
-            IconThemeData(color: Theme.of(context).colorScheme.primary),
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-        unselectedItemColor: Theme.of(context).colorScheme.onBackground,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.note), label: "Text Mode"),
-          BottomNavigationBarItem(icon: Icon(Icons.school), label: "Lessons"),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+      bottomNavigationBar: SizedBox(
+        height: 58,
+        child: BottomNavigationBar(
+          showSelectedLabels: false,
+          type: BottomNavigationBarType.shifting,
+          selectedIconTheme:
+              IconThemeData(color: Theme.of(context).colorScheme.primary),
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+          unselectedItemColor: Theme.of(context).colorScheme.onBackground,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.note), label: "Home"),
+            BottomNavigationBarItem(icon: Icon(Icons.school), label: "Lessons"),
+          ],
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+        ),
       ),
     );
   }

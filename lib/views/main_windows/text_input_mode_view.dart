@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
+import 'package:lesson_companion/controllers/home_controller.dart';
 import 'package:lesson_companion/controllers/text_mode_input_controller.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/dictionary/look_up.dart';
@@ -35,27 +36,6 @@ final _nonAutoRowStartKeys = [
   "Control Right",
 ];
 
-final _nonSplitterKeys = [
-  "Backspace",
-  "Delete",
-  "Arrow Left",
-  "Arrow Right",
-  "Arrow Up",
-  "Arrow Down",
-  "Alt Right",
-  "Alt Left",
-  "Shift Left",
-  "Shift Right",
-  "Control Left",
-  "Control Right",
-];
-
-const _rowStart = "-";
-const _headingStart = "@";
-const _commentStart = "!!";
-const _start = "=<";
-const _stop = ">=";
-
 //==============================================================================
 // Text Input Mode View
 //==============================================================================
@@ -75,7 +55,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   bool _loading = false;
   final _textNode = FocusNode();
 
-  double _fontSize = 11.0;
+  double _fontSize = 13.0;
 
   //MAIN------------------------------------------------------------------------
 
@@ -83,7 +63,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   initState() {
     _textController = RichTextController(
         patternMatchMap: CompanionLexer.highlighter,
-        onMatch: (matches) {},
+        onMatch: (_) {},
         deleteOnBack: false);
     _textController.text = _template;
     super.initState();
@@ -110,6 +90,12 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           child: Focus(
             child: Column(
               children: [
+                //tool bar
+                Card(
+                    child: Row(
+                  children: [],
+                )),
+                // main text field
                 Expanded(
                     child: Card(
                   child: Padding(
@@ -159,10 +145,7 @@ class _TextInputModeViewState extends State<TextInputModeView> {
             SpeedDialChild(
                 label: "Look Up New Language",
                 onTap: () async {
-                  _switchLoading();
-                  _lookUpWords().then((value) {
-                    _switchLoading();
-                  });
+                  _lookUpWords().then((value) {});
                 }),
             SpeedDialChild(
                 label: "Duplicate Corrections",
@@ -191,6 +174,17 @@ class _TextInputModeViewState extends State<TextInputModeView> {
                     _textController.text = _format(_textController.text);
                   });
                 }),
+            SpeedDialChild(
+              label: "(Debug) Cambly fast add",
+              onTap: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) {
+                    return CamblyQuickAddDialog();
+                  },
+                );
+              },
+            ),
           ],
         ));
   }
@@ -319,12 +313,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   }
 
   //LOOK UP---------------------------------------------------------------------
-
-  void _switchLoading() {
-    setState(() {
-      _loading = (_loading) ? false : true;
-    });
-  }
 
   Future<bool> _lookUpWords() async {
     List<String> temp = [];
@@ -707,33 +695,6 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     return KeyEventResult.ignored;
   }
 
-  void _saveReportSync() {
-    _textController.text = _format(_textController.text);
-
-    final report;
-    if (_currentReportId != null) {
-      report = Report.getReportSync(_currentReportId!);
-
-      if (report == null) {
-        final newReport = Report(_textController.text);
-        Report.saveReportSync(newReport);
-        _currentReportId = newReport.id;
-      } else {
-        report.text = _textController.text;
-        Report.saveReportSync(report);
-      }
-    } else {
-      final newReport = Report(_textController.text);
-      Report.saveReportSync(newReport);
-      _currentReportId = newReport.id;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("Report saved"),
-      clipBehavior: Clip.antiAlias,
-      showCloseIcon: true,
-    ));
-  }
-
   void _duplicateCorrections() {
     _textController.text = _format(_textController.text);
 
@@ -774,6 +735,56 @@ class _TextInputModeViewState extends State<TextInputModeView> {
 }
 
 // The storage area-------------------------------------------------------------
+
+class CamblyQuickAddDialog extends StatelessWidget {
+  const CamblyQuickAddDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final _textController = TextEditingController();
+
+    return AlertDialog(
+      title: Text("Cambly Quick Add"),
+      actions: [
+        Text("Copy and paste your Cambly history list into this field."),
+        Expanded(
+            child: SingleChildScrollView(
+          child: TextField(maxLines: null, controller: _textController),
+        )),
+        Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
+        ElevatedButton(
+            onPressed: () async {
+              final array = _textController.text.split("An");
+              final dates = <String>[];
+
+              for (final str in array) {
+                final date = str.trimLeft().split("\n")[0];
+
+                if (date.isNotEmpty && !dates.contains(date)) {
+                  dates.add(date);
+                }
+              }
+
+              final id =
+                  await Student.getStudentId("An"); //Student.getIdByName("An");
+              for (final date in dates) {
+                final datetime = HomeController.convertStringToDateTime(
+                    date.substring(date.indexOf(" ") + 1, date.indexOf(", ")),
+                    date.substring(0, 3),
+                    date.substring(date.length - 4, date.length));
+
+                await Lesson.saveLesson(Lesson(
+                    studentId: id,
+                    date: datetime!,
+                    topic: "-",
+                    homework: null));
+              }
+            },
+            child: Text("OK"))
+      ],
+    );
+  }
+}
 
 final _template = """=<
 

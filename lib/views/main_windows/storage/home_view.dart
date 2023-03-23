@@ -2,18 +2,16 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 
-import '../../controllers/companion_methods.dart';
-import '../../controllers/home_controller.dart';
-import '../../controllers/styling/companion_lexer.dart';
-import '../../models/database.dart';
-import '../../models/lesson.dart';
-import '../../models/report.dart';
-import '../../models/student.dart';
-import '../companion_widgets.dart';
+import '../../../controllers/companion_methods.dart';
+import '../../../controllers/home_controller.dart';
+import '../../../models/database.dart';
+import '../../../models/lesson.dart';
+import '../../../models/report.dart';
+import '../../../models/student.dart';
+import '../../companion_widgets.dart';
 
 typedef IntCallback = void Function(int row, int column);
 
@@ -25,9 +23,6 @@ class HomeView extends StatefulWidget {
 
   @override
   State<HomeView> createState() => _HomeViewState();
-
-  static _HomeViewState of(BuildContext context) =>
-      context.findAncestorStateOfType<_HomeViewState>()!;
 }
 
 class _HomeViewState extends State<HomeView> {
@@ -35,8 +30,6 @@ class _HomeViewState extends State<HomeView> {
   DateTime _date = DateTime.now();
   String? _topic;
   String? _homework;
-
-  int? _currentReportId;
 
   //TODO:
   int? _currentFocus = null;
@@ -60,59 +53,11 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
   }
 
-  String _convertTablesToText() {
-    if (_name != null && _topic != null) {
-      final sb = StringBuffer();
-
-      sb.writeln("=<");
-      sb.writeln("# Name\n- $_name\n");
-      sb.writeln("# Date\n- ${CompanionMethods.getShortDate(_date)}\n");
-
-      sb.writeln("# Topic");
-      _topic!.split("\n").forEach((t) {
-        sb.writeln("- ${t}");
-      });
-      sb.writeln();
-
-      if (_homework != null) {
-        sb.writeln("# Homework");
-        _homework!.split("\n").forEach((h) {
-          sb.writeln("- ${h}");
-        });
-        sb.writeln();
-      }
-
-      for (final table in _tables) {
-        sb.writeln("# ${table.title}");
-        table.children.forEach((row) {
-          if (row.model.lhs != null) {
-            sb.write("- ${row.model.lhs}");
-
-            if (row.model.rhs != null) {
-              sb.write(" || ${row.model.rhs}");
-            }
-
-            sb.writeln();
-          }
-        });
-        sb.writeln();
-      }
-
-      return sb.toString();
-    } else {
-      throw new Exception(
-          "You have not filled in the basic information for the class, so it cannot be saved.");
-    }
-  }
-
   void _onPressedSubmit() async {
     if (_name == null || _topic == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text(
-            "A name and topic are required at least to submit a lesson"),
-        clipBehavior: Clip.antiAlias,
-        showCloseIcon: true,
-      ));
+          content: const Text(
+              "A name and topic are required at least to submit a lesson")));
       return;
     }
 
@@ -147,6 +92,8 @@ class _HomeViewState extends State<HomeView> {
     // final counter = HomeController.areTablesPopulated(_tables);
     final counter = 3;
     if (counter > 0) {
+      final dateSplit = _dateController.text.split(" ");
+
       //build report text
       final sb = StringBuffer();
       sb.writeln("# Name");
@@ -178,11 +125,8 @@ class _HomeViewState extends State<HomeView> {
       }));
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("Lesson submitted successfully"),
-      clipBehavior: Clip.antiAlias,
-      showCloseIcon: true,
-    ));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text("Lesson submitted successfully")));
   }
 
   Future<void> _onTapDateField() async {
@@ -221,84 +165,76 @@ class _HomeViewState extends State<HomeView> {
         children: [
           if (_showDetails)
             Card(
-              child: Container(
-                decoration: BoxDecoration(
-                    border: Border.all(
-                        color:
-                            Theme.of(context).colorScheme.secondaryContainer),
-                    borderRadius: const BorderRadius.all(Radius.circular(10))),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                              flex: 3,
-                              child: FocusTraversalOrder(
-                                  order: NumericFocusOrder(1),
-                                  child: TextFieldOutlined(
-                                    hint: "Name",
-                                    size: 13.0,
-                                    controller: _nameController,
-                                    onTextChanged: (text) {
-                                      _name = text;
-                                      _currentFocus = 1;
-                                    },
-                                  ))),
-                          Expanded(
-                            flex: 2,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 0.0),
-                              child: FocusTraversalOrder(
-                                  order: NumericFocusOrder(2),
-                                  child: HomeTextField(
-                                      controller: _dateController,
-                                      hintText: "Date",
-                                      alignment: TextAlign.center,
-                                      edittable: false,
-                                      onTap: () async {
-                                        await _onTapDateField();
-                                      })),
-                            ),
-                          )
-                        ],
-                      ),
-                      FocusTraversalOrder(
-                          order: NumericFocusOrder(3),
-                          child: TextFieldOutlined(
-                            hint: "Topic",
-                            size: 13,
-                            controller: _topicController,
-                            onTextChanged: (text) {
-                              _topic = text;
-                              _currentFocus = 3;
-                            },
-                          )),
-                      FocusTraversalOrder(
-                          order: NumericFocusOrder(4),
-                          child: TextFieldOutlined(
-                            hint: "Homework",
-                            size: 13,
-                            controller: _homeworkController,
-                            onTextChanged: (text) {
-                              _homework = text;
-                              _currentFocus = 4;
-                            },
-                          )),
-                    ],
-                  ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 5.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                            flex: 3,
+                            child: FocusTraversalOrder(
+                                order: NumericFocusOrder(1),
+                                child: TextFieldOutlined(
+                                  hint: "Name",
+                                  size: 13.0,
+                                  controller: _nameController,
+                                  onTextChanged: (text) {
+                                    _name = text;
+                                    _currentFocus = 1;
+                                  },
+                                ))),
+                        Expanded(
+                          flex: 2,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 0.0),
+                            child: FocusTraversalOrder(
+                                order: NumericFocusOrder(2),
+                                child: HomeTextField(
+                                    controller: _dateController,
+                                    hintText: "Date",
+                                    alignment: TextAlign.center,
+                                    edittable: false,
+                                    onTap: () async {
+                                      await _onTapDateField();
+                                    })),
+                          ),
+                        )
+                      ],
+                    ),
+                    FocusTraversalOrder(
+                        order: NumericFocusOrder(3),
+                        child: TextFieldOutlined(
+                          hint: "Topic",
+                          size: 13,
+                          controller: _topicController,
+                          onTextChanged: (text) {
+                            _topic = text;
+                            _currentFocus = 3;
+                          },
+                        )),
+                    FocusTraversalOrder(
+                        order: NumericFocusOrder(4),
+                        child: TextFieldOutlined(
+                          hint: "Homework",
+                          size: 13,
+                          controller: _homeworkController,
+                          onTextChanged: (text) {
+                            _homework = text;
+                            _currentFocus = 4;
+                          },
+                        )),
+                  ],
                 ),
               ),
             ),
-          if (_showDetails)
-            Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Divider(
-                  color: Theme.of(context).colorScheme.primary,
-                )),
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Divider(
+                color: Theme.of(context).colorScheme.primary,
+              )),
           Expanded(
             child: ListView(
               children: [
@@ -309,12 +245,10 @@ class _HomeViewState extends State<HomeView> {
               ],
             ),
           ),
-          Padding(
-              padding: EdgeInsets.all(5.0),
-              child: ElevatedButton(
-                child: const Text("Submit"),
-                onPressed: () async => _onPressedSubmit(),
-              ))
+          ElevatedButton(
+            child: const Text("Submit"),
+            onPressed: () async => _onPressedSubmit(),
+          )
         ],
       )),
       floatingActionButton: SpeedDial(
@@ -344,28 +278,6 @@ class _HomeViewState extends State<HomeView> {
                   );
                 },
               );
-            },
-          ),
-          SpeedDialChild(
-            label: "Hide/Show Header",
-            onTap: () {
-              setState(() {
-                _showDetails ? _showDetails = false : _showDetails = true;
-              });
-            },
-          ),
-          SpeedDialChild(
-            label: "Print Report to Console",
-            onTap: () {
-              try {
-                print(_convertTablesToText());
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(e.toString()),
-                  clipBehavior: Clip.antiAlias,
-                  showCloseIcon: true,
-                ));
-              }
             },
           )
         ],
@@ -516,7 +428,7 @@ class _ReportTableState extends State<ReportTable> {
             border: Border.all(color: Theme.of(context).colorScheme.tertiary),
             borderRadius: const BorderRadius.all(Radius.circular(10))),
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
-        margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+        margin: const EdgeInsets.fromLTRB(0, 2, 0, 2),
         clipBehavior: Clip.antiAlias,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           //HEADING-----------------------------------------------------------
@@ -529,7 +441,7 @@ class _ReportTableState extends State<ReportTable> {
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium!
-                      .copyWith(color: Theme.of(context).colorScheme.onSurface),
+                      .copyWith(color: Colors.grey),
                 ),
                 onDoubleTap: () async {
                   await showDialog(
@@ -583,121 +495,6 @@ class ReportTableRow extends StatefulWidget {
 }
 
 class _ReportTableRowState extends State<ReportTableRow> {
-  final _controllerRhs = TextEditingController();
-  final _controllerLhs = TextEditingController();
-
-  void _saveReportSync() {
-    try {
-      final text = HomeView.of(context)._convertTablesToText();
-      var id = HomeView.of(context)._currentReportId;
-
-      final report;
-      if (id != null) {
-        report = Report.getReportSync(id);
-
-        if (report == null) {
-          final newReport = Report(text);
-          Report.saveReportSync(newReport);
-          id = newReport.id;
-        } else {
-          report.text = text;
-          Report.saveReportSync(report);
-        }
-      } else {
-        final newReport = Report(text);
-        Report.saveReportSync(newReport);
-        id = newReport.id;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Report saved"),
-        clipBehavior: Clip.antiAlias,
-        showCloseIcon: true,
-      ));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(e.toString()),
-        clipBehavior: Clip.antiAlias,
-        showCloseIcon: true,
-      ));
-    }
-  }
-
-  KeyEventResult _handleKey(
-      RawKeyEvent event, TextEditingController controller) {
-    if (event is RawKeyDownEvent) {
-      final k = event.logicalKey;
-
-      final baseOffset = controller.selection.baseOffset;
-      final extentOffset = controller.selection.extentOffset;
-
-      if (CompanionLexer.markers.contains(k.keyLabel)) {
-        final baseOffset = controller.selection.baseOffset;
-        final extentOffset = controller.selection.extentOffset;
-        final newText = CompanionMethods.autoInsertBrackets(
-            k.keyLabel, controller, baseOffset, extentOffset);
-
-        controller.text = newText;
-        controller.selection = TextSelection(
-            baseOffset: baseOffset + 1, extentOffset: extentOffset + 1);
-
-        return KeyEventResult.handled;
-      } else if (event.isControlPressed) {
-        switch (k.keyLabel) {
-          case "S":
-            _saveReportSync();
-            break;
-          case "B":
-            controller.text =
-                CompanionMethods.insertStyleSyntax("**", controller);
-            controller.selection = TextSelection(
-                baseOffset: baseOffset, extentOffset: extentOffset);
-            break;
-          case "I":
-            controller.text =
-                CompanionMethods.insertStyleSyntax("*", controller);
-            controller.selection = TextSelection(
-                baseOffset: baseOffset, extentOffset: extentOffset);
-            break;
-          case "U":
-            controller.text =
-                CompanionMethods.insertStyleSyntax("_", controller);
-            controller.selection = TextSelection(
-                baseOffset: baseOffset, extentOffset: extentOffset);
-            break;
-          case "Enter":
-            final fullText = controller.text;
-
-            final before;
-            final middle = "\n";
-            final after;
-            final newSelectionIndex;
-
-            final indexNextLineEnd =
-                fullText.indexOf("\n", controller.selection.baseOffset);
-
-            if (indexNextLineEnd != -1) {
-              before = fullText.substring(0, indexNextLineEnd);
-              after = fullText.substring(indexNextLineEnd, fullText.length);
-              newSelectionIndex = indexNextLineEnd;
-            } else {
-              before = fullText;
-              after = "";
-              newSelectionIndex = fullText.length + 1;
-            }
-
-            controller.text = "$before$middle$after";
-            controller.selection =
-                TextSelection.collapsed(offset: newSelectionIndex + 1);
-
-            return KeyEventResult.handled;
-          default:
-        }
-        return KeyEventResult.ignored;
-      }
-    }
-    return KeyEventResult.ignored;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Focus(
@@ -705,7 +502,8 @@ class _ReportTableRowState extends State<ReportTableRow> {
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 2),
         margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).colorScheme.secondary),
+            border: Border.all(
+                color: Theme.of(context).colorScheme.secondaryContainer),
             borderRadius: const BorderRadius.all(Radius.circular(4.0))),
         child: Row(
           children: [
@@ -717,21 +515,17 @@ class _ReportTableRowState extends State<ReportTableRow> {
                 child: Row(
                   children: [
                     Expanded(
-                        child: Focus(
-                      child: TextFormField(
-                        controller: _controllerLhs,
-                        decoration: const InputDecoration(
-                          isDense: true,
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                        ),
-                        style: const TextStyle(fontSize: 11),
-                        maxLines: null,
-                        onChanged: (value) {
-                          widget.model.lhs = value;
-                        },
+                        child: TextFormField(
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                       ),
-                      onKey: (_, event) => _handleKey(event, _controllerLhs),
+                      style: const TextStyle(fontSize: 11),
+                      maxLines: null,
+                      onChanged: (value) {
+                        widget.model.lhs = value;
+                      },
                     ))
                   ],
                 ),
@@ -749,22 +543,17 @@ class _ReportTableRowState extends State<ReportTableRow> {
                       child: Row(
                         children: [
                           Expanded(
-                              child: Focus(
-                            child: TextFormField(
-                              controller: _controllerRhs,
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 6),
-                              ),
-                              style: const TextStyle(fontSize: 11),
-                              maxLines: null,
-                              onChanged: (value) {
-                                widget.model.rhs = value;
-                              },
+                              child: TextFormField(
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 6),
                             ),
-                            onKey: (_, event) =>
-                                _handleKey(event, _controllerRhs),
+                            style: const TextStyle(fontSize: 11),
+                            maxLines: null,
+                            onChanged: (value) {
+                              widget.model.rhs = value;
+                            },
                           ))
                         ],
                       ),

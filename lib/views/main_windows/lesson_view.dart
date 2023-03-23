@@ -30,9 +30,7 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
   }
 
   Future<void> _getNames(bool onlyActive) async {
-    if (_students == null) {
-      _students = await Student.getAllStudents();
-    }
+    _students = await Student.getAllStudents();
 
     if (onlyActive) {
       final filtered = _students!
@@ -67,6 +65,13 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
                       _selectedStudent = value;
                     });
                   },
+                  onLongPress: () async {
+                    if (_selectedStudent != null) {
+                      final id = await Student.getStudentId(value);
+                      await Database.deleteStudent(id);
+                      setState(() {});
+                    }
+                  },
                 );
               },
             );
@@ -80,6 +85,10 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
 
   Widget _lessonListView() {
     return Container(
+      margin: EdgeInsets.all(4.0),
+      decoration: BoxDecoration(
+          border: Border.all(color: Theme.of(context).colorScheme.primary),
+          borderRadius: BorderRadius.all(Radius.circular(8.0))),
       child: FutureBuilder(
         future: _getLessons(),
         builder: (context, snapshot) {
@@ -139,11 +148,10 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
         children: [
           //NAME LIST
           Expanded(
-            flex: 1,
             child: _nameListView(),
           ),
           // LIST OF LESSONS
-          Expanded(flex: 2, child: _lessonListView())
+          Expanded(child: _lessonListView())
         ],
       ),
     );
@@ -183,6 +191,7 @@ class _EditDialogState extends State<EditDialog> {
         Row(
           children: [
             Text("Date:"),
+            Spacer(),
             Expanded(
                 child: TextFormField(
               maxLines: null,
@@ -196,6 +205,7 @@ class _EditDialogState extends State<EditDialog> {
         Row(
           children: [
             Text("Topic:"),
+            Spacer(),
             Expanded(
                 child: TextFormField(
               maxLines: null,
@@ -209,6 +219,7 @@ class _EditDialogState extends State<EditDialog> {
         Row(
           children: [
             Text("Homework:"),
+            Spacer(),
             Expanded(
                 child: TextFormField(
               maxLines: null,

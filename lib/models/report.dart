@@ -148,6 +148,14 @@ class Report {
         iEnd = text.length;
       }
       tChunk = text.substring(iStart, iEnd).trim();
+
+      if (!tChunk.contains("\n")) {
+        text = text.substring(0, text.indexOf(tChunk)) +
+            text.substring(text.indexOf(tChunk) + tChunk.length, text.length);
+        continue;
+      }
+      ;
+
       tHeading = tChunk
           .substring(0, tChunk.indexOf("\n"))
           .replaceFirst(headingPrefix, "")
@@ -156,6 +164,10 @@ class Report {
       final tempList = tChunk.split(linePrefix);
       tempList.removeAt(0);
       tLines.addAll(tempList);
+
+      if (tLines.isEmpty) {
+        continue;
+      }
 
       int counter = 0;
       for (var line in tLines) {
