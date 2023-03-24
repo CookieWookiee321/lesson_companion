@@ -56,10 +56,10 @@ class CompanionLexer {
 
   static Map<RegExp, TextStyle> highlighter = {
     // row cell splitter
-    RegExp(r"\s\|{2}"):
+    RegExp(r"\|{2}"):
         TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
     // cell line break
-    RegExp(r"\s\/{2}\s"):
+    RegExp(r"\/{2}"):
         TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
     // heading marker
     RegExp(r"\n\@ .+"): TextStyle(
@@ -72,17 +72,17 @@ class CompanionLexer {
     //TODO: account for bold, and others
     //TODO: make sure all of them match
     //italic, bold, bold and italic
-    RegExp(r"\s\*{1}[a-zA-z0-9 \&\!\@\#\$\%\'\']+\*{1}\s"):
+    RegExp(r"\ *{1}[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-\\]+\*{1}"):
         TextStyle(fontStyle: FontStyle.italic),
-    RegExp(r"\s\*{2}[a-zA-z0-9 \&\!\@\#\$\%\']+\*{2}\s"):
+    RegExp(r"\ *{2}[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-\\]+\*{2}"):
         TextStyle(fontWeight: FontWeight.bold),
-    RegExp(r"\s\*{3}[a-zA-z0-9 \&\!\@\#\$\%\']+\*{3}\s"):
+    RegExp(r"\ *{3}[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-\\]+\*{3}"):
         TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
     // strikethrough
-    RegExp(r"\~{2}[A-Za-z0-9 \&\!\@\#\$\%\']+\~{2}"):
+    RegExp(r"\ ~{2}[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-\\]+\~{2}"):
         TextStyle(decoration: TextDecoration.lineThrough),
     // underline
-    RegExp(r"\_[A-Za-z0-9 \&\!\@\#\$\%\']+\_"):
+    RegExp(r"\ _[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-\\]+\_"):
         TextStyle(decoration: TextDecoration.underline),
     //subtext
     // RegExp(r"\<sub [A-Za-z0-9 ]+\>"): TextStyle(fontSize: 10),
