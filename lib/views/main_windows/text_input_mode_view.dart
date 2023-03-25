@@ -390,9 +390,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           final reportData = report.toDataObj(singleEntry);
 
           //check if Student exists
-          final student = await Student.getStudentByName(reportData.name);
+          var student = await Student.getStudentByName(reportData.name);
           if (student == null) {
             await _saveStudent(reportData.name);
+            student = await Student.getStudentByName(reportData.name);
           }
 
           //format TOPIC

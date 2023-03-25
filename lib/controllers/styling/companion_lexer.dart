@@ -55,45 +55,40 @@ class CompanionLexer {
   }
 
   static Map<RegExp, TextStyle> highlighter = {
-    // row cell splitter
+// row cell splitter
     RegExp(r"\|{2}"):
         TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
-    // cell line break
+// cell line break
     RegExp(r"\/{2}"):
         TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
-    // heading marker
+// heading marker
     RegExp(r"\n\@ .+"): TextStyle(
         color: Color.fromARGB(255, 189, 180, 51), fontWeight: FontWeight.bold),
-    // row start marker
+// row start marker
     RegExp(r"\n\-"): TextStyle(
         color: Color.fromARGB(255, 176, 144, 56), fontWeight: FontWeight.bold),
-    // comments
+// comments
     RegExp(r"\!\![.]+\n"): TextStyle(color: Colors.grey),
-    //TODO: account for bold, and others
-    //TODO: make sure all of them match
-    //italic, bold, bold and italic
-    RegExp(r"\ *{1}[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-\\]+\*{1}"):
-        TextStyle(fontStyle: FontStyle.italic),
-    RegExp(r"\ *{2}[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-\\]+\*{2}"):
-        TextStyle(fontWeight: FontWeight.bold),
-    RegExp(r"\ *{3}[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-\\]+\*{3}"):
+//italic, bold, bold and italic
+    //TODO: ok?
+    RegExp(r"(?<!\*)\*\*\*[^*]+\*\*\*(?!\*)"):
         TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
-    // strikethrough
-    RegExp(r"\ ~{2}[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-\\]+\~{2}"):
+    //TODO: ok?
+    RegExp(r"(?<!\*)\*\*[^*]+\*\*(?!\*)"):
+        TextStyle(fontWeight: FontWeight.bold),
+    RegExp(r"(?<!\*)\*[^*]+\*(?!\*)"): TextStyle(fontStyle: FontStyle.italic),
+// strikethrough
+    RegExp(r"\s~{2}[ \w&!@#$%\'()\/*\-]+~{2}"):
         TextStyle(decoration: TextDecoration.lineThrough),
-    // underline
-    RegExp(r"\ _[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-\\]+\_"):
+// underline
+    RegExp(r"\s\_[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-]+\_"):
         TextStyle(decoration: TextDecoration.underline),
-    //subtext
-    // RegExp(r"\<sub [A-Za-z0-9 ]+\>"): TextStyle(fontSize: 10),
+//subtext
     RegExp(r"[A-Za-z0-9]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue),
-    // skip marker
+// skip marker
     RegExp(r"^\?\?"): TextStyle(
         color: Colors.indigoAccent,
         fontWeight: FontWeight.bold,
         fontStyle: FontStyle.italic)
-    //r"<sup [A-Za-z0-9]+>": TextStyle(fontSize: 10),
-    //r"col\([A-Za-z0-9]+, [A-Za-z0-9]+\)": TextStyle(fontStyle: FontStyle.italic),
-    //r"lnk\([A-Za-z0-9]+, [A-Za-z0-9]+\) ": TextStyle(fontStyle: FontStyle.italic),
   };
 }

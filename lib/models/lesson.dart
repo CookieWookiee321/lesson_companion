@@ -45,10 +45,9 @@ class Lesson {
     final studentId = await Student.getStudentId(name!);
     final lesson = await isar.lessons
         .filter()
-        .idEqualTo(studentId)
+        .studentIdEqualTo(studentId)
         .and()
-        .dateBetween(DateTime(date.year, date.month, date.day, 0, 0, 1),
-            DateTime(date.year, date.month, date.day, 23, 59, 59))
+        .dateEqualTo(date)
         .findFirst();
     return lesson;
   }
