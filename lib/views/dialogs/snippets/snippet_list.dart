@@ -20,7 +20,7 @@ class SnippetListState extends State<SnippetList> {
               await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SnippetBuilder(marker: snippet),
+                    builder: (context) => SnippetBuilder(snippet: snippet),
                   ));
             },
             child: Text("Edit")),

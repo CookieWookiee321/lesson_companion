@@ -125,7 +125,7 @@ class PdfLexer {
           default: // snippet
             final snippetName = match.input
                 .substring(match.start, match.input.indexOf("{", match.start));
-            final snippet = await StyleSnippet.getSnippet(snippetName);
+            final snippet = await StyleSnippet.getSnippetByName(snippetName);
 
             if (snippet != null) {
               baseHeight = snippet.size;

@@ -54,7 +54,14 @@ class StyleSnippet {
     return y.length + 1;
   }
 
-  static Future<StyleSnippet?> getSnippet(String marker) async {
+  static Future<StyleSnippet?> getSnippet(int id) async {
+    final isar = Isar.getInstance("snippet_db") ??
+        await Isar.open([StyleSnippetSchema], name: "snippet_db");
+
+    return isar.styleSnippets.get(id);
+  }
+
+  static Future<StyleSnippet?> getSnippetByName(String marker) async {
     final isar = Isar.getInstance("snippet_db") ??
         await Isar.open([StyleSnippetSchema], name: "snippet_db");
     final styleSnippets = isar.styleSnippets;

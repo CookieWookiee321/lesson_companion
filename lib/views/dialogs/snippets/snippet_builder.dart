@@ -4,9 +4,9 @@ import 'package:lesson_companion/models/style_snippet.dart';
 import '../../companion_widgets.dart';
 
 class SnippetBuilder extends StatefulWidget {
-  final StyleSnippet? marker;
+  final StyleSnippet? snippet;
 
-  const SnippetBuilder({super.key, this.marker});
+  const SnippetBuilder({super.key, this.snippet});
 
   @override
   State<SnippetBuilder> createState() => _SnippetBuilderState();
@@ -17,6 +17,7 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
   final _sizeController = TextEditingController(text: "11");
 
   String? _snippetName;
+  int? _snippetId;
 
   Color _colour = Colors.black;
   double _size = 11;
@@ -46,16 +47,18 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
 
   @override
   void initState() {
-    if (widget.marker != null) {
-      _snippetName = widget.marker!.marker;
+    if (widget.snippet != null) {
+      _snippetId = widget.snippet!.id;
+
+      _snippetName = widget.snippet!.marker;
       _nameController.text = _snippetName!;
 
-      _size = widget.marker!.size;
-      _sizeController.text = widget.marker!.size.toString();
+      _size = widget.snippet!.size;
+      _sizeController.text = widget.snippet!.size.toString();
 
-      _colour = widget.marker!.getColour()!;
+      _colour = widget.snippet!.getColour()!;
 
-      for (final style in widget.marker!.styles) {
+      for (final style in widget.snippet!.styles) {
         switch (style) {
           case StyleSnippet.bold:
             _bold = true;
@@ -333,10 +336,9 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
   void _onPressedSubmit() async {
     if (_snippetName != null) {
       //build the snippet
-      final storedSnippet = await StyleSnippet.getSnippet(_snippetName!);
-      final StyleSnippet snippet;
+      var snippet = await StyleSnippet.getSnippet(_snippetId!);
 
-      if (storedSnippet == null) {
+      if (snippet == null) {
         snippet = StyleSnippet(
             null,
             _snippetName!,
@@ -344,23 +346,34 @@ class _SnippetBuilderState extends State<SnippetBuilder> {
             StyleSnippet.colourMap.keys
                 .firstWhere((k) => StyleSnippet.colourMap[k] == _colour),
             _buildStyleList());
+
+        await StyleSnippet.saveSnippet(snippet);
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+            "The snippet has been saved.",
+          ),
+          clipBehavior: Clip.antiAlias,
+          showCloseIcon: true,
+        ));
       } else {
-        snippet = storedSnippet;
         snippet.marker = _snippetName!;
         snippet.size = _size;
         snippet.colour = StyleSnippet.colourMap.keys
             .firstWhere((k) => StyleSnippet.colourMap[k] == _colour);
         snippet.styles = _buildStyleList();
+
+        await StyleSnippet.saveSnippet(snippet);
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+            "The snippet has been updated.",
+          ),
+          clipBehavior: Clip.antiAlias,
+          showCloseIcon: true,
+        ));
       }
 
-      await StyleSnippet.saveSnippet(snippet);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          "The snippet has been saved.",
-        ),
-        clipBehavior: Clip.antiAlias,
-        showCloseIcon: true,
-      ));
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

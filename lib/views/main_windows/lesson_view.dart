@@ -191,7 +191,9 @@ class _EditDialogState extends State<EditDialog> {
         Row(
           children: [
             Text("Date:"),
-            Spacer(),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4.0),
+            ),
             Expanded(
                 child: TextFormField(
               maxLines: null,
@@ -205,7 +207,9 @@ class _EditDialogState extends State<EditDialog> {
         Row(
           children: [
             Text("Topic:"),
-            Spacer(),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4.0),
+            ),
             Expanded(
                 child: TextFormField(
               maxLines: null,
@@ -219,7 +223,9 @@ class _EditDialogState extends State<EditDialog> {
         Row(
           children: [
             Text("Homework:"),
-            Spacer(),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4.0),
+            ),
             Expanded(
                 child: TextFormField(
               maxLines: null,
@@ -234,11 +240,21 @@ class _EditDialogState extends State<EditDialog> {
             child: OutlinedButton(
           child: Text("Submit"),
           onPressed: () async {
-            final lesson = Lesson(
-                studentId: widget.studentId,
-                date: _selectedDate ?? widget.initialDate,
-                topic: _selectedTopic ?? widget.initialTopic,
-                homework: _selectedHomework ?? widget.initialHomework);
+            final stuName = await Student.getStudentName(widget.studentId);
+            var lesson = await Lesson.getLesson(
+                stuName, _selectedDate ?? widget.initialDate);
+
+            if (lesson != null) {
+              lesson.date = _selectedDate ?? widget.initialDate;
+              lesson.topic = _selectedTopic ?? widget.initialTopic;
+              lesson.homework = _selectedHomework ?? widget.initialHomework;
+            } else {
+              lesson = Lesson(
+                  studentId: widget.studentId,
+                  date: _selectedDate ?? widget.initialDate,
+                  topic: _selectedTopic ?? widget.initialTopic,
+                  homework: _selectedHomework ?? widget.initialHomework);
+            }
 
             await Lesson.saveLesson(lesson);
             Navigator.pop(context);
