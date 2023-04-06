@@ -92,8 +92,7 @@ class Database {
 
   static Future<bool> checkLessonExists(int studentId, DateTime date) async {
     final bool exists;
-    if (await Lesson.getLessonId(
-            await Student.getStudentName(studentId), date) !=
+    if (await Lesson.getLessonId(await Student.getName(studentId), date) !=
         null) {
       exists = true;
     } else {

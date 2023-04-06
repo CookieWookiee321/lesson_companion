@@ -12,6 +12,7 @@ import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/dictionary/look_up.dart';
 import 'package:lesson_companion/models/lesson.dart';
 import 'package:lesson_companion/models/report.dart';
+import 'package:lesson_companion/models/report_template.dart';
 import 'package:lesson_companion/models/student.dart';
 import 'package:lesson_companion/views/dialogs/lookups/new_language_look_up.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
@@ -39,20 +40,17 @@ final _nonAutoRowStartKeys = [
 //==============================================================================
 // Text Input Mode View
 //==============================================================================
-class TextInputModeView extends StatefulWidget {
-  const TextInputModeView({Key? key}) : super(key: key);
+class TextEditorView extends StatefulWidget {
+  const TextEditorView({Key? key}) : super(key: key);
 
   @override
-  State<TextInputModeView> createState() => _TextInputModeViewState();
+  State<TextEditorView> createState() => _TextEditorViewState();
 }
 
-class _TextInputModeViewState extends State<TextInputModeView> {
+class _TextEditorViewState extends State<TextEditorView> {
   final _lookUpReturns = <LookUpReturn>[];
 
-  int? _currentReportId;
-
   late RichTextController _textController;
-  bool _loading = false;
   final _textNode = FocusNode();
 
   double _fontSize = 13.0;
@@ -76,6 +74,45 @@ class _TextInputModeViewState extends State<TextInputModeView> {
     window.onKeyData = null;
     _textController.dispose();
     super.dispose();
+  }
+
+  Widget _templateListView(AsyncSnapshot snapshot) {
+    return ListView.builder(
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(
+            snapshot.data![index].text!,
+            softWrap: true,
+          ),
+          onTap: () async {
+            await showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text("Load Template"),
+                  content: Text(
+                      "Are you sure you want to load this template to the editor?\nThis will remove all current text"),
+                  actions: [
+                    OutlinedButton(
+                        onPressed: () {
+                          _textController.text = snapshot.data![index].text!;
+                          Navigator.pop(context);
+                          setState(() {});
+                        },
+                        child: Text("Yes")),
+                    OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text("No"))
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -140,51 +177,83 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           ),
         ),
         floatingActionButton: SpeedDial(
-          icon: Icons.more,
+          animatedIcon: AnimatedIcons.menu_close,
+          animatedIconTheme: IconThemeData(size: 22.0),
+          visible: true,
+          curve: Curves.bounceIn,
           children: [
             SpeedDialChild(
-                label: "Look Up New Language",
-                onTap: () async {
-                  _lookUpWords().then((value) {});
-                }),
-            SpeedDialChild(
-                label: "Duplicate Corrections",
-                onTap: () {
-                  _duplicateCorrections();
-                  _textController.text = _format(_textController.text);
-                }),
-            SpeedDialChild(
-                label: "Reset",
-                onTap: () {
-                  setState(() {
-                    _textController.text = _template;
-                  });
-                }),
-            SpeedDialChild(
-                label: "Unformat",
-                onTap: () {
-                  setState(() {
-                    _textController.text = _unformat();
-                  });
-                }),
-            SpeedDialChild(
-                label: "Format",
-                onTap: () {
-                  setState(() {
-                    _textController.text = _format(_textController.text);
-                  });
-                }),
-            SpeedDialChild(
-              label: "(Debug) Cambly fast add",
-              onTap: () async {
-                await showDialog(
-                  context: context,
-                  builder: (context) {
-                    return CamblyQuickAddDialog();
-                  },
-                );
+              label: "Copy",
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: _textController.text));
               },
             ),
+            SpeedDialChild(
+              label: "Paste",
+              onTap: () {
+                Clipboard.getData(Clipboard.kTextPlain).then((value) {
+                  _textController.text = value!.text!;
+                });
+              },
+            ),
+            SpeedDialChild(
+              label: "Load Template...",
+              onTap: () async {
+                final _template = await showDialog(
+                  context: context,
+                  builder: (context) {
+                    return FutureBuilder(
+                      future: ReportTemplate.getAll(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.hasData) {
+                            if (snapshot.data!.length > 0) {
+                              return _templateListView(snapshot);
+                            } else {
+                              return Center(
+                                child: Text("No templates have been saved."),
+                              );
+                            }
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                  "Error retrieving templates from database."),
+                            );
+                          } else {
+                            return Center(
+                              child: Text("No templates have been saved."),
+                            );
+                          }
+                        } else {
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                      },
+                    );
+                  },
+                );
+                if (_template != null) {
+                  _textController.text = _template;
+                }
+              },
+            ),
+            // SpeedDialChild(
+            //   label: "Unformat",
+            //   onTap: () {
+            //     setState(() {
+            //       _textController.text = _unformat();
+            //     });
+            //   },
+            // ),
+            // SpeedDialChild(
+            //   label: "Format",
+            //   onTap: () {
+            //     setState(() {
+            //       _textController.text = _format(_textController.text);
+            //     });
+            //   },
+            // ),
           ],
         ));
   }
@@ -368,11 +437,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
   //OTHER-----------------------------------------------------------------------
 
   Future<void> _saveStudent(String name) async {
-    //if not, create new Hive entry
     final student = Student();
     student.name = name;
     student.active = true;
-    await Student.saveStudent(student);
+    await Student.save(student);
   }
 
   void _onPressedSubmit() async {
@@ -390,10 +458,10 @@ class _TextInputModeViewState extends State<TextInputModeView> {
           final reportData = report.toDataObj(singleEntry);
 
           //check if Student exists
-          var student = await Student.getStudentByName(reportData.name);
+          var student = await Student.getByName(reportData.name);
           if (student == null) {
             await _saveStudent(reportData.name);
-            student = await Student.getStudentByName(reportData.name);
+            student = await Student.getByName(reportData.name);
           }
 
           //format TOPIC
@@ -766,8 +834,7 @@ class CamblyQuickAddDialog extends StatelessWidget {
                 }
               }
 
-              final id =
-                  await Student.getStudentId("An"); //Student.getIdByName("An");
+              final id = await Student.getId("An"); //Student.getIdByName("An");
               for (final date in dates) {
                 final datetime = HomeController.convertStringToDateTime(
                     date.substring(date.indexOf(" ") + 1, date.indexOf(", ")),

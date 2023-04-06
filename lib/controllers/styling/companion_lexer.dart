@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+enum lexerColours {
+  cellSplitter,
+  lineSplitter,
+}
+
 class CompanionLexer {
   static const markers = <String>["*", "{", "(", "\"", "[", "_"];
 

@@ -121,11 +121,11 @@ class _StudentsListViewState extends State<StudentsListView> {
   // METHODS--------------------------------------------------------------------
 
   Future<void> _getStudentDetails() async {
-    _students = await Student.getAllStudents();
+    _students = await Student.getAll();
 
     final Map<String, int> temp = {};
     for (final s in _students!) {
-      temp[s.name!] = await Student.getLessonCountOfStudent(s.id);
+      temp[s.name!] = await Student.getLessonCount(s.id);
       _namesAndActiveMap![s.name!] = s.active!;
     }
     _namesAndCountMap = Map.fromEntries(
@@ -176,7 +176,7 @@ class _StudentsViewMenuState extends State<StudentsViewMenu> {
                   child: Switch(
                       value: widget.student.active!,
                       onChanged: (state) {
-                        Student.saveStudent(Student.known(
+                        Student.save(Student.known(
                             id: widget.student.id,
                             name: widget.student.name,
                             active: state));

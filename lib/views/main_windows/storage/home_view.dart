@@ -69,9 +69,9 @@ class _HomeViewState extends State<HomeView> {
       thisStudent = Student();
       thisStudent.name = _name!;
       thisStudent.active = true;
-      await Student.saveStudent(thisStudent);
+      await Student.save(thisStudent);
     }
-    thisStudent = await Student.getStudentByName(_name!);
+    thisStudent = await Student.getByName(_name!);
 
     Lesson thisLesson = Lesson(
         studentId: thisStudent!.id,

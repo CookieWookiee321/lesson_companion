@@ -23,6 +23,24 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
   String? _selectedStudent;
   List<Lesson>? _lessons;
 
+  final _scrollControllerAlphabet = ScrollController();
+  double _scrollPositionAlphabet = 0.0;
+  final _scrollControllerNames = ScrollController();
+  double _scrollPositionNames = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // _scrollControllerAlphabet.addListener(() {
+    //   _scrollPositionAlphabet = _scrollControllerAlphabet.position.pixels;
+    // });
+
+    // _scrollControllerNames.addListener(() {
+    //   _scrollPositionNames = _scrollControllerNames.position.pixels;
+    // });
+  }
+
   Future<void> _getLessons() async {
     if (_selectedStudent != null) {
       _lessons = await Lesson.getAllLessonsOfStudent(_selectedStudent!);
@@ -30,7 +48,7 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
   }
 
   Future<void> _getNames(bool onlyActive) async {
-    _students = await Student.getAllStudents();
+    _students = await Student.getAll();
 
     if (onlyActive) {
       final filtered = _students!
@@ -49,13 +67,6 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return AlphabetScrollView(
-              alignment: LetterAlignment.left,
-              list: _names!.map((e) => AlphaModel(e)).toList(),
-              selectedTextStyle: Theme.of(context)
-                  .textTheme
-                  .labelSmall!
-                  .copyWith(fontSize: 16),
-              unselectedTextStyle: Theme.of(context).textTheme.labelSmall!,
               itemBuilder: (context, index, value) {
                 return ListTile(
                   leading: Text(" "),
@@ -67,13 +78,20 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
                   },
                   onLongPress: () async {
                     if (_selectedStudent != null) {
-                      final id = await Student.getStudentId(value);
+                      final id = await Student.getId(value);
                       await Database.deleteStudent(id);
                       setState(() {});
                     }
                   },
                 );
               },
+              alignment: LetterAlignment.left,
+              list: _names!.map((e) => AlphaModel(e)).toList(),
+              selectedTextStyle: Theme.of(context)
+                  .textTheme
+                  .labelSmall!
+                  .copyWith(fontSize: 16),
+              unselectedTextStyle: Theme.of(context).textTheme.labelSmall!,
             );
           } else {
             return Center(
@@ -121,6 +139,7 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
                               );
                             });
                         setState(() {});
+                        _scrollControllerNames.jumpTo(_scrollPositionNames);
                       },
                       onLongPress: () async {
                         final id = _students!
@@ -240,7 +259,7 @@ class _EditDialogState extends State<EditDialog> {
             child: OutlinedButton(
           child: Text("Submit"),
           onPressed: () async {
-            final stuName = await Student.getStudentName(widget.studentId);
+            final stuName = await Student.getName(widget.studentId);
             var lesson = await Lesson.getLesson(
                 stuName, _selectedDate ?? widget.initialDate);
 
@@ -298,6 +317,14 @@ class _EditDialogState extends State<EditDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           OutlinedButton(
+              onPressed: () {
+                //get all lesson details
+                //switch back to other tab
+                //load details into other tab
+              },
+              child: Text("Load into Editor")),
+          Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
+          OutlinedButton(
             child: Text("Edit"),
             onPressed: () async {
               await showDialog(
@@ -308,6 +335,7 @@ class _EditDialogState extends State<EditDialog> {
               ).then((value) => Navigator.pop(context));
             },
           ),
+          Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
           OutlinedButton(
             child: Text("Delete"),
             onPressed: () async {

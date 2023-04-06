@@ -78,9 +78,9 @@ class _NewLanguageLookUpDialogState extends State<NewLanguageLookUpDialog> {
       } else {
         fullDefinition = "$fullDefinition ||\n    ${lur.definition}";
       }
-      if (fullDefinition.contains("’")) {
-        fullDefinition.replaceAll("’", "'");
-      }
+
+      fullDefinition.replaceAll("’", "'");
+
       lines[i] = fullDefinition;
     }
 
@@ -204,7 +204,7 @@ class _NewLanguageLookUpCardState extends State<NewLanguageLookUpCard> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Term + Part of speech----------------------------------------------
+// Term + Part of speech----------------------------------------------
           Padding(
             padding: EdgeInsets.fromLTRB(0, 0, 0, 3),
             child: Row(
@@ -217,7 +217,7 @@ class _NewLanguageLookUpCardState extends State<NewLanguageLookUpCard> {
                       fontSize: 16,
                       fontWeight: FontWeight.bold),
                 )),
-                // Parts of speech------------------------------------------------
+// Parts of speech------------------------------------------------
                 DropdownButton(
                     style: TextStyle(fontSize: 13),
                     isDense: true,

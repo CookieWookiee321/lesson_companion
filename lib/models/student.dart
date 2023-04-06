@@ -36,27 +36,27 @@ class Student {
         _name = name;
 
   // DATABASE-------------------------------------------------------------------
-  static Future<Student?> getStudentById(int id) async {
+  static Future<Student?> getById(int id) async {
     final isar = Isar.getInstance("student_db") ??
         await Isar.open([StudentSchema], name: "student_db");
     final student = isar.students.filter().idEqualTo(id).findFirst();
     return student;
   }
 
-  static Future<Student?> getStudentByName(String name) async {
+  static Future<Student?> getByName(String name) async {
     final isar = Isar.getInstance("student_db") ??
         await Isar.open([StudentSchema], name: "student_db");
     return await isar.students.filter().nameEqualTo(name).findFirst();
   }
 
-  static Future<String?> getStudentName(int id) async {
+  static Future<String?> getName(int id) async {
     final isar = Isar.getInstance("student_db") ??
         await Isar.open([StudentSchema], name: "student_db");
     final student = await isar.students.filter().idEqualTo(id).findFirst();
     return student != null ? student.name : "[student name not found]";
   }
 
-  static Future<List<Student>> getAllStudents() async {
+  static Future<List<Student>> getAll() async {
     final isar = Isar.getInstance("student_db") ??
         await Isar.open([StudentSchema], name: "student_db");
 
@@ -64,10 +64,10 @@ class Student {
     return ret;
   }
 
-  static Future<List<String>> getAllStudentNames() async {
+  static Future<List<String>> getAllNames() async {
     List<String> output = [];
 
-    final students = await getAllStudents();
+    final students = await getAll();
 
     for (final s in students) {
       output.add(s.name!);
@@ -79,7 +79,7 @@ class Student {
     return output;
   }
 
-  static Future<int> getLessonCountOfStudent(int studentId) async {
+  static Future<int> getLessonCount(int studentId) async {
     final isar = Isar.getInstance("lesson_db") ??
         await Isar.open([LessonSchema], name: "lesson_db");
     final lessons =
@@ -90,14 +90,14 @@ class Student {
   /// Attempts to retrieve the Student ID from a name.
   ///
   /// Returns either the correct Student ID, or -1 in the event that no result is found
-  static Future<int> getStudentId(String name) async {
+  static Future<int> getId(String name) async {
     final isar = Isar.getInstance("student_db") ??
         await Isar.open([StudentSchema], name: "student_db");
     final students = await isar.students.where().findAll();
     return students.where((element) => element.name == name).first.id;
   }
 
-  static Future<void> saveStudent(Student student) async {
+  static Future<void> save(Student student) async {
     final isar = Isar.getInstance("student_db") ??
         await Isar.open([StudentSchema], name: "student_db");
     await isar.writeTxn(() async {

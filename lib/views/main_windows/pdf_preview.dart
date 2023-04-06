@@ -69,7 +69,7 @@ class PdfPreviewPage extends StatelessWidget {
                   onPressed: () async {
                     if (_pdf != null) {
                       final saveDest =
-                          "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await Student.getStudentId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
+                          "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await Student.getId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
                       final file = File(saveDest);
                       await file.writeAsBytes(_pdf!);
 

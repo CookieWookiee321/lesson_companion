@@ -25,7 +25,7 @@ class Lesson {
   static Future<int?> getLessonId(String? name, DateTime date) async {
     final isar = Isar.getInstance("lesson_db") ??
         await Isar.open([LessonSchema], name: "lesson_db");
-    final studentId = await Student.getStudentId(name!);
+    final studentId = await Student.getId(name!);
     final lesson = await isar.lessons
         .filter()
         .idEqualTo(studentId)
@@ -42,7 +42,7 @@ class Lesson {
   static Future<Lesson?> getLesson(String? name, DateTime date) async {
     final isar = Isar.getInstance("lesson_db") ??
         await Isar.open([LessonSchema], name: "lesson_db");
-    final studentId = await Student.getStudentId(name!);
+    final studentId = await Student.getId(name!);
     final lesson = await isar.lessons
         .filter()
         .studentIdEqualTo(studentId)
@@ -56,7 +56,7 @@ class Lesson {
     final isar = Isar.getInstance("lesson_db") ??
         await Isar.open([LessonSchema], name: "lesson_db");
     final allLessons = await isar.lessons.where().findAll();
-    final studentId = await Student.getStudentId(name);
+    final studentId = await Student.getId(name);
     final lessonsByStudent =
         allLessons.where((element) => element.studentId == studentId).toList();
     lessonsByStudent.sort((a, b) {
