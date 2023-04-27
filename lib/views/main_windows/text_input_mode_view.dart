@@ -333,6 +333,232 @@ class _TextEditorViewState extends State<TextEditorView> {
     );
   }
 
+  // NB-------------------------------------------------------------------------
+
+  void _onPressedSubmit() async {
+    // text processed without tabspaces
+    String text = _unformat();
+
+    final student = await _getOrCreateStudent();
+    final lesson = await _getOrCreateLesson(student.id);
+    final report;
+
+    // TODO: This validation needs to be better
+    if (_bodyController.text != _template) {
+      report = Report(
+          studentId: student.id,
+          lessonId: lesson.id,
+          date: _date,
+          topic: _topic!,
+          body: text);
+
+      final pdfDoc = await report.toPdfDoc();
+      final pdfTopic = PdfText();
+      await pdfTopic.process(_topic!, PdfSection.h2);
+      pdfDoc.topic = pdfTopic;
+
+      Navigator.push<bool>(context, MaterialPageRoute(
+        builder: (context) {
+          return PdfPreviewPage(pdfDocument: pdfDoc);
+        },
+      ));
+    } else {
+      report = null;
+    }
+
+    final message;
+    if (report == null) {
+      message = RichText(
+        text: TextSpan(children: [
+          TextSpan(text: "Lesson saved: "),
+          TextSpan(
+              text: "$_name", style: TextStyle(fontWeight: FontWeight.bold)),
+          TextSpan(text: " on "),
+          TextSpan(
+              text: "${CoMethods.getDateString(_date)}",
+              style: TextStyle(fontStyle: FontStyle.italic))
+        ]),
+      );
+    } else {
+      message = RichText(
+        text: TextSpan(children: [
+          TextSpan(text: "Lesson saved: "),
+          TextSpan(
+              text: "$_name", style: TextStyle(fontWeight: FontWeight.bold)),
+          TextSpan(text: " on "),
+          TextSpan(
+              text: "${CoMethods.getDateString(_date)}\n\n",
+              style: TextStyle(fontStyle: FontStyle.italic)),
+          TextSpan(
+              text: "Report saved!",
+              style: TextStyle(fontWeight: FontWeight.bold))
+        ]),
+      );
+    }
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: message,
+      backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+      showCloseIcon: true,
+      behavior: SnackBarBehavior.floating,
+    ));
+  }
+
+  KeyEventResult _handleKey(
+      {required TextEditingController? controller,
+      required RawKeyEvent rawKeyEvent}) {
+    if (controller == null) return KeyEventResult.ignored;
+
+    final k = rawKeyEvent.logicalKey;
+
+    // this character is used to format the final report
+    if (k.keyLabel == "^") {
+      return KeyEventResult.handled;
+    }
+
+    if (rawKeyEvent is RawKeyDownEvent) {
+      // print(k.keyLabel);
+
+      final List<int> caretIndex = [
+        controller.selection.baseOffset,
+        controller.selection.extentOffset
+      ];
+
+      if (CompanionLexer.markers.contains(k.keyLabel)) {
+        final newText = CoMethods.autoInsertBrackets(
+            k.keyLabel, controller, caretIndex[0], caretIndex[1]);
+
+        controller.text = newText;
+        controller.selection = TextSelection(
+            baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
+
+        return KeyEventResult.handled;
+      } else if (rawKeyEvent.isControlPressed) {
+        switch (k.keyLabel) {
+          case "Arrow Up":
+          case "Arrow Down":
+            controller.text = _shiftRow(k.keyLabel);
+            controller.selection = TextSelection(
+                baseOffset: caretIndex[0], extentOffset: caretIndex[1]);
+            break;
+          case "S":
+            //_saveReportSync();
+            break;
+          case "B":
+            controller.text = CoMethods.insertStyleSyntax("**", controller);
+            controller.selection = TextSelection(
+                baseOffset: caretIndex[0] + 2, extentOffset: caretIndex[1] + 2);
+            break;
+          case "I":
+            controller.text = CoMethods.insertStyleSyntax("*", controller);
+            controller.selection = TextSelection(
+                baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
+            break;
+          case "U":
+            controller.text = CoMethods.insertStyleSyntax("_", controller);
+            controller.selection = TextSelection(
+                baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
+            break;
+          case "Enter":
+            final fullText = controller.text;
+
+            final before;
+            final middle = "\n";
+            final after;
+            final newSelectionIndex;
+
+            final indexNextLineEnd =
+                fullText.indexOf("\n", controller.selection.baseOffset);
+
+            if (indexNextLineEnd != -1) {
+              before = fullText.substring(0, indexNextLineEnd);
+              after = fullText.substring(indexNextLineEnd, fullText.length);
+              newSelectionIndex = indexNextLineEnd;
+            } else {
+              before = fullText;
+              after = "";
+              newSelectionIndex = fullText.length + 1;
+            }
+
+            controller.text = "$before$middle$after";
+            controller.selection =
+                TextSelection.collapsed(offset: newSelectionIndex + 1);
+
+            return KeyEventResult.handled;
+          case "Numpad Add":
+            //increase font size
+            setState(() {
+              _fontSize++;
+            });
+            break;
+          case "Numpad Subtract":
+            //decrease font size
+            setState(() {
+              _fontSize--;
+            });
+            break;
+          // TODO: this is just a copy from "Enter"'s body
+          case "V":
+          // TODO: create new line marker if controller is main one
+          default:
+        }
+        return KeyEventResult.ignored;
+      } else {
+        if (!_nonAutoRowStartKeys.contains(k.keyLabel) && //auto-start row
+            _bodyController.text[caretIndex[0] - 1] == "\n") {
+          final indexMin =
+              (caretIndex[0] < caretIndex[1]) ? caretIndex[0] : caretIndex[1];
+
+          _bodyController.text = _autoStartRow(k.keyLabel, indexMin);
+          _bodyController.selection = TextSelection(
+              baseOffset: caretIndex[0] + 2, extentOffset: caretIndex[1] + 2);
+        } else if (k.keyLabel == "|" && //auto-go to new line for RHS cell entry
+            (_bodyController.text[caretIndex[0] - 1] == "|")) {
+          _bodyController.text = _autoCellBreak(caretIndex[0]);
+          _bodyController.selection = TextSelection(
+              baseOffset: caretIndex[0] + 6, extentOffset: caretIndex[1] + 6);
+          return KeyEventResult.handled;
+        } else if (k.keyLabel == "/" && //auto-make line break in cell
+            (_bodyController.text[caretIndex[0] - 1] == "/")) {
+          int lineStartIndex = 0;
+          int thisIndex;
+
+          if (_bodyController.text.contains("\n-")) {
+            thisIndex = _bodyController.text.indexOf("\n-");
+
+            while (thisIndex < caretIndex[0]) {
+              lineStartIndex = thisIndex;
+              thisIndex =
+                  _bodyController.text.indexOf("\n-", lineStartIndex + 1);
+
+              if (thisIndex == -1) {
+                lineStartIndex = _bodyController.text.indexOf("\n-");
+                break;
+              }
+            }
+          } else {
+            thisIndex = _bodyController.text.indexOf("\n");
+          }
+
+          final start = lineStartIndex;
+          final end = caretIndex[0];
+
+          final line = _bodyController.text.substring(start, end);
+          if (line.contains("||") && (line.indexOf("||") < caretIndex[0])) {
+            _bodyController.text = _autoLineBreak(caretIndex[0], true);
+            _bodyController.selection = TextSelection(
+                baseOffset: caretIndex[0] + 6, extentOffset: caretIndex[1] + 6);
+          } else {
+            _bodyController.text = _autoLineBreak(caretIndex[0], false);
+            _bodyController.selection = TextSelection(
+                baseOffset: caretIndex[0] + 4, extentOffset: caretIndex[1] + 4);
+          }
+          return KeyEventResult.handled;
+        }
+      }
+    }
+    return KeyEventResult.ignored;
+  }
+
   //FORMATTING------------------------------------------------------------------
 
   String _unformat() {
@@ -533,55 +759,6 @@ class _TextEditorViewState extends State<TextEditorView> {
   }
 
   //OTHER-----------------------------------------------------------------------
-  void _onPressedSubmit() async {
-    // text processed without tabspaces
-    String text = _unformat();
-
-    final student = await _getOrCreateStudent();
-    final lesson = await _getOrCreateLesson(student.id);
-
-    // TODO: This validation needs to be better
-    if (_bodyController.text != _template) {
-      final report = Report(
-          studentId: student.id,
-          lessonId: lesson.id,
-          date: _date,
-          topic: _topic!,
-          body: text);
-
-      final pdfDoc = await report.toPdfDoc();
-      final pdfTopic = PdfText();
-      await pdfTopic.process(_topic!, PdfSection.h2);
-      pdfDoc.topic = pdfTopic;
-
-      Navigator.push<bool>(context, MaterialPageRoute(
-        builder: (context) {
-          return PdfPreviewPage(pdfDocument: pdfDoc);
-        },
-      ));
-    }
-
-    // TODO: This code is for a depreciated method of batch-adding lessons.
-    // TODO: Implement later in a seperate mode?
-    // final lReports = (text.contains("===")) ? text.split("===") : null;
-    // if (lReports != null) {
-    //   for (final reportChunk in lReports) {
-    //     final reportObj = Report(
-    //         studentId: student.id,
-    //         lessonId: lesson.id,
-    //         date: _date,
-    //         topic: _topic!,
-    //         body: reportChunk);
-
-    //     final pdfDoc = await reportObj.toPdfDoc();
-    //     Navigator.push(context, MaterialPageRoute(
-    //       builder: (context) {
-    //         return PdfPreviewPage(pdfDocument: pdfDoc);
-    //       },
-    //     ));
-    //   }
-    // } else {}
-  }
 
   String _shiftRow(String keyLabel) {
     final text = _bodyController.text;
@@ -638,162 +815,6 @@ class _TextEditorViewState extends State<TextEditorView> {
           "\n" +
           text.substring(counterOldEnd, text.length);
     }
-  }
-
-  KeyEventResult _handleKey(
-      {required TextEditingController? controller,
-      required RawKeyEvent rawKeyEvent}) {
-    if (controller == null) return KeyEventResult.ignored;
-
-    final k = rawKeyEvent.logicalKey;
-
-    // this character is used to format the final report
-    if (k.keyLabel == "^") {
-      return KeyEventResult.handled;
-    }
-
-    if (rawKeyEvent is RawKeyDownEvent) {
-      // print(k.keyLabel);
-
-      final List<int> caretIndex = [
-        controller.selection.baseOffset,
-        controller.selection.extentOffset
-      ];
-
-      if (CompanionLexer.markers.contains(k.keyLabel)) {
-        final newText = CoMethods.autoInsertBrackets(
-            k.keyLabel, controller, caretIndex[0], caretIndex[1]);
-
-        controller.text = newText;
-        controller.selection = TextSelection(
-            baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
-
-        return KeyEventResult.handled;
-      } else if (rawKeyEvent.isControlPressed) {
-        switch (k.keyLabel) {
-          case "Arrow Up":
-          case "Arrow Down":
-            controller.text = _shiftRow(k.keyLabel);
-            controller.selection = TextSelection(
-                baseOffset: caretIndex[0], extentOffset: caretIndex[1]);
-            break;
-          case "S":
-            //_saveReportSync();
-            break;
-          case "B":
-            controller.text = CoMethods.insertStyleSyntax("**", controller);
-            controller.selection = TextSelection(
-                baseOffset: caretIndex[0] + 2, extentOffset: caretIndex[1] + 2);
-            break;
-          case "I":
-            controller.text = CoMethods.insertStyleSyntax("*", controller);
-            controller.selection = TextSelection(
-                baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
-            break;
-          case "U":
-            controller.text = CoMethods.insertStyleSyntax("_", controller);
-            controller.selection = TextSelection(
-                baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
-            break;
-          case "Enter":
-            final fullText = controller.text;
-
-            final before;
-            final middle = "\n";
-            final after;
-            final newSelectionIndex;
-
-            final indexNextLineEnd =
-                fullText.indexOf("\n", controller.selection.baseOffset);
-
-            if (indexNextLineEnd != -1) {
-              before = fullText.substring(0, indexNextLineEnd);
-              after = fullText.substring(indexNextLineEnd, fullText.length);
-              newSelectionIndex = indexNextLineEnd;
-            } else {
-              before = fullText;
-              after = "";
-              newSelectionIndex = fullText.length + 1;
-            }
-
-            controller.text = "$before$middle$after";
-            controller.selection =
-                TextSelection.collapsed(offset: newSelectionIndex + 1);
-
-            return KeyEventResult.handled;
-          case "Numpad Add":
-            //increase font size
-            setState(() {
-              _fontSize++;
-            });
-            break;
-          case "Numpad Subtract":
-            //decrease font size
-            setState(() {
-              _fontSize--;
-            });
-            break;
-          // TODO: this is just a copy from "Enter"'s body
-          case "V":
-          // TODO: create new line marker if controller is main one
-          default:
-        }
-        return KeyEventResult.ignored;
-      } else {
-        if (!_nonAutoRowStartKeys.contains(k.keyLabel) && //auto-start row
-            _bodyController.text[caretIndex[0] - 1] == "\n") {
-          final indexMin =
-              (caretIndex[0] < caretIndex[1]) ? caretIndex[0] : caretIndex[1];
-
-          _bodyController.text = _autoStartRow(k.keyLabel, indexMin);
-          _bodyController.selection = TextSelection(
-              baseOffset: caretIndex[0] + 2, extentOffset: caretIndex[1] + 2);
-        } else if (k.keyLabel == "|" && //auto-go to new line for RHS cell entry
-            (_bodyController.text[caretIndex[0] - 1] == "|")) {
-          _bodyController.text = _autoCellBreak(caretIndex[0]);
-          _bodyController.selection = TextSelection(
-              baseOffset: caretIndex[0] + 6, extentOffset: caretIndex[1] + 6);
-          return KeyEventResult.handled;
-        } else if (k.keyLabel == "/" && //auto-make line break in cell
-            (_bodyController.text[caretIndex[0] - 1] == "/")) {
-          int lineStartIndex = 0;
-          int thisIndex;
-
-          if (_bodyController.text.contains("\n-")) {
-            thisIndex = _bodyController.text.indexOf("\n-");
-
-            while (thisIndex < caretIndex[0]) {
-              lineStartIndex = thisIndex;
-              thisIndex =
-                  _bodyController.text.indexOf("\n-", lineStartIndex + 1);
-
-              if (thisIndex == -1) {
-                lineStartIndex = _bodyController.text.indexOf("\n-");
-                break;
-              }
-            }
-          } else {
-            thisIndex = _bodyController.text.indexOf("\n");
-          }
-
-          final start = lineStartIndex;
-          final end = caretIndex[0];
-
-          final line = _bodyController.text.substring(start, end);
-          if (line.contains("||") && (line.indexOf("||") < caretIndex[0])) {
-            _bodyController.text = _autoLineBreak(caretIndex[0], true);
-            _bodyController.selection = TextSelection(
-                baseOffset: caretIndex[0] + 6, extentOffset: caretIndex[1] + 6);
-          } else {
-            _bodyController.text = _autoLineBreak(caretIndex[0], false);
-            _bodyController.selection = TextSelection(
-                baseOffset: caretIndex[0] + 4, extentOffset: caretIndex[1] + 4);
-          }
-          return KeyEventResult.handled;
-        }
-      }
-    }
-    return KeyEventResult.ignored;
   }
 
   void _duplicateCorrections() {
