@@ -17,29 +17,34 @@ const ReportSchema = CollectionSchema(
   name: r'Report',
   id: 4107730612455750309,
   properties: {
-    r'headingPrefix': PropertySchema(
+    r'body': PropertySchema(
       id: 0,
-      name: r'headingPrefix',
+      name: r'body',
       type: IsarType.string,
     ),
-    r'linePrefix': PropertySchema(
+    r'date': PropertySchema(
       id: 1,
-      name: r'linePrefix',
-      type: IsarType.string,
+      name: r'date',
+      type: IsarType.dateTime,
     ),
-    r'objectSplitter': PropertySchema(
+    r'homework': PropertySchema(
       id: 2,
-      name: r'objectSplitter',
+      name: r'homework',
       type: IsarType.string,
     ),
-    r'tableSubheading': PropertySchema(
+    r'lessonId': PropertySchema(
       id: 3,
-      name: r'tableSubheading',
-      type: IsarType.string,
+      name: r'lessonId',
+      type: IsarType.long,
     ),
-    r'text': PropertySchema(
+    r'studentId': PropertySchema(
       id: 4,
-      name: r'text',
+      name: r'studentId',
+      type: IsarType.long,
+    ),
+    r'topic': PropertySchema(
+      id: 5,
+      name: r'topic',
       type: IsarType.string,
     )
   },
@@ -63,16 +68,14 @@ int _reportEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.headingPrefix.length * 3;
-  bytesCount += 3 + object.linePrefix.length * 3;
-  bytesCount += 3 + object.objectSplitter.length * 3;
-  bytesCount += 3 + object.tableSubheading.length * 3;
+  bytesCount += 3 + object.body.length * 3;
   {
-    final value = object.text;
+    final value = object.homework;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.topic.length * 3;
   return bytesCount;
 }
 
@@ -82,11 +85,12 @@ void _reportSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.headingPrefix);
-  writer.writeString(offsets[1], object.linePrefix);
-  writer.writeString(offsets[2], object.objectSplitter);
-  writer.writeString(offsets[3], object.tableSubheading);
-  writer.writeString(offsets[4], object.text);
+  writer.writeString(offsets[0], object.body);
+  writer.writeDateTime(offsets[1], object.date);
+  writer.writeString(offsets[2], object.homework);
+  writer.writeLong(offsets[3], object.lessonId);
+  writer.writeLong(offsets[4], object.studentId);
+  writer.writeString(offsets[5], object.topic);
 }
 
 Report _reportDeserialize(
@@ -96,7 +100,12 @@ Report _reportDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Report(
-    reader.readStringOrNull(offsets[4]),
+    body: reader.readString(offsets[0]),
+    date: reader.readDateTime(offsets[1]),
+    homework: reader.readStringOrNull(offsets[2]),
+    lessonId: reader.readLong(offsets[3]),
+    studentId: reader.readLong(offsets[4]),
+    topic: reader.readString(offsets[5]),
   );
   object.id = id;
   return object;
@@ -112,13 +121,15 @@ P _reportDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readString(offset)) as P;
-    case 3:
-      return (reader.readString(offset)) as P;
-    case 4:
       return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readLong(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -212,20 +223,20 @@ extension ReportQueryWhere on QueryBuilder<Report, Report, QWhereClause> {
 }
 
 extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
-  QueryBuilder<Report, Report, QAfterFilterCondition> headingPrefixEqualTo(
+  QueryBuilder<Report, Report, QAfterFilterCondition> bodyEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'headingPrefix',
+        property: r'body',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> headingPrefixGreaterThan(
+  QueryBuilder<Report, Report, QAfterFilterCondition> bodyGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -233,14 +244,14 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'headingPrefix',
+        property: r'body',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> headingPrefixLessThan(
+  QueryBuilder<Report, Report, QAfterFilterCondition> bodyLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -248,14 +259,14 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'headingPrefix',
+        property: r'body',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> headingPrefixBetween(
+  QueryBuilder<Report, Report, QAfterFilterCondition> bodyBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -264,7 +275,7 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'headingPrefix',
+        property: r'body',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -274,70 +285,267 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> headingPrefixStartsWith(
+  QueryBuilder<Report, Report, QAfterFilterCondition> bodyStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'headingPrefix',
+        property: r'body',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> headingPrefixEndsWith(
+  QueryBuilder<Report, Report, QAfterFilterCondition> bodyEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'headingPrefix',
+        property: r'body',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> headingPrefixContains(
-      String value,
+  QueryBuilder<Report, Report, QAfterFilterCondition> bodyContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'headingPrefix',
+        property: r'body',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> headingPrefixMatches(
+  QueryBuilder<Report, Report, QAfterFilterCondition> bodyMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'headingPrefix',
+        property: r'body',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> headingPrefixIsEmpty() {
+  QueryBuilder<Report, Report, QAfterFilterCondition> bodyIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'headingPrefix',
+        property: r'body',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition>
-      headingPrefixIsNotEmpty() {
+  QueryBuilder<Report, Report, QAfterFilterCondition> bodyIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'headingPrefix',
+        property: r'body',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> dateEqualTo(
+      DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'date',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> dateGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'date',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> dateLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'date',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> dateBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'date',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'homework',
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'homework',
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'homework',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'homework',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'homework',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'homework',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'homework',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'homework',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'homework',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'homework',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'homework',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> homeworkIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'homework',
         value: '',
       ));
     });
@@ -395,20 +603,126 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> linePrefixEqualTo(
+  QueryBuilder<Report, Report, QAfterFilterCondition> lessonIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lessonId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> lessonIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lessonId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> lessonIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lessonId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> lessonIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lessonId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'studentId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'studentId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'studentId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> studentIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'studentId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterFilterCondition> topicEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'linePrefix',
+        property: r'topic',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> linePrefixGreaterThan(
+  QueryBuilder<Report, Report, QAfterFilterCondition> topicGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -416,14 +730,14 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'linePrefix',
+        property: r'topic',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> linePrefixLessThan(
+  QueryBuilder<Report, Report, QAfterFilterCondition> topicLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -431,14 +745,14 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'linePrefix',
+        property: r'topic',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> linePrefixBetween(
+  QueryBuilder<Report, Report, QAfterFilterCondition> topicBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -447,7 +761,7 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'linePrefix',
+        property: r'topic',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -457,477 +771,69 @@ extension ReportQueryFilter on QueryBuilder<Report, Report, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> linePrefixStartsWith(
+  QueryBuilder<Report, Report, QAfterFilterCondition> topicStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'linePrefix',
+        property: r'topic',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> linePrefixEndsWith(
+  QueryBuilder<Report, Report, QAfterFilterCondition> topicEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'linePrefix',
+        property: r'topic',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> linePrefixContains(
+  QueryBuilder<Report, Report, QAfterFilterCondition> topicContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'linePrefix',
+        property: r'topic',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> linePrefixMatches(
+  QueryBuilder<Report, Report, QAfterFilterCondition> topicMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'linePrefix',
+        property: r'topic',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> linePrefixIsEmpty() {
+  QueryBuilder<Report, Report, QAfterFilterCondition> topicIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'linePrefix',
+        property: r'topic',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<Report, Report, QAfterFilterCondition> linePrefixIsNotEmpty() {
+  QueryBuilder<Report, Report, QAfterFilterCondition> topicIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'linePrefix',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> objectSplitterEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'objectSplitter',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> objectSplitterGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'objectSplitter',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> objectSplitterLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'objectSplitter',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> objectSplitterBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'objectSplitter',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> objectSplitterStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'objectSplitter',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> objectSplitterEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'objectSplitter',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> objectSplitterContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'objectSplitter',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> objectSplitterMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'objectSplitter',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> objectSplitterIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'objectSplitter',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition>
-      objectSplitterIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'objectSplitter',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> tableSubheadingEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'tableSubheading',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition>
-      tableSubheadingGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'tableSubheading',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> tableSubheadingLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'tableSubheading',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> tableSubheadingBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'tableSubheading',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> tableSubheadingStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'tableSubheading',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> tableSubheadingEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'tableSubheading',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> tableSubheadingContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'tableSubheading',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> tableSubheadingMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'tableSubheading',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> tableSubheadingIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'tableSubheading',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition>
-      tableSubheadingIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'tableSubheading',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'text',
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'text',
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'text',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textContains(String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'text',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'text',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'text',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterFilterCondition> textIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'text',
+        property: r'topic',
         value: '',
       ));
     });
@@ -939,77 +845,113 @@ extension ReportQueryObject on QueryBuilder<Report, Report, QFilterCondition> {}
 extension ReportQueryLinks on QueryBuilder<Report, Report, QFilterCondition> {}
 
 extension ReportQuerySortBy on QueryBuilder<Report, Report, QSortBy> {
-  QueryBuilder<Report, Report, QAfterSortBy> sortByHeadingPrefix() {
+  QueryBuilder<Report, Report, QAfterSortBy> sortByBody() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'headingPrefix', Sort.asc);
+      return query.addSortBy(r'body', Sort.asc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> sortByHeadingPrefixDesc() {
+  QueryBuilder<Report, Report, QAfterSortBy> sortByBodyDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'headingPrefix', Sort.desc);
+      return query.addSortBy(r'body', Sort.desc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> sortByLinePrefix() {
+  QueryBuilder<Report, Report, QAfterSortBy> sortByDate() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'linePrefix', Sort.asc);
+      return query.addSortBy(r'date', Sort.asc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> sortByLinePrefixDesc() {
+  QueryBuilder<Report, Report, QAfterSortBy> sortByDateDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'linePrefix', Sort.desc);
+      return query.addSortBy(r'date', Sort.desc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> sortByObjectSplitter() {
+  QueryBuilder<Report, Report, QAfterSortBy> sortByHomework() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'objectSplitter', Sort.asc);
+      return query.addSortBy(r'homework', Sort.asc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> sortByObjectSplitterDesc() {
+  QueryBuilder<Report, Report, QAfterSortBy> sortByHomeworkDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'objectSplitter', Sort.desc);
+      return query.addSortBy(r'homework', Sort.desc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> sortByTableSubheading() {
+  QueryBuilder<Report, Report, QAfterSortBy> sortByLessonId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'tableSubheading', Sort.asc);
+      return query.addSortBy(r'lessonId', Sort.asc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> sortByTableSubheadingDesc() {
+  QueryBuilder<Report, Report, QAfterSortBy> sortByLessonIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'tableSubheading', Sort.desc);
+      return query.addSortBy(r'lessonId', Sort.desc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> sortByText() {
+  QueryBuilder<Report, Report, QAfterSortBy> sortByStudentId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'text', Sort.asc);
+      return query.addSortBy(r'studentId', Sort.asc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> sortByTextDesc() {
+  QueryBuilder<Report, Report, QAfterSortBy> sortByStudentIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'text', Sort.desc);
+      return query.addSortBy(r'studentId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterSortBy> sortByTopic() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'topic', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterSortBy> sortByTopicDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'topic', Sort.desc);
     });
   }
 }
 
 extension ReportQuerySortThenBy on QueryBuilder<Report, Report, QSortThenBy> {
-  QueryBuilder<Report, Report, QAfterSortBy> thenByHeadingPrefix() {
+  QueryBuilder<Report, Report, QAfterSortBy> thenByBody() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'headingPrefix', Sort.asc);
+      return query.addSortBy(r'body', Sort.asc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> thenByHeadingPrefixDesc() {
+  QueryBuilder<Report, Report, QAfterSortBy> thenByBodyDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'headingPrefix', Sort.desc);
+      return query.addSortBy(r'body', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterSortBy> thenByDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'date', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterSortBy> thenByDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'date', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterSortBy> thenByHomework() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'homework', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Report, Report, QAfterSortBy> thenByHomeworkDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'homework', Sort.desc);
     });
   }
 
@@ -1025,91 +967,80 @@ extension ReportQuerySortThenBy on QueryBuilder<Report, Report, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> thenByLinePrefix() {
+  QueryBuilder<Report, Report, QAfterSortBy> thenByLessonId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'linePrefix', Sort.asc);
+      return query.addSortBy(r'lessonId', Sort.asc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> thenByLinePrefixDesc() {
+  QueryBuilder<Report, Report, QAfterSortBy> thenByLessonIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'linePrefix', Sort.desc);
+      return query.addSortBy(r'lessonId', Sort.desc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> thenByObjectSplitter() {
+  QueryBuilder<Report, Report, QAfterSortBy> thenByStudentId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'objectSplitter', Sort.asc);
+      return query.addSortBy(r'studentId', Sort.asc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> thenByObjectSplitterDesc() {
+  QueryBuilder<Report, Report, QAfterSortBy> thenByStudentIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'objectSplitter', Sort.desc);
+      return query.addSortBy(r'studentId', Sort.desc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> thenByTableSubheading() {
+  QueryBuilder<Report, Report, QAfterSortBy> thenByTopic() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'tableSubheading', Sort.asc);
+      return query.addSortBy(r'topic', Sort.asc);
     });
   }
 
-  QueryBuilder<Report, Report, QAfterSortBy> thenByTableSubheadingDesc() {
+  QueryBuilder<Report, Report, QAfterSortBy> thenByTopicDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'tableSubheading', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterSortBy> thenByText() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'text', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Report, Report, QAfterSortBy> thenByTextDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'text', Sort.desc);
+      return query.addSortBy(r'topic', Sort.desc);
     });
   }
 }
 
 extension ReportQueryWhereDistinct on QueryBuilder<Report, Report, QDistinct> {
-  QueryBuilder<Report, Report, QDistinct> distinctByHeadingPrefix(
+  QueryBuilder<Report, Report, QDistinct> distinctByBody(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'headingPrefix',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'body', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Report, Report, QDistinct> distinctByLinePrefix(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Report, Report, QDistinct> distinctByDate() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'linePrefix', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'date');
     });
   }
 
-  QueryBuilder<Report, Report, QDistinct> distinctByObjectSplitter(
+  QueryBuilder<Report, Report, QDistinct> distinctByHomework(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'objectSplitter',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'homework', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Report, Report, QDistinct> distinctByTableSubheading(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Report, Report, QDistinct> distinctByLessonId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'tableSubheading',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'lessonId');
     });
   }
 
-  QueryBuilder<Report, Report, QDistinct> distinctByText(
+  QueryBuilder<Report, Report, QDistinct> distinctByStudentId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'studentId');
+    });
+  }
+
+  QueryBuilder<Report, Report, QDistinct> distinctByTopic(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'text', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'topic', caseSensitive: caseSensitive);
     });
   }
 }
@@ -1121,33 +1052,39 @@ extension ReportQueryProperty on QueryBuilder<Report, Report, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Report, String, QQueryOperations> headingPrefixProperty() {
+  QueryBuilder<Report, String, QQueryOperations> bodyProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'headingPrefix');
+      return query.addPropertyName(r'body');
     });
   }
 
-  QueryBuilder<Report, String, QQueryOperations> linePrefixProperty() {
+  QueryBuilder<Report, DateTime, QQueryOperations> dateProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'linePrefix');
+      return query.addPropertyName(r'date');
     });
   }
 
-  QueryBuilder<Report, String, QQueryOperations> objectSplitterProperty() {
+  QueryBuilder<Report, String?, QQueryOperations> homeworkProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'objectSplitter');
+      return query.addPropertyName(r'homework');
     });
   }
 
-  QueryBuilder<Report, String, QQueryOperations> tableSubheadingProperty() {
+  QueryBuilder<Report, int, QQueryOperations> lessonIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'tableSubheading');
+      return query.addPropertyName(r'lessonId');
     });
   }
 
-  QueryBuilder<Report, String?, QQueryOperations> textProperty() {
+  QueryBuilder<Report, int, QQueryOperations> studentIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'text');
+      return query.addPropertyName(r'studentId');
+    });
+  }
+
+  QueryBuilder<Report, String, QQueryOperations> topicProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'topic');
     });
   }
 }

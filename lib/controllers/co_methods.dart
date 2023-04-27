@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 enum TextType { question, base, sub, example, info }
 
-class CompanionMethods {
+class CoMethods {
   static String insertStyleSyntax(
       String marker, TextEditingController controller) {
     final fullText = controller.text;

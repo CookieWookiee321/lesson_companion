@@ -8,27 +8,18 @@
             "name": "lesson_companion",
             "request": "launch",
             "type": "dart",
-            "args": [
-                "--no-sound-null-safety"
-            ]
         },
         {
             "name": "lesson_companion (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile",
-            "args": [
-                "--no-sound-null-safety"
-            ]
         },
         {
             "name": "lesson_companion (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",
-            "args": [
-                "--no-sound-null-safety"
-            ]
         }
     ]
 }

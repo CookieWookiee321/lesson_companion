@@ -36,6 +36,7 @@ class Student {
         _name = name;
 
   // DATABASE-------------------------------------------------------------------
+
   static Future<Student?> getById(int id) async {
     final isar = Isar.getInstance("student_db") ??
         await Isar.open([StudentSchema], name: "student_db");

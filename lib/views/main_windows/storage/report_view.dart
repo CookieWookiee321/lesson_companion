@@ -50,13 +50,13 @@ class _ReportsListViewState extends State<ReportsListView> {
     final output = <Report, ReportDetails>{};
     final reports = await Report.getAllReports();
     for (final r in reports) {
-      final dataObj = r.toDataObj(r.text!);
+      final dataObj = r.toDataObj();
       output[r] = ReportDetails(
           dataObj.name,
-          CompanionMethods.getShortDate(dataObj.date),
-          CompanionMethods.convertListToString(dataObj.topic)!,
+          CoMethods.getShortDate(dataObj.date),
+          CoMethods.convertListToString(dataObj.topic)!,
           (dataObj.homework != null)
-              ? CompanionMethods.convertListToString(dataObj.homework)!
+              ? CoMethods.convertListToString(dataObj.homework)!
               : "");
     }
     return output;

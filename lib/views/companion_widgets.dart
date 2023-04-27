@@ -15,7 +15,8 @@ class TextFieldOutlined extends StatefulWidget {
       this.readOnly = false,
       this.textAlign = TextAlign.left,
       this.onTextChanged,
-      this.keyboardType})
+      this.keyboardType,
+      this.bolded = false})
       : super(key: key);
 
   final String initialText;
@@ -27,6 +28,7 @@ class TextFieldOutlined extends StatefulWidget {
   final bool readOnly;
   final TextInputType? keyboardType;
   final Function(String text)? onTextChanged;
+  final bool bolded;
 
   @override
   State<TextFieldOutlined> createState() => _TextFieldOutlinedState();
@@ -64,7 +66,9 @@ class _TextFieldOutlinedState extends State<TextFieldOutlined> {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
         ),
-        style: TextStyle(fontSize: widget.size),
+        style: TextStyle(
+            fontSize: widget.size,
+            fontWeight: (widget.bolded) ? FontWeight.bold : FontWeight.normal),
         maxLines: null,
         keyboardType: widget.keyboardType,
         onChanged: widget.onTextChanged,

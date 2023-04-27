@@ -58,18 +58,18 @@ class PdfPreviewPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  child: Text("Close"),
+                  child: Text("Cancel"),
                   onPressed: () async {
-                    Navigator.pop(context);
+                    Navigator.pop(context, false);
                   },
                 ),
                 Padding(padding: EdgeInsets.symmetric(horizontal: 8.0)),
                 ElevatedButton(
-                  child: Text("Save"),
+                  child: Text("Save & Close"),
                   onPressed: () async {
                     if (_pdf != null) {
                       final saveDest =
-                          "${await CompanionMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await Student.getId(_pdfDocument.name.toString())}) (${CompanionMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
+                          "${await CoMethods.getLocalPath()}${_pdfDocument.name.toString()} (ID ${await Student.getId(_pdfDocument.name.toString())}) (${CoMethods.getShortDate(_pdfDocument.date.parseToDateTime())}).pdf";
                       final file = File(saveDest);
                       await file.writeAsBytes(_pdf!);
 
@@ -78,6 +78,7 @@ class PdfPreviewPage extends StatelessWidget {
                         clipBehavior: Clip.antiAlias,
                         showCloseIcon: true,
                       ));
+                      Navigator.pop(context, true);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content:
@@ -85,6 +86,7 @@ class PdfPreviewPage extends StatelessWidget {
                         clipBehavior: Clip.antiAlias,
                         showCloseIcon: true,
                       ));
+                      Navigator.pop(context, false);
                     }
                   },
                 )

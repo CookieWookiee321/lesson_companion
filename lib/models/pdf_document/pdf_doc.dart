@@ -7,13 +7,18 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart';
 
 class PdfDoc {
-  final PdfText name;
-  final PdfText date;
-  final PdfText topic;
-  final PdfText? homework;
-  final List<PdfTableModel>? tables;
+  PdfText name;
+  PdfText date;
+  PdfText topic;
+  PdfText? homework;
+  List<PdfTableModel>? tables;
 
-  PdfDoc(this.name, this.date, this.topic, this.homework, this.tables);
+  PdfDoc(
+      {required this.name,
+      required this.date,
+      required this.topic,
+      this.homework,
+      this.tables});
 
   /// Creates and saves a report PDF based on the parent object.
   Future<Uint8List> create() async {

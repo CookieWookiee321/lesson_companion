@@ -115,8 +115,8 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
                   itemCount: _lessons!.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      leading: Text(
-                          CompanionMethods.getShortDate(_lessons![index].date)),
+                      leading:
+                          Text(CoMethods.getShortDate(_lessons![index].date)),
                       title:
                           Text(_lessons![index].topic.replaceAll("//", "\n")),
                       onTap: () async {
@@ -219,7 +219,7 @@ class _EditDialogState extends State<EditDialog> {
               onChanged: (value) {
                 _selectedDate = DateTime.tryParse(value);
               },
-              initialValue: CompanionMethods.getShortDate(widget.initialDate),
+              initialValue: CoMethods.getShortDate(widget.initialDate),
             ))
           ],
         ),

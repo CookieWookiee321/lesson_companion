@@ -10,35 +10,37 @@ part 'report.g.dart';
 
 @collection
 class Report {
-  Report(this.text);
+  Report(
+      {required this.studentId,
+      required this.lessonId,
+      required this.date,
+      required this.topic,
+      this.homework,
+      required this.body}) {}
 
   Id id = Isar.autoIncrement;
-  String? text;
-
-  final objectSplitter = "===";
-  final headingPrefix = '*';
-  final tableSubheading = '#';
-  final linePrefix = "-";
+  int studentId;
+  int lessonId;
+  DateTime date;
+  String topic;
+  String? homework;
+  String body;
 
   /// Creates and saves a report PDF based on the parent object.
   Future<PdfDoc> toPdfDoc() async {
-    assert(text != null,
-        "The Report object's 'text' field has not been initialized");
-
-    final dataObj = toDataObj(text!);
+    final dataObj = this.toDataObj();
 
     // transform string vars into the right from to be printed
-    final topics = CompanionMethods.convertListToString(dataObj.topic);
+    final topics = CoMethods.convertListToString(dataObj.topic);
     final homework = dataObj.homework != null
-        ? CompanionMethods.convertListToString(dataObj.homework)
+        ? CoMethods.convertListToString(dataObj.homework)
         : null;
 
     //header
     final _name = PdfText();
     await _name.process(dataObj.name, PdfSection.h1);
     final _date = PdfText();
-    await _date.process(
-        CompanionMethods.getDateString(dataObj.date), PdfSection.h1);
+    await _date.process(CoMethods.getDateString(dataObj.date), PdfSection.h1);
     final _topic = PdfText();
     await _topic.process(topics!, PdfSection.h2);
     PdfText _homework = PdfText();
@@ -75,13 +77,37 @@ class Report {
     }
 
     final pdf = PdfDoc(
-      _name,
-      _date,
-      _topic,
-      _homework,
-      _tables,
+      name: _name,
+      date: _date,
+      topic: _topic,
+      homework: _homework,
+      tables: _tables,
     );
     return pdf;
+  }
+
+  /// Maps [body] of this [Report] object according to the user's entered data.
+  /// Headings are stored as keys and all the lines that fall under the heading
+  /// are placed into a [List] which is stored as the key to the key. Lines are
+  /// stored in the same order in which they are written.
+  Map<String, List<String>> mapBody() {
+    Map<String, List<String>> mOutput = {};
+    String? heading;
+    // get all sections and loop through
+    final lSections = this.body.split("@");
+    for (int i = 0; i < lSections.length; i++) {
+      // get all lines + heading for each section
+      final lLines = lSections[i].split("\n-");
+      for (int j = 0; j < lLines.length; j++) {
+        if (j == 0) {
+          heading = lLines[j].trim();
+          mOutput[heading] = [];
+          continue;
+        }
+        mOutput[heading!]!.add(lLines[j]);
+      }
+    }
+    return mOutput;
   }
 
   //============================================================================
@@ -127,19 +153,23 @@ class Report {
     return output;
   }
 
-  ReportData toDataObj(String text) {
+  /// Converts this [Report] into a [ReportData] object.
+  ReportData toDataObj() {
+    String text = this.body;
     final headingPrefix = "@";
     final linePrefix = "\n-";
 
     final tables = <ReportTableData>[];
     final output = ReportData.late(null, tables);
 
-    int iStart;
-    int iEnd;
-    String tChunk;
-    List<String> tLines;
-    String tHeading;
+    int iStart; // starting index of text chunk
+    int iEnd; // ending index of text chunk
+    String tChunk; // full body of text being processed
+    List<String> tLines; // container for lines under heading after processing
+    String tHeading; // heading of the current chunk
 
+    // processed text gets deleted from [text] String.
+    // loops until all headings have been processed
     while (text.contains(headingPrefix)) {
       tLines = [];
       iStart = text.indexOf(headingPrefix);
@@ -154,7 +184,6 @@ class Report {
             text.substring(text.indexOf(tChunk) + tChunk.length, text.length);
         continue;
       }
-      ;
 
       tHeading = tChunk
           .substring(0, tChunk.indexOf("\n"))
@@ -169,56 +198,19 @@ class Report {
         continue;
       }
 
-      int counter = 0;
-      for (var line in tLines) {
-        line = _removeSpaces(line).trimLeft();
-        if (line.endsWith(" ??")) {
-          // remove skip markers from text
-          line = line.substring(0, tLines[counter].length - 3);
+      final List<ReportTableRowData> rows = [];
+      tLines.forEach((line) {
+        if (line.contains("||")) {
+          final arr = line.split("||");
+          rows.add(ReportTableRowData(arr[0].trim(), arr[1].trim()));
+        } else {
+          rows.add(ReportTableRowData(line, null));
         }
-        tLines[counter] = line;
-        counter++;
-      }
+      });
 
-      switch (tHeading.toUpperCase()) {
-        case "NAME":
-          output.name = tLines.first;
-          break;
-        case "DATE":
-          //format the DATE string
-          if (tLines.first.toString().contains('/')) {
-            tLines.first = tLines.first.replaceAll('/', '-');
-          }
-          if (tLines.first.toString().split('-')[2].length == 1) {
-            final tempList = tLines.first.toString().split('-');
-            final tempDay = "0${tempList[2]}";
-            tLines.first = "${tempList[0]}-${tempList[1]}-$tempDay";
-          }
-          output.date = DateTime.parse(tLines.first);
-          break;
-        case "TOPIC":
-          output.topic = tLines;
-          break;
-        case "HOMEWORK":
-          output.homework = tLines;
-          break;
-        default:
-          final List<ReportTableRowData> rows = [];
+      output.tables.add(ReportTableData(tHeading, rows));
 
-          tLines.forEach((line) {
-            if (line.contains("||")) {
-              final arr = line.split("||");
-              rows.add(ReportTableRowData(arr[0].trim(), arr[1].trim()));
-            } else {
-              rows.add(ReportTableRowData(line, null));
-            }
-          });
-
-          output.tables.add(ReportTableData(tHeading, rows));
-          break;
-      }
-
-      //remove the processed text from the input string
+      // set [text], remove newly processed text data for next loop
       text = text.substring(iEnd, text.length);
     }
 
@@ -302,9 +294,4 @@ class ReportTableRowData {
   final String? rhs;
 
   ReportTableRowData(this.lhs, this.rhs);
-}
-
-class InputException implements Exception {
-  String cause;
-  InputException(this.cause);
 }

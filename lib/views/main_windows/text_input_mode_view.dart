@@ -5,15 +5,18 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:intl/intl.dart';
 import 'package:lesson_companion/controllers/companion_methods.dart';
-import 'package:lesson_companion/controllers/home_controller.dart';
+import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/controllers/text_mode_input_controller.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/dictionary/look_up.dart';
 import 'package:lesson_companion/models/lesson.dart';
+import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/report_template.dart';
 import 'package:lesson_companion/models/student.dart';
+import 'package:lesson_companion/views/companion_widgets.dart';
 import 'package:lesson_companion/views/dialogs/lookups/new_language_look_up.dart';
 import 'package:lesson_companion/views/main_windows/pdf_preview.dart';
 import 'package:rich_text_controller/rich_text_controller.dart';
@@ -50,20 +53,60 @@ class TextEditorView extends StatefulWidget {
 class _TextEditorViewState extends State<TextEditorView> {
   final _lookUpReturns = <LookUpReturn>[];
 
-  late RichTextController _textController;
   final _textNode = FocusNode();
 
   double _fontSize = 13.0;
+
+  String? _name;
+  DateTime _date = DateTime.now();
+  String? _topic;
+  String? _homework;
+
+  RichTextController? _currentController;
+  late RichTextController _nameController;
+  late RichTextController _dateController;
+  late RichTextController _topicController;
+  late RichTextController _bodyController;
+
+  static final Map _monthsMap = {
+    "Jan": 1,
+    "Feb": 2,
+    "Mar": 3,
+    "Apr": 4,
+    "May": 5,
+    "Jun": 6,
+    "Jul": 7,
+    "Aug": 8,
+    "Sep": 9,
+    "Oct": 10,
+    "Nov": 11,
+    "Dec": 12
+  };
 
   //MAIN------------------------------------------------------------------------
 
   @override
   initState() {
-    _textController = RichTextController(
+    _bodyController = RichTextController(
         patternMatchMap: CompanionLexer.highlighter,
         onMatch: (_) {},
         deleteOnBack: false);
-    _textController.text = _template;
+    _bodyController.text = _template;
+
+    _nameController = RichTextController(
+        patternMatchMap: CompanionLexer.highlighter,
+        onMatch: (_) {},
+        deleteOnBack: false);
+    _dateController = RichTextController(
+        patternMatchMap: CompanionLexer.highlighter,
+        onMatch: (_) {},
+        deleteOnBack: false);
+    _dateController.text = CoMethods.getDateString(_date);
+    _topicController = RichTextController(
+        patternMatchMap: CompanionLexer.highlighter,
+        onMatch: (_) {},
+        deleteOnBack: false);
+
     super.initState();
   }
 
@@ -72,7 +115,7 @@ class _TextEditorViewState extends State<TextEditorView> {
     Database.saveSetting(SharedPrefOption.fontSize, _fontSize);
 
     window.onKeyData = null;
-    _textController.dispose();
+    _bodyController.dispose();
     super.dispose();
   }
 
@@ -95,7 +138,7 @@ class _TextEditorViewState extends State<TextEditorView> {
                   actions: [
                     OutlinedButton(
                         onPressed: () {
-                          _textController.text = snapshot.data![index].text!;
+                          _bodyController.text = snapshot.data![index].text!;
                           Navigator.pop(context);
                           setState(() {});
                         },
@@ -115,153 +158,192 @@ class _TextEditorViewState extends State<TextEditorView> {
     );
   }
 
+  Widget _newTemplateDialog() {
+    String? _templateBody;
+
+    return AlertDialog(
+      content: TextFieldBorderless(
+        onTextChanged: (p0) {
+          _templateBody = p0;
+        },
+      ),
+      actions: [
+        TextButton(
+            onPressed: () async {
+              if (_templateBody != null && _templateBody!.isNotEmpty) {
+                await ReportTemplate.save(ReportTemplate(text: _templateBody));
+                Navigator.pop(context);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("Please enter a body for the template.")));
+              }
+            },
+            child: Text("OK"))
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: FocusScope(
-          autofocus: true,
-          canRequestFocus: true,
-          onKey: (node, event) {
-            return _handleKey(event);
-          },
-          child: Focus(
-            child: Column(
-              children: [
-                //tool bar
-                Card(
-                    child: Row(
-                  children: [],
-                )),
-                // main text field
-                Expanded(
-                    child: Card(
+            autofocus: true,
+            canRequestFocus: true,
+            onKey: (node, event) {
+              return _handleKey(
+                  controller: _currentController, rawKeyEvent: event);
+            },
+            child: Column(children: [
+              // tool bar
+              Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          // NAME Textfield
+                          flex: 2,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(3, 4, 1, 2),
+                            child: TextField(
+                              controller: _nameController,
+                              onChanged: (newText) {
+                                _name = newText;
+                              },
+                              style: TextStyle(
+                                fontSize: _fontSize,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 13,
+                                  vertical: 9,
+                                ),
+                                isDense: true,
+                                hintText: "Name",
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(1, 4, 3, 2),
+                              child: Expanded(
+                                // DATE Textfield
+                                flex: 1,
+                                child: TextFormField(
+                                  readOnly: true,
+                                  onTap: () async {
+                                    await showDatePicker(
+                                      context: context,
+                                      initialDate: _date,
+                                      firstDate: DateTime(2000),
+                                      lastDate: DateTime(2099),
+                                    ).then((selectedDate) {
+                                      setState(() {
+                                        _date = selectedDate!;
+                                        _dateController.text =
+                                            CoMethods.getShortDate(_date);
+                                      });
+                                    });
+                                  },
+                                  textInputAction: TextInputAction.next,
+                                  controller: _dateController,
+                                  textAlign: TextAlign.center,
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(),
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 13,
+                                      vertical: 9,
+                                    ),
+                                  ),
+                                  style: TextStyle(fontSize: _fontSize),
+                                  maxLines: 1,
+                                ),
+                              ),
+                            ))
+                      ],
+                    ),
+                    Focus(
+                      child: TextFieldOutlined(
+                        hint: "Topic",
+                        controller: _topicController,
+                        size: _fontSize,
+                        onTextChanged: (text) {
+                          _topic = text;
+                        },
+                      ),
+                      onFocusChange: (_) {
+                        _currentController = _topicController;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // main text field
+              Expanded(
+                child: Card(
                   child: Padding(
                     padding: EdgeInsets.all(0),
                     child: Row(
                       children: [
                         Expanded(
+                          child: Focus(
                             child: RawKeyboardListener(
-                          focusNode: _textNode,
-                          autofocus: true,
-                          child: TextField(
-                            controller: _textController,
-                            onSubmitted: ((value) {
-                              _textController.selection =
-                                  TextSelection.collapsed(offset: 0);
-                            }),
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(10.0))),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 13, vertical: 9),
+                              focusNode: _textNode,
+                              autofocus: true,
+                              child: TextField(
+                                controller: _bodyController,
+                                onSubmitted: ((_) {
+                                  _bodyController.selection =
+                                      TextSelection.collapsed(offset: 0);
+                                }),
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 13,
+                                    vertical: 9,
+                                  ),
+                                ),
+                                style: TextStyle(
+                                  fontSize: _fontSize,
+                                  fontFamily: "Roboto",
+                                ),
+                                maxLines: null,
+                                expands: true,
+                              ),
                             ),
-                            style: TextStyle(
-                                fontSize: _fontSize, fontFamily: "Roboto"),
-                            maxLines: null,
-                            expands: true,
+                            onFocusChange: (_) {
+                              _currentController = _bodyController;
+                            },
                           ),
-                          onKey: null,
-                        )),
+                        ),
                       ],
                     ),
                   ),
-                )),
-                Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: ElevatedButton(
-                        onPressed: _onPressedSubmit,
-                        child: const Text("Submit")))
-              ],
-            ),
-          ),
-        ),
-        floatingActionButton: SpeedDial(
-          animatedIcon: AnimatedIcons.menu_close,
-          animatedIconTheme: IconThemeData(size: 22.0),
-          visible: true,
-          curve: Curves.bounceIn,
-          children: [
-            SpeedDialChild(
-              label: "Copy",
-              onTap: () {
-                Clipboard.setData(ClipboardData(text: _textController.text));
-              },
-            ),
-            SpeedDialChild(
-              label: "Paste",
-              onTap: () {
-                Clipboard.getData(Clipboard.kTextPlain).then((value) {
-                  _textController.text = value!.text!;
-                });
-              },
-            ),
-            SpeedDialChild(
-              label: "Load Template...",
-              onTap: () async {
-                final _template = await showDialog(
-                  context: context,
-                  builder: (context) {
-                    return FutureBuilder(
-                      future: ReportTemplate.getAll(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          if (snapshot.hasData) {
-                            if (snapshot.data!.length > 0) {
-                              return _templateListView(snapshot);
-                            } else {
-                              return Center(
-                                child: Text("No templates have been saved."),
-                              );
-                            }
-                          } else if (snapshot.hasError) {
-                            return Center(
-                              child: Text(
-                                  "Error retrieving templates from database."),
-                            );
-                          } else {
-                            return Center(
-                              child: Text("No templates have been saved."),
-                            );
-                          }
-                        } else {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                      },
-                    );
-                  },
-                );
-                if (_template != null) {
-                  _textController.text = _template;
-                }
-              },
-            ),
-            // SpeedDialChild(
-            //   label: "Unformat",
-            //   onTap: () {
-            //     setState(() {
-            //       _textController.text = _unformat();
-            //     });
-            //   },
-            // ),
-            // SpeedDialChild(
-            //   label: "Format",
-            //   onTap: () {
-            //     setState(() {
-            //       _textController.text = _format(_textController.text);
-            //     });
-            //   },
-            // ),
-          ],
-        ));
+                ),
+              ),
+              Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: ElevatedButton(
+                    onPressed: _onPressedSubmit,
+                    child: const Text("Submit"),
+                  ))
+            ])));
   }
 
   //FORMATTING------------------------------------------------------------------
 
   String _unformat() {
-    String temp = _textController.text;
+    String temp = _bodyController.text;
     temp = temp.replaceAll("\n  ", "");
     temp = temp.replaceAll("\n    ", "");
     return temp;
@@ -349,7 +431,7 @@ class _TextEditorViewState extends State<TextEditorView> {
 
   String _autoStartRow(String keyLabel, int minOffset) {
     final sb = StringBuffer();
-    sb.write(_textController.text);
+    sb.write(_bodyController.text);
 
     final strA = sb.toString().substring(0, minOffset);
     final strB = sb.toString().substring(minOffset, sb.toString().length);
@@ -359,7 +441,7 @@ class _TextEditorViewState extends State<TextEditorView> {
 
   String _autoCellBreak(int caretIndex) {
     final sb = StringBuffer();
-    sb.write(_textController.text);
+    sb.write(_bodyController.text);
 
     final strA = sb.toString().substring(0, caretIndex);
     final strB = sb.toString().substring(caretIndex, sb.toString().length);
@@ -369,7 +451,7 @@ class _TextEditorViewState extends State<TextEditorView> {
 
   String _autoLineBreak(int caretIndex, bool afterSplitter) {
     final sb = StringBuffer();
-    sb.write(_textController.text);
+    sb.write(_bodyController.text);
 
     final strA = sb.toString().substring(0, caretIndex);
     final strB = sb.toString().substring(caretIndex, sb.toString().length);
@@ -379,6 +461,29 @@ class _TextEditorViewState extends State<TextEditorView> {
     } else {
       return "$strA/\n  $strB";
     }
+  }
+
+  Future<Student> _getOrCreateStudent() async {
+    var student = await Student.getByName(_name!);
+    if (student == null) {
+      student = Student.newStudent(name: _name!);
+      await Student.save(student);
+    }
+    return student;
+  }
+
+  Future<Lesson> _getOrCreateLesson(int id) async {
+    var lesson = await Lesson.getLesson(_name, _date);
+    if (lesson == null) {
+      lesson = Lesson(
+          studentId: id, date: _date, topic: _topic!, homework: _homework);
+    } else {
+      lesson.date = _date;
+      lesson.topic = _topic!;
+      lesson.homework = _homework;
+    }
+    await Lesson.saveLesson(lesson);
+    return lesson;
   }
 
   //LOOK UP---------------------------------------------------------------------
@@ -397,12 +502,12 @@ class _TextEditorViewState extends State<TextEditorView> {
       return false;
     }
 
-    _textController.text = _format(_textController.text);
-    final indexStart = _textController.text.indexOf("@ New Language");
-    final indexEnd = (_textController.text.indexOf("@", indexStart + 1) != -1)
-        ? _textController.text.indexOf("@", indexStart + 1)
-        : _textController.text.indexOf(">=");
-    final chunk = _textController.text.substring(indexStart, indexEnd);
+    _bodyController.text = _format(_bodyController.text);
+    final indexStart = _bodyController.text.indexOf("@ New Language");
+    final indexEnd = (_bodyController.text.indexOf("@", indexStart + 1) != -1)
+        ? _bodyController.text.indexOf("@", indexStart + 1)
+        : _bodyController.text.indexOf(">=");
+    final chunk = _bodyController.text.substring(indexStart, indexEnd);
     final terms = chunk.split("\n-");
 
     //skip the first term as it is just the heading
@@ -427,7 +532,7 @@ class _TextEditorViewState extends State<TextEditorView> {
           context: context,
           builder: ((context) {
             return NewLanguageLookUpDialog(
-                lookUpQueries: temp, controller: _textController);
+                lookUpQueries: temp, controller: _bodyController);
           })));
       return true;
     }
@@ -435,101 +540,60 @@ class _TextEditorViewState extends State<TextEditorView> {
   }
 
   //OTHER-----------------------------------------------------------------------
-
-  Future<void> _saveStudent(String name) async {
-    final student = Student();
-    student.name = name;
-    student.active = true;
-    await Student.save(student);
-  }
-
   void _onPressedSubmit() async {
+    // text processed without tabspaces
     String text = _unformat();
-    if (TextModeMethods.checkNeededHeadings(text)) {
-      try {
-        while (text.contains("=<") && text.contains(">=")) {
-          final start = text.indexOf("=<");
-          final stop = text.indexOf(">=");
-          final singleEntry = text.substring(start + 2, stop);
-          text = text.substring(stop + 2, text.length);
 
-          // divide reports into data by section
-          final report = Report(singleEntry);
-          final reportData = report.toDataObj(singleEntry);
+    final student = await _getOrCreateStudent();
+    final lesson = await _getOrCreateLesson(student.id);
 
-          //check if Student exists
-          var student = await Student.getByName(reportData.name);
-          if (student == null) {
-            await _saveStudent(reportData.name);
-            student = await Student.getByName(reportData.name);
-          }
+    // TODO: This validation needs to be better
+    if (_bodyController.text != _template) {
+      final report = Report(
+          studentId: student.id,
+          lessonId: lesson.id,
+          date: _date,
+          topic: _topic!,
+          body: text);
 
-          //format TOPIC
-          String topic =
-              CompanionMethods.convertListToString(reportData.topic)!;
-          //format HOMEWORK
-          String? homework;
-          if (reportData.homework != null) {
-            homework =
-                CompanionMethods.convertListToString(reportData.homework);
-          } else {
-            homework = null;
-          }
+      final pdfDoc = await report.toPdfDoc();
+      final pdfTopic = PdfText();
+      await pdfTopic.process(_topic!, PdfSection.h2);
+      pdfDoc.topic = pdfTopic;
 
-          var lesson = await Lesson.getLesson(reportData.name, reportData.date);
-          if (lesson != null) {
-            lesson.topic = topic;
-            lesson.homework = homework;
-          } else {
-            lesson = Lesson(
-                studentId: student!.id,
-                date: reportData.date,
-                topic: topic,
-                homework: homework);
-          }
-          await Lesson.saveLesson(lesson);
-
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("Lesson saved: ${reportData.name}"),
-            clipBehavior: Clip.antiAlias,
-            showCloseIcon: true,
-          ));
-
-          if (reportData.tables.length > 0) {
-            try {
-              final pdfDoc = await report.toPdfDoc();
-              Navigator.push(context, MaterialPageRoute(
-                builder: (context) {
-                  return PdfPreviewPage(pdfDocument: pdfDoc);
-                },
-              ));
-            } catch (e) {
-              print(e.toString());
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(
-                      "Report could not be made.\nYou may have made a mistake with you notation markers.\nPlease check them again")));
-            }
-          }
-        }
-      } on InputException {
-        final we = InputException("Name, Date, and Topic are required fields");
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(we.cause)));
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(
-            "Error:\nPlease ensure the basic headings \"@ Name\", \"@ Date\", and \"@ Topic\" are present before continuing."),
-        clipBehavior: Clip.antiAlias,
-        showCloseIcon: true,
+      Navigator.push<bool>(context, MaterialPageRoute(
+        builder: (context) {
+          return PdfPreviewPage(pdfDocument: pdfDoc);
+        },
       ));
     }
+
+    // TODO: This code is for a depreciated method of batch-adding lessons.
+    // TODO: Implement later in a seperate mode?
+    // final lReports = (text.contains("===")) ? text.split("===") : null;
+    // if (lReports != null) {
+    //   for (final reportChunk in lReports) {
+    //     final reportObj = Report(
+    //         studentId: student.id,
+    //         lessonId: lesson.id,
+    //         date: _date,
+    //         topic: _topic!,
+    //         body: reportChunk);
+
+    //     final pdfDoc = await reportObj.toPdfDoc();
+    //     Navigator.push(context, MaterialPageRoute(
+    //       builder: (context) {
+    //         return PdfPreviewPage(pdfDocument: pdfDoc);
+    //       },
+    //     ));
+    //   }
+    // } else {}
   }
 
   String _shiftRow(String keyLabel) {
-    final text = _textController.text;
+    final text = _bodyController.text;
 
-    int counterStart = _textController.selection.baseOffset;
+    int counterStart = _bodyController.selection.baseOffset;
     while (true) {
       if (text.substring(counterStart, counterStart + 2) == "\n-" ||
           text.substring(counterStart, counterStart + 2) == "\n@") {
@@ -583,62 +647,63 @@ class _TextEditorViewState extends State<TextEditorView> {
     }
   }
 
-  KeyEventResult _handleKey(RawKeyEvent value) {
-    final k = value.logicalKey;
+  KeyEventResult _handleKey(
+      {required TextEditingController? controller,
+      required RawKeyEvent rawKeyEvent}) {
+    if (controller == null) return KeyEventResult.ignored;
+
+    final k = rawKeyEvent.logicalKey;
 
     // this character is used to format the final report
     if (k.keyLabel == "^") {
       return KeyEventResult.handled;
     }
 
-    if (value is RawKeyDownEvent) {
+    if (rawKeyEvent is RawKeyDownEvent) {
       // print(k.keyLabel);
 
       final List<int> caretIndex = [
-        _textController.selection.baseOffset,
-        _textController.selection.extentOffset
+        controller.selection.baseOffset,
+        controller.selection.extentOffset
       ];
 
       if (CompanionLexer.markers.contains(k.keyLabel)) {
-        final newText = CompanionMethods.autoInsertBrackets(
-            k.keyLabel, _textController, caretIndex[0], caretIndex[1]);
+        final newText = CoMethods.autoInsertBrackets(
+            k.keyLabel, controller, caretIndex[0], caretIndex[1]);
 
-        _textController.text = newText;
-        _textController.selection = TextSelection(
+        controller.text = newText;
+        controller.selection = TextSelection(
             baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
 
         return KeyEventResult.handled;
-      } else if (value.isControlPressed) {
+      } else if (rawKeyEvent.isControlPressed) {
         switch (k.keyLabel) {
           case "Arrow Up":
           case "Arrow Down":
-            _textController.text = _shiftRow(k.keyLabel);
-            _textController.selection = TextSelection(
+            controller.text = _shiftRow(k.keyLabel);
+            controller.selection = TextSelection(
                 baseOffset: caretIndex[0], extentOffset: caretIndex[1]);
             break;
           case "S":
             //_saveReportSync();
             break;
           case "B":
-            _textController.text =
-                CompanionMethods.insertStyleSyntax("**", _textController);
-            _textController.selection = TextSelection(
+            controller.text = CoMethods.insertStyleSyntax("**", controller);
+            controller.selection = TextSelection(
                 baseOffset: caretIndex[0] + 2, extentOffset: caretIndex[1] + 2);
             break;
           case "I":
-            _textController.text =
-                CompanionMethods.insertStyleSyntax("*", _textController);
-            _textController.selection = TextSelection(
+            controller.text = CoMethods.insertStyleSyntax("*", controller);
+            controller.selection = TextSelection(
                 baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
             break;
           case "U":
-            _textController.text =
-                CompanionMethods.insertStyleSyntax("_", _textController);
-            _textController.selection = TextSelection(
+            controller.text = CoMethods.insertStyleSyntax("_", controller);
+            controller.selection = TextSelection(
                 baseOffset: caretIndex[0] + 1, extentOffset: caretIndex[1] + 1);
             break;
           case "Enter":
-            final fullText = _textController.text;
+            final fullText = controller.text;
 
             final before;
             final middle = "\n";
@@ -646,7 +711,7 @@ class _TextEditorViewState extends State<TextEditorView> {
             final newSelectionIndex;
 
             final indexNextLineEnd =
-                fullText.indexOf("\n", _textController.selection.baseOffset);
+                fullText.indexOf("\n", controller.selection.baseOffset);
 
             if (indexNextLineEnd != -1) {
               before = fullText.substring(0, indexNextLineEnd);
@@ -658,8 +723,8 @@ class _TextEditorViewState extends State<TextEditorView> {
               newSelectionIndex = fullText.length + 1;
             }
 
-            _textController.text = "$before$middle$after";
-            _textController.selection =
+            controller.text = "$before$middle$after";
+            controller.selection =
                 TextSelection.collapsed(offset: newSelectionIndex + 1);
 
             return KeyEventResult.handled;
@@ -675,86 +740,60 @@ class _TextEditorViewState extends State<TextEditorView> {
               _fontSize--;
             });
             break;
-          //TODO: this is just a copy from "Enter"'s body
+          // TODO: this is just a copy from "Enter"'s body
           case "V":
-            final fullText = _textController.text;
-
-            final startInd = min(caretIndex[0], caretIndex[1]);
-            final endInd = max(caretIndex[0], caretIndex[1]);
-
-            // final before;
-            // final after;
-            // final newSelectionIndex;
-
-            // final indexNextLineEnd =
-            //     fullText.indexOf("\n", _textController.selection.baseOffset);
-
-            // if (indexNextLineEnd != -1) {
-            //   before = fullText.substring(0, indexNextLineEnd);
-            //   after = fullText.substring(indexNextLineEnd, fullText.length);
-            //   newSelectionIndex = indexNextLineEnd;
-            // } else {
-            //   before = fullText;
-            //   after = "";
-            //   newSelectionIndex = fullText.length + 1;
-            // }
-
-            // _textController.text = "$before- $after";
-            // _textController.selection =
-            //     TextSelection.collapsed(offset: newSelectionIndex + 1);
-
-            return KeyEventResult.ignored;
+          // TODO: create new line marker if controller is main one
           default:
         }
         return KeyEventResult.ignored;
       } else {
         if (!_nonAutoRowStartKeys.contains(k.keyLabel) && //auto-start row
-            _textController.text[caretIndex[0] - 1] == "\n") {
+            _bodyController.text[caretIndex[0] - 1] == "\n") {
           final indexMin =
               (caretIndex[0] < caretIndex[1]) ? caretIndex[0] : caretIndex[1];
 
-          _textController.text = _autoStartRow(k.keyLabel, indexMin);
-          _textController.selection = TextSelection(
+          _bodyController.text = _autoStartRow(k.keyLabel, indexMin);
+          _bodyController.selection = TextSelection(
               baseOffset: caretIndex[0] + 2, extentOffset: caretIndex[1] + 2);
         } else if (k.keyLabel == "|" && //auto-go to new line for RHS cell entry
-            (_textController.text[caretIndex[0] - 1] == "|")) {
-          _textController.text = _autoCellBreak(caretIndex[0]);
-          _textController.selection = TextSelection(
+            (_bodyController.text[caretIndex[0] - 1] == "|")) {
+          _bodyController.text = _autoCellBreak(caretIndex[0]);
+          _bodyController.selection = TextSelection(
               baseOffset: caretIndex[0] + 6, extentOffset: caretIndex[1] + 6);
           return KeyEventResult.handled;
         } else if (k.keyLabel == "/" && //auto-make line break in cell
-            (_textController.text[caretIndex[0] - 1] == "/")) {
+            (_bodyController.text[caretIndex[0] - 1] == "/")) {
           int lineStartIndex = 0;
           int thisIndex;
 
-          if (_textController.text.contains("\n-")) {
-            thisIndex = _textController.text.indexOf("\n-");
+          if (_bodyController.text.contains("\n-")) {
+            thisIndex = _bodyController.text.indexOf("\n-");
 
             while (thisIndex < caretIndex[0]) {
               lineStartIndex = thisIndex;
               thisIndex =
-                  _textController.text.indexOf("\n-", lineStartIndex + 1);
+                  _bodyController.text.indexOf("\n-", lineStartIndex + 1);
 
               if (thisIndex == -1) {
-                lineStartIndex = _textController.text.indexOf("\n-");
+                lineStartIndex = _bodyController.text.indexOf("\n-");
                 break;
               }
             }
           } else {
-            thisIndex = _textController.text.indexOf("\n");
+            thisIndex = _bodyController.text.indexOf("\n");
           }
 
           final start = lineStartIndex;
           final end = caretIndex[0];
 
-          final line = _textController.text.substring(start, end);
+          final line = _bodyController.text.substring(start, end);
           if (line.contains("||") && (line.indexOf("||") < caretIndex[0])) {
-            _textController.text = _autoLineBreak(caretIndex[0], true);
-            _textController.selection = TextSelection(
+            _bodyController.text = _autoLineBreak(caretIndex[0], true);
+            _bodyController.selection = TextSelection(
                 baseOffset: caretIndex[0] + 6, extentOffset: caretIndex[1] + 6);
           } else {
-            _textController.text = _autoLineBreak(caretIndex[0], false);
-            _textController.selection = TextSelection(
+            _bodyController.text = _autoLineBreak(caretIndex[0], false);
+            _bodyController.selection = TextSelection(
                 baseOffset: caretIndex[0] + 4, extentOffset: caretIndex[1] + 4);
           }
           return KeyEventResult.handled;
@@ -765,9 +804,9 @@ class _TextEditorViewState extends State<TextEditorView> {
   }
 
   void _duplicateCorrections() {
-    _textController.text = _format(_textController.text);
+    _bodyController.text = _format(_bodyController.text);
 
-    final fullText = _textController.text;
+    final fullText = _bodyController.text;
     final StringBuffer sb = StringBuffer();
 
     // get the full "Corrections" text chunk
@@ -799,79 +838,32 @@ class _TextEditorViewState extends State<TextEditorView> {
     final middle = sb.toString().trim();
     final after = fullText.substring(indexEnd, fullText.length);
 
-    _textController.text = "$before\n$middle\n\n$after";
+    _bodyController.text = "$before\n$middle\n\n$after";
+  }
+
+  DateTime? _convertStringToDateTime(String day, String month, String year) {
+    if (!CoMethods.tryParseToInt(day) || !CoMethods.tryParseToInt(year))
+      return null;
+    if (!_monthsMap.keys.contains(month)) return null;
+
+    int yearNum = int.parse(year);
+
+    if (yearNum > DateTime.now().year || yearNum < 2000) return null;
+
+    int dayNum = int.parse(day);
+    int monthNum = _monthsMap[month];
+
+    return DateFormat("yyyy-MM-dd").parse("$yearNum-$monthNum-$dayNum");
   }
 }
 
 // The storage area-------------------------------------------------------------
 
-class CamblyQuickAddDialog extends StatelessWidget {
-  const CamblyQuickAddDialog({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final _textController = TextEditingController();
-
-    return AlertDialog(
-      title: Text("Cambly Quick Add"),
-      actions: [
-        Text("Copy and paste your Cambly history list into this field."),
-        Expanded(
-            child: SingleChildScrollView(
-          child: TextField(maxLines: null, controller: _textController),
-        )),
-        Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
-        ElevatedButton(
-            onPressed: () async {
-              final array = _textController.text.split("An");
-              final dates = <String>[];
-
-              for (final str in array) {
-                final date = str.trimLeft().split("\n")[0];
-
-                if (date.isNotEmpty && !dates.contains(date)) {
-                  dates.add(date);
-                }
-              }
-
-              final id = await Student.getId("An"); //Student.getIdByName("An");
-              for (final date in dates) {
-                final datetime = HomeController.convertStringToDateTime(
-                    date.substring(date.indexOf(" ") + 1, date.indexOf(", ")),
-                    date.substring(0, 3),
-                    date.substring(date.length - 4, date.length));
-
-                await Lesson.saveLesson(Lesson(
-                    studentId: id,
-                    date: datetime!,
-                    topic: "-",
-                    homework: null));
-              }
-            },
-            child: Text("OK"))
-      ],
-    );
-  }
-}
-
-final _template = """=<
-
-@ Name
-
-
-@ Date
-- ${CompanionMethods.getShortDate(DateTime.now())}
-
-@ Topic
-
-
-@ New Language
+final _template = """@ New Language
 
 
 @ Pronunciation
 
 
 @ Corrections
-
-
->=""";
+""";

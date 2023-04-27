@@ -8,6 +8,46 @@ enum lexerColours {
 class CompanionLexer {
   static const markers = <String>["*", "{", "(", "\"", "[", "_"];
 
+  static Map<RegExp, TextStyle> highlighter = {
+    // row cell splitter
+    RegExp(r"\|{2}"):
+        TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
+    // cell line break
+    RegExp(r"\/{2}"):
+        TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
+    // heading marker
+    RegExp(r"\n\@ .+"): TextStyle(
+        color: Color.fromARGB(255, 189, 180, 51), fontWeight: FontWeight.bold),
+    RegExp(r"^\@ .+"): TextStyle(
+        color: Color.fromARGB(255, 189, 180, 51), fontWeight: FontWeight.bold),
+    // row start marker
+    RegExp(r"\n\-"): TextStyle(
+        color: Color.fromARGB(255, 176, 144, 56), fontWeight: FontWeight.bold),
+    // comments
+    RegExp(r"\!\![.]+\n"): TextStyle(color: Colors.grey),
+    //italic, bold, bold and italic
+    //TODO: ok?
+    RegExp(r"(?<!\*)\*\*\*[^*]+\*\*\*(?!\*)"):
+        TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+    //TODO: ok?
+    RegExp(r"(?<!\*)\*\*[^*]+\*\*(?!\*)"):
+        TextStyle(fontWeight: FontWeight.bold),
+    RegExp(r"(?<!\*)\*[^*]+\*(?!\*)"): TextStyle(fontStyle: FontStyle.italic),
+    // strikethrough
+    RegExp(r"\s~{2}[ \w&!@#$%\'()\/*\-]+~{2}"):
+        TextStyle(decoration: TextDecoration.lineThrough),
+    // underline
+    RegExp(r"\s\_[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-]+\_"):
+        TextStyle(decoration: TextDecoration.underline),
+    // subtext
+    RegExp(r"[A-Za-z0-9]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue),
+    // skip marker
+    RegExp(r"^\?\?"): TextStyle(
+        color: Colors.indigoAccent,
+        fontWeight: FontWeight.bold,
+        fontStyle: FontStyle.italic)
+  };
+
   static Map<String, TextStyle> styles = {
     r"#[A-Za-z0-9]+": TextStyle(fontSize: 16),
     r"\*[A-Za-z0-9]+\*": TextStyle(fontStyle: FontStyle.italic),
@@ -57,42 +97,4 @@ class CompanionLexer {
 
     return output;
   }
-
-  static Map<RegExp, TextStyle> highlighter = {
-// row cell splitter
-    RegExp(r"\|{2}"):
-        TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
-// cell line break
-    RegExp(r"\/{2}"):
-        TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
-// heading marker
-    RegExp(r"\n\@ .+"): TextStyle(
-        color: Color.fromARGB(255, 189, 180, 51), fontWeight: FontWeight.bold),
-// row start marker
-    RegExp(r"\n\-"): TextStyle(
-        color: Color.fromARGB(255, 176, 144, 56), fontWeight: FontWeight.bold),
-// comments
-    RegExp(r"\!\![.]+\n"): TextStyle(color: Colors.grey),
-//italic, bold, bold and italic
-    //TODO: ok?
-    RegExp(r"(?<!\*)\*\*\*[^*]+\*\*\*(?!\*)"):
-        TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
-    //TODO: ok?
-    RegExp(r"(?<!\*)\*\*[^*]+\*\*(?!\*)"):
-        TextStyle(fontWeight: FontWeight.bold),
-    RegExp(r"(?<!\*)\*[^*]+\*(?!\*)"): TextStyle(fontStyle: FontStyle.italic),
-// strikethrough
-    RegExp(r"\s~{2}[ \w&!@#$%\'()\/*\-]+~{2}"):
-        TextStyle(decoration: TextDecoration.lineThrough),
-// underline
-    RegExp(r"\s\_[a-zA-z0-9 \&\!\@\#\$\%\'\(\)\/\-]+\_"):
-        TextStyle(decoration: TextDecoration.underline),
-//subtext
-    RegExp(r"[A-Za-z0-9]+\{[^}]*\}"): TextStyle(color: Colors.lightBlue),
-// skip marker
-    RegExp(r"^\?\?"): TextStyle(
-        color: Colors.indigoAccent,
-        fontWeight: FontWeight.bold,
-        fontStyle: FontStyle.italic)
-  };
 }
