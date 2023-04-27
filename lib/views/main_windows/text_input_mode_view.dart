@@ -1,14 +1,11 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
 import 'package:lesson_companion/controllers/co_methods.dart';
 import 'package:lesson_companion/controllers/styler.dart';
-import 'package:lesson_companion/controllers/text_mode_input_controller.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/dictionary/look_up.dart';
 import 'package:lesson_companion/models/lesson.dart';
@@ -84,6 +81,159 @@ class _TextEditorViewState extends State<TextEditorView> {
   };
 
   //MAIN------------------------------------------------------------------------
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: FocusScope(
+            autofocus: true,
+            canRequestFocus: true,
+            onKey: (node, event) {
+              return _handleKey(
+                  controller: _currentController, rawKeyEvent: event);
+            },
+            child: Column(children: [
+              // tool bar
+              Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          // NAME Textfield
+                          flex: 2,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(3, 4, 1, 2),
+                            child: TextField(
+                              controller: _nameController,
+                              onChanged: (newText) {
+                                _name = newText;
+                              },
+                              style: TextStyle(
+                                fontSize: _fontSize,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 13,
+                                  vertical: 9,
+                                ),
+                                isDense: true,
+                                hintText: "Name",
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(1, 4, 3, 2),
+                              child: TextFormField(
+                                readOnly: true,
+                                onTap: () async {
+                                  await showDatePicker(
+                                    context: context,
+                                    initialDate: _date,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2099),
+                                  ).then((selectedDate) {
+                                    setState(() {
+                                      _date = selectedDate!;
+                                      _dateController.text =
+                                          CoMethods.getShortDate(_date);
+                                    });
+                                  });
+                                },
+                                textInputAction: TextInputAction.next,
+                                controller: _dateController,
+                                textAlign: TextAlign.center,
+                                decoration: InputDecoration(
+                                  border: const OutlineInputBorder(),
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 13,
+                                    vertical: 9,
+                                  ),
+                                ),
+                                style: TextStyle(fontSize: _fontSize),
+                                maxLines: 1,
+                              ),
+                            ))
+                      ],
+                    ),
+                    Focus(
+                      child: TextFieldOutlined(
+                        hint: "Topic",
+                        controller: _topicController,
+                        size: _fontSize,
+                        onTextChanged: (text) {
+                          _topic = text;
+                        },
+                      ),
+                      onFocusChange: (_) {
+                        _currentController = _topicController;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // main text field
+              Expanded(
+                child: Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Focus(
+                            child: RawKeyboardListener(
+                              focusNode: _textNode,
+                              autofocus: true,
+                              child: TextField(
+                                controller: _bodyController,
+                                onSubmitted: ((_) {
+                                  _bodyController.selection =
+                                      TextSelection.collapsed(offset: 0);
+                                }),
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10.0),
+                                    ),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 13,
+                                    vertical: 9,
+                                  ),
+                                ),
+                                style: TextStyle(
+                                  fontSize: _fontSize,
+                                  fontFamily: "Roboto",
+                                ),
+                                maxLines: null,
+                                expands: true,
+                              ),
+                            ),
+                            onFocusChange: (_) {
+                              _currentController = _bodyController;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: ElevatedButton(
+                    onPressed: _onPressedSubmit,
+                    child: const Text("Submit"),
+                  ))
+            ])));
+  }
 
   @override
   initState() {
@@ -181,163 +331,6 @@ class _TextEditorViewState extends State<TextEditorView> {
             child: Text("OK"))
       ],
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        body: FocusScope(
-            autofocus: true,
-            canRequestFocus: true,
-            onKey: (node, event) {
-              return _handleKey(
-                  controller: _currentController, rawKeyEvent: event);
-            },
-            child: Column(children: [
-              // tool bar
-              Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          // NAME Textfield
-                          flex: 2,
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(3, 4, 1, 2),
-                            child: TextField(
-                              controller: _nameController,
-                              onChanged: (newText) {
-                                _name = newText;
-                              },
-                              style: TextStyle(
-                                fontSize: _fontSize,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 13,
-                                  vertical: 9,
-                                ),
-                                isDense: true,
-                                hintText: "Name",
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                            flex: 1,
-                            child: Padding(
-                              padding: EdgeInsets.fromLTRB(1, 4, 3, 2),
-                              child: Expanded(
-                                // DATE Textfield
-                                flex: 1,
-                                child: TextFormField(
-                                  readOnly: true,
-                                  onTap: () async {
-                                    await showDatePicker(
-                                      context: context,
-                                      initialDate: _date,
-                                      firstDate: DateTime(2000),
-                                      lastDate: DateTime(2099),
-                                    ).then((selectedDate) {
-                                      setState(() {
-                                        _date = selectedDate!;
-                                        _dateController.text =
-                                            CoMethods.getShortDate(_date);
-                                      });
-                                    });
-                                  },
-                                  textInputAction: TextInputAction.next,
-                                  controller: _dateController,
-                                  textAlign: TextAlign.center,
-                                  decoration: InputDecoration(
-                                    border: const OutlineInputBorder(),
-                                    isDense: true,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 13,
-                                      vertical: 9,
-                                    ),
-                                  ),
-                                  style: TextStyle(fontSize: _fontSize),
-                                  maxLines: 1,
-                                ),
-                              ),
-                            ))
-                      ],
-                    ),
-                    Focus(
-                      child: TextFieldOutlined(
-                        hint: "Topic",
-                        controller: _topicController,
-                        size: _fontSize,
-                        onTextChanged: (text) {
-                          _topic = text;
-                        },
-                      ),
-                      onFocusChange: (_) {
-                        _currentController = _topicController;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              // main text field
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Focus(
-                            child: RawKeyboardListener(
-                              focusNode: _textNode,
-                              autofocus: true,
-                              child: TextField(
-                                controller: _bodyController,
-                                onSubmitted: ((_) {
-                                  _bodyController.selection =
-                                      TextSelection.collapsed(offset: 0);
-                                }),
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(10.0),
-                                    ),
-                                  ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 13,
-                                    vertical: 9,
-                                  ),
-                                ),
-                                style: TextStyle(
-                                  fontSize: _fontSize,
-                                  fontFamily: "Roboto",
-                                ),
-                                maxLines: null,
-                                expands: true,
-                              ),
-                            ),
-                            onFocusChange: (_) {
-                              _currentController = _bodyController;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: ElevatedButton(
-                    onPressed: _onPressedSubmit,
-                    child: const Text("Submit"),
-                  ))
-            ])));
   }
 
   //FORMATTING------------------------------------------------------------------
