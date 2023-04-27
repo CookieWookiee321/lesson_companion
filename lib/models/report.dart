@@ -5,6 +5,7 @@ import 'package:lesson_companion/models/pdf_document/pdf_doc.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table_row.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
+import 'package:lesson_companion/models/student.dart';
 
 part 'report.g.dart';
 
@@ -16,7 +17,7 @@ class Report {
       required this.date,
       required this.topic,
       this.homework,
-      required this.body}) {}
+      required this.body});
 
   Id id = Isar.autoIncrement;
   int studentId;
@@ -28,7 +29,7 @@ class Report {
 
   /// Creates and saves a report PDF based on the parent object.
   Future<PdfDoc> toPdfDoc() async {
-    final dataObj = this.toDataObj();
+    final dataObj = await this.toDataObj();
 
     // transform string vars into the right from to be printed
     final topics = CoMethods.convertListToString(dataObj.topic);
@@ -154,13 +155,19 @@ class Report {
   }
 
   /// Converts this [Report] into a [ReportData] object.
-  ReportData toDataObj() {
+  Future<ReportData> toDataObj() async {
     String text = this.body;
     final headingPrefix = "@";
     final linePrefix = "\n-";
 
     final tables = <ReportTableData>[];
     final output = ReportData.late(null, tables);
+
+    // set data straight from parent object
+    output.name = await Student.getName(this.studentId) ?? "";
+    output.date = this.date;
+    output.topic = [this.topic];
+    output.homework = (this.homework != null) ? [this.homework!] : null;
 
     int iStart; // starting index of text chunk
     int iEnd; // ending index of text chunk
