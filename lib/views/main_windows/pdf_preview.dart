@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lesson_companion/controllers/companion_methods.dart';
+import 'package:lesson_companion/controllers/co_methods.dart';
 import 'package:printing/printing.dart';
 
 import '../../models/pdf_document/pdf_doc.dart';

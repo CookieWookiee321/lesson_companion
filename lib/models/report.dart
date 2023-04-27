@@ -1,5 +1,5 @@
 import 'package:isar/isar.dart';
-import 'package:lesson_companion/controllers/companion_methods.dart';
+import 'package:lesson_companion/controllers/co_methods.dart';
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_doc.dart';
 import 'package:lesson_companion/models/pdf_document/pdf_table.dart';

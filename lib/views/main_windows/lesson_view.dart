@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/database.dart';
 import 'package:lesson_companion/models/lesson.dart';
 
-import '../../controllers/companion_methods.dart';
+import '../../controllers/co_methods.dart';
 import '../../models/student.dart';
 
 //==============================================================================

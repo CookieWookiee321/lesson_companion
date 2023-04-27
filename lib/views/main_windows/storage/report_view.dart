@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lesson_companion/controllers/companion_methods.dart';
+import 'package:lesson_companion/controllers/co_methods.dart';
 import 'package:lesson_companion/models/report.dart';
 import 'package:lesson_companion/models/report_details.dart';
 

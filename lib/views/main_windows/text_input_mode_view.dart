@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
-import 'package:lesson_companion/controllers/companion_methods.dart';
+import 'package:lesson_companion/controllers/co_methods.dart';
 import 'package:lesson_companion/controllers/styler.dart';
 import 'package:lesson_companion/controllers/text_mode_input_controller.dart';
 import 'package:lesson_companion/models/database.dart';
