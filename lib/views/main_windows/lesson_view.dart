@@ -1,7 +1,9 @@
 import 'package:alphabet_scroll_view/alphabet_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:lesson_companion/models/database.dart';
+import 'package:lesson_companion/models/less_comp_richtext.dart';
 import 'package:lesson_companion/models/lesson.dart';
+import 'package:lesson_companion/models/pdf_document/pdf_text.dart';
 
 import '../../controllers/co_methods.dart';
 import '../../models/student.dart';
@@ -27,6 +29,22 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
   double _scrollPositionAlphabet = 0.0;
   final _scrollControllerNames = ScrollController();
   double _scrollPositionNames = 0.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          //NAME LIST
+          Expanded(
+            child: _nameListView(),
+          ),
+          // LIST OF LESSONS
+          Expanded(child: _lessonListView())
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -64,7 +82,7 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
   Widget _nameListView() {
     return FutureBuilder(
         future: _getNames(_onlyActive!),
-        builder: (context, snapshot) {
+        builder: (_, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return AlphabetScrollView(
               itemBuilder: (context, index, value) {
@@ -115,10 +133,13 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
                   itemCount: _lessons!.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      leading:
-                          Text(CoMethods.getShortDate(_lessons![index].date)),
-                      title:
-                          Text(_lessons![index].topic.replaceAll("//", "\n")),
+                      leading: Text(
+                        CoMethods.getDateString(_lessons![index].date),
+                        style: TextStyle(fontSize: 11.0),
+                      ),
+                      title: LessCompText(
+                              _lessons![index].topic.replaceAll("//", "\n"))
+                          .toRichText(),
                       onTap: () async {
                         final id = _students!
                             .where((s) => s.name! == _selectedStudent!)
@@ -156,22 +177,6 @@ class _LessonHistoryViewState extends State<LessonHistoryView> {
                 )
               : Icon(Icons.more_horiz);
         },
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          //NAME LIST
-          Expanded(
-            child: _nameListView(),
-          ),
-          // LIST OF LESSONS
-          Expanded(child: _lessonListView())
-        ],
       ),
     );
   }

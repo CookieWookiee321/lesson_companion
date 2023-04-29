@@ -1,4 +1,5 @@
 import 'package:lesson_companion/models/pdf_document/pdf_textspan.dart';
+import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as w;
 
 import '../../controllers/styler.dart';
@@ -83,30 +84,34 @@ class PdfText {
 
     for (final pdfTextSpan in components) {
       final w.TextDecoration? decor;
-      if (pdfTextSpan.strikethrough && pdfTextSpan.underline) {
+      if (pdfTextSpan.strikethrough! && pdfTextSpan.underline!) {
         decor = w.TextDecoration.combine(
             [w.TextDecoration.underline, w.TextDecoration.lineThrough]);
-      } else if (pdfTextSpan.strikethrough) {
+      } else if (pdfTextSpan.strikethrough!) {
         decor = w.TextDecoration.lineThrough;
-      } else if (pdfTextSpan.underline) {
+      } else if (pdfTextSpan.underline!) {
         decor = w.TextDecoration.underline;
       } else {
         decor = null;
       }
 
-      final span = w.TextSpan(
-          text: pdfTextSpan.text,
-          style: w.TextStyle(
-              fontSize: pdfTextSpan.size,
-              decoration: decor != null ? decor : null,
-              color: pdfTextSpan.color,
-              fontWeight:
-                  pdfTextSpan.bold ? w.FontWeight.bold : w.FontWeight.normal,
-              fontStyle: pdfTextSpan.italic
-                  ? w.FontStyle.italic
-                  : w.FontStyle.normal));
+      final fontWeight;
+      if (pdfTextSpan.bold!) {
+        final span = w.TextSpan(
+            text: pdfTextSpan.text,
+            style: w.TextStyle(
+                fontSize: pdfTextSpan.style!.fontSize,
+                decoration: decor != null ? decor : null,
+                color: PdfColor.fromInt(pdfTextSpan.style!.color!.value),
+                fontWeight: (pdfTextSpan.bold!)
+                    ? w.FontWeight.bold
+                    : w.FontWeight.normal,
+                fontStyle: pdfTextSpan.italic!
+                    ? w.FontStyle.italic
+                    : w.FontStyle.normal));
 
-      textSpans.add(span);
+        textSpans.add(span);
+      }
     }
     return w.RichText(text: w.TextSpan(children: textSpans));
   }

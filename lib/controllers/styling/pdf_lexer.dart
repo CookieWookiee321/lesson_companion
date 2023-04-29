@@ -88,39 +88,40 @@ class PdfLexer {
       numMatches++;
       final matches = RegExp(expression).allMatches(text);
 
-      for (final match in matches) {
-        final thisPdfTextSpan = PdfTextSpan(
-            text: _removeSyntaxMarkers(
-                input: match.input.toString().substring(match.start, match.end),
-                regExp: expression));
-        thisPdfTextSpan.size = baseHeight;
+      bool bold = false;
+      bool italic = false;
+      bool underline = false;
+      bool strikethrough = false;
+      p.PdfColor color = p.PdfColor(255, 255, 255);
+      double size = 12;
 
+      for (final match in matches) {
         switch (styles[expression]) {
           case StylingOption.bold:
-            thisPdfTextSpan.bold = true;
+            bold = true;
             break;
           case StylingOption.italic:
-            thisPdfTextSpan.italic = true;
+            italic = true;
             break;
           case StylingOption.boldAndItalic:
-            thisPdfTextSpan.bold = true;
-            thisPdfTextSpan.italic = true;
+            bold = true;
+            italic = true;
             break;
           case StylingOption.coloured:
-            thisPdfTextSpan.color = PdfStyler.parseTextColour(match.toString());
+            color = PdfStyler.parseTextColour(match.toString());
             break;
           case StylingOption.subtext:
-            thisPdfTextSpan.size = subHeight;
+            size = subHeight;
             break;
           case StylingOption.underline:
-            thisPdfTextSpan.underline = true;
+            underline = true;
             break;
           case StylingOption.strikethrough:
-            thisPdfTextSpan.strikethrough = true;
+            strikethrough = true;
             break;
           case StylingOption.link:
-            thisPdfTextSpan.underline = true;
-            thisPdfTextSpan.color = p.PdfColors.blue;
+            underline = true;
+            color = p.PdfColors.blue;
             break;
           default: // snippet
             final snippetName = match.input
@@ -131,21 +132,21 @@ class PdfLexer {
               baseHeight = snippet.size;
 
               final colour = snippet.getPdfColour();
-              if (colour != null) thisPdfTextSpan.color = colour;
+              if (colour != null) color = colour;
 
               for (final style in snippet.styles) {
                 switch (style) {
                   case 1:
-                    thisPdfTextSpan.bold = true;
+                    bold = true;
                     break;
                   case 2:
-                    thisPdfTextSpan.italic = true;
+                    italic = true;
                     break;
                   case 3:
-                    thisPdfTextSpan.underline = true;
+                    underline = true;
                     break;
                   case 4:
-                    thisPdfTextSpan.strikethrough = true;
+                    strikethrough = true;
                     break;
                   default:
                     continue;
@@ -154,6 +155,16 @@ class PdfLexer {
               break;
             }
         }
+
+        final thisPdfTextSpan = PdfTextSpan.builder(
+            text: _removeSyntaxMarkers(
+                input: match.input.toString().substring(match.start, match.end),
+                regExp: expression),
+            size: baseHeight,
+            italic: italic,
+            underline: underline,
+            strikethrough: strikethrough,
+            color: color);
 
         output[match.start] = thisPdfTextSpan;
         String replacement = "";
@@ -189,7 +200,7 @@ class PdfLexer {
     }
 
     if (numMatches == 0) {
-      output[0] = PdfTextSpan(text: text, size: baseHeight);
+      output[0] = PdfTextSpan(text: text);
     } else if (sbTwo.isNotEmpty) {
       output[counterStart] = PdfTextSpan(text: sbTwo.toString());
     }
