@@ -164,10 +164,10 @@ class LessCompText {
 
   String _removeSyntaxMarkers({required String input, required String regExp}) {
     switch (regExp) {
-      case r"(?<!\*)\*\*[^*]+\*\*(?!\*)":
+      case r"(?<!\*)\*[^*]+\*(?!\*)":
       case r"(?<!\S)(\_{1})[^*]+\1(?!\S)":
         return input.substring(1, input.length - 1);
-      case r"(?<!\S)(\*{2})[^*]+\1(?!\S)":
+      case r"(?<!\*)\*\*[^*]+\*\*(?!\*)":
         return input.substring(2, input.length - 2);
       case r"(?<!\S)(\*{3})[^*]+\1(?!\S)":
         return input.substring(3, input.length - 3);

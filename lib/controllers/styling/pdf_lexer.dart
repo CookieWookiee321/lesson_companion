@@ -18,8 +18,6 @@ enum StylingOption {
 
 class PdfLexer {
   static Map<String, StylingOption> styles = {
-    // r"\B##\s[A-Za-z0-9]+$": StylingOption.bold,
-    // r"\B#\s[A-Za-z0-9]+$": (fontWeight: FontWeight.bold),
     r"(?<!\S)(\*{1})[^*]+\1(?!\S)": StylingOption.italic,
     r"(?<!\S)(\*{2})[^*]+\1(?!\S)": StylingOption.bold,
     r"(?<!\S)(\*{3})[^*]+\1(?!\S)": StylingOption.boldAndItalic,
@@ -28,8 +26,6 @@ class PdfLexer {
     r"sub\<.*?\>": StylingOption.subtext,
     r"col<([A-Za-z0-9]+( [A-Za-z0-9]+)+) :: [a-zA-Z]+>": StylingOption.coloured,
     r"[A-Za-z0-9]+\{[^}]*\}": StylingOption.snippet
-    // r"lnk<([A-Za-z0-9]+( [A-Za-z0-9]+)+) :: ([A-Za-z0-9]+(\.[A-Za-z0-9]+)+)>":
-    //     StylingOption.link,
   };
 
   static Future<List<PdfTextSpan>> toPdfTextSpanList(

@@ -86,9 +86,9 @@ class _TextEditorViewState extends State<TextEditorView> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: FocusScope(
-            autofocus: true,
+            autofocus: false,
             canRequestFocus: true,
-            onKey: (node, event) {
+            onKey: (_, event) {
               return _handleKey(
                   controller: _currentController, rawKeyEvent: event);
             },
@@ -103,28 +103,35 @@ class _TextEditorViewState extends State<TextEditorView> {
                         Expanded(
                           // NAME Textfield
                           flex: 2,
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(3, 4, 1, 2),
-                            child: TextField(
-                              controller: _nameController,
-                              onChanged: (newText) {
-                                _name = newText;
+                          child: Focus(
+                              autofocus: true,
+                              onFocusChange: (inFocus) {
+                                if (inFocus) {
+                                  _currentController = null;
+                                }
                               },
-                              style: TextStyle(
-                                fontSize: _fontSize,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 13,
-                                  vertical: 9,
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(3, 4, 1, 2),
+                                child: TextField(
+                                  controller: _nameController,
+                                  onChanged: (newText) {
+                                    _name = newText;
+                                  },
+                                  style: TextStyle(
+                                    fontSize: _fontSize,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 13,
+                                      vertical: 9,
+                                    ),
+                                    isDense: true,
+                                    hintText: "Name",
+                                  ),
                                 ),
-                                isDense: true,
-                                hintText: "Name",
-                              ),
-                            ),
-                          ),
+                              )),
                         ),
                         Expanded(
                             flex: 1,
@@ -172,8 +179,10 @@ class _TextEditorViewState extends State<TextEditorView> {
                           _topic = text;
                         },
                       ),
-                      onFocusChange: (_) {
-                        _currentController = _topicController;
+                      onFocusChange: (inFocus) {
+                        if (inFocus) {
+                          _currentController = _topicController;
+                        }
                       },
                     ),
                   ],
@@ -216,8 +225,10 @@ class _TextEditorViewState extends State<TextEditorView> {
                                 expands: true,
                               ),
                             ),
-                            onFocusChange: (_) {
-                              _currentController = _bodyController;
+                            onFocusChange: (inFocus) {
+                              if (inFocus) {
+                                _currentController = _bodyController;
+                              }
                             },
                           ),
                         ),
@@ -262,10 +273,11 @@ class _TextEditorViewState extends State<TextEditorView> {
 
   @override
   void dispose() {
-    Database.saveSetting(SharedPrefOption.fontSize, _fontSize);
-
     window.onKeyData = null;
     _bodyController.dispose();
+    _nameController.dispose();
+    _dateController.dispose();
+    _topicController.dispose();
     super.dispose();
   }
 
@@ -343,8 +355,8 @@ class _TextEditorViewState extends State<TextEditorView> {
     final lesson = await _getOrCreateLesson(student.id);
     final report;
 
-    // TODO: This validation needs to be better
-    if (_bodyController.text != _template) {
+    if ((_bodyController.text != _template) |
+        (_bodyController.text.isNotEmpty)) {
       report = Report(
           studentId: student.id,
           lessonId: lesson.id,
